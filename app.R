@@ -2,7 +2,6 @@ library(ggplot2)
 library(shiny)
 library(shinyjs)
 library(shinyFiles)
-#install.packages("shinyFiles")
 #library(sound)
 library(tuneR)
 library(seewave)
@@ -11,64 +10,32 @@ library(reticulate)
 #library(seewave)
 library(plotly)
 library(oce)
-#install.packages('viridis')
 library(viridis)
 library(grid)
 library(gridExtra)
 library(cowplot)
-#install.packages('cowplot')
+
 source('plot_helpers.R')
 source('spectrogram_params.R')
 
 mydir <- getwd()
-#setwd('C:/Users/Anthony/OneDrive - Maynooth University/Documents/GitHub/batdetect/bat_train')
-#data_set_params <- import('data_set_params')
-#params <- data_set_params$DataSetParams()
-#params$window_width
-
-
-#tf <- import('tensorflow')
-#np <- import('numpy')
-
-#setwd('C:/Users/Anthony/OneDrive - Maynooth University/
-#Documents/GitHub/batdetect/bat_train')
-#helper_fns <- import('helper_fns')
-#setwd(mydir)
-
-
-#wavfile <- import('scipy.io.wavfile')
 
 folder_path <- 'www'
-#folder_path <- 'C:\\Users\\Anthony\\OneDrive - Maynooth University\\
-#November_test_audio_work\\November_test_samples\\Aoibheann'
 
 files       <- list.files(folder_path)
 
 tmp_file    <- files[1]
-tmp_path    <- paste0(folder_path, '\\', tmp_file)
+tmp_path    <- file.path(folder_path, tmp_file)
 
-tmp_audio <- readWave(tmp_path)
+tmp_audio   <- readWave(tmp_path)
 tmp_audio
 
-# ie 1024/44100.0 about 23 msecs.
-
-1024/24000
-
 spec <- spectro(tmp_audio, tmp_audio@samp.rate, 
-                #wl       = params$window_width, 
+                wl       = params$window_width, 
                 ovlp     = params$fft_overlap, 
                 fastdisp = TRUE,
                 plot     = FALSE)
-#params$window_width
 
-#tmp_audio@samp.rate
-
-#tmp_list <- wavfile$read(tmp_path)
-
-#sampling_rate <- tmp_list[[1]]
-#audio_samples <- tmp_list[[2]]
-
-#plot(spectrogram)
 #change file size to 30MB
 options(shiny.maxRequestSize=30*1024^2)
 
@@ -110,20 +77,20 @@ server <- function(input, output) {
   
   #df <- data.frame(time = c(1), frequency = c(1), amplitude = c(1))
   
-  output$plot1 <- renderPlot({
+  audioInput <- reactive({
     if(is.null(input$file1))     
       return(NULL) 
     
-    #tmp_list = wavfile$read(input$file1$datapath)
-    #sampling_rate = tmp_list[[1]]
-    #audio_samples = tmp_list[[2]]
-    #wavfile$write('tmp_wav', sampling_rate, audio_samples)
-    
     tmp_audio <- readWave(input$file1$datapath)
-    
     setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
-    writeWave(tmp_audio, 'tmp.wav')#, extensible=FALSE)
-    
+    writeWave(tmp_audio, 'www/tmp.wav')
+    return(tmp_audio)
+  })
+  
+  specData <- reactive({
+    if(is.null(input$file1))     
+      return(NULL)
+    tmp_audio <- audioInput()
     spec <- spectro(tmp_audio, tmp_audio@samp.rate, 
                     wl       = params$window_width, 
                     ovlp     = params$fft_overlap, 
@@ -135,13 +102,25 @@ server <- function(input, output) {
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
     
-    vals <- reactiveValues(
-      keeprows = rep(TRUE, nrow(df))
-    )
-    
     write.csv(df, 'tmp_df.csv')
-    #spec_dims <- dim(spec$amp)
-    #asp_ratio <- spec_dims[2]/spec_dims[1]
+    return(df)
+  })
+  
+  oscData <- reactive(({
+    if(is.null(input$file1))     
+      return(NULL)
+    tmp_audio <- audioInput()
+    df2 <- data.frame(time    = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
+                      amplitude = tmp_audio@left - mean(tmp_audio@left))
+    return(df2)
+  }))
+  
+  output$plot1 <- renderPlot({
+    if(is.null(input$file1))     
+      return(NULL)
+    tmp_audio <- audioInput()
+    df <- specData()
+    df2 <- oscData()
     
     spec_plot <- ggplot(df, aes_string(x = 'time',
                                        y = 'frequency', 
@@ -154,9 +133,7 @@ server <- function(input, output) {
       scale_fill_viridis("Amplitude\n(dB)\n") +
       hot_theme_grid
     
-    df2 <- data.frame(time    = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
-                      amplitude = tmp_audio@left - mean(tmp_audio@left))
-    
+        
     osc_plot <- ggplot(df2)+
       geom_line(mapping = aes(x=time, y=amplitude), color="red")+ 
       #scale_x_continuous(labels=s_formatter, expand = c(0,0))+
@@ -174,9 +151,9 @@ server <- function(input, output) {
     #plot_grid(plot_grid(spec_plot, spec_legend, align="h", rel_widths = c(1,0.1)),
     #          plot_grid(osc_plot,  osc_legend, rel_widths = c(1,0.1)), nrow=2, rel_heights = c(1,0.4))
     
-    gA=ggplot_gtable(ggplot_build(spec_plot))
-    gB=ggplot_gtable(ggplot_build(osc_plot))
-    maxWidth = grid::unit.pmax(gA$widths, gB$widths)
+    gA <- ggplot_gtable(ggplot_build(spec_plot))
+    gB <- ggplot_gtable(ggplot_build(osc_plot))
+    maxWidth  <- grid::unit.pmax(gA$widths, gB$widths)
     gA$widths <- as.list(maxWidth)
     gB$widths <- as.list(maxWidth)
     layo <- rbind(c(1,1,1),
@@ -188,11 +165,7 @@ server <- function(input, output) {
     grid.newpage()
     grid.arrange(gA, gB, layout_matrix = layo)
     
-  }, height = 300, width = 900)
-  
-  # Toggle points that are clicked
-  #browser
-  #df <- read.csv('tmp_df.csv')
+  })#, height = 300, width = 900)
   
   #observeEvent(input$plot1_click, {
   #  res <- nearPoints(df, input$plot1_click, 
@@ -202,16 +175,16 @@ server <- function(input, output) {
   #})
   
   # Toggle points that are brushed, when button is clicked
-  observeEvent(input$exclude_toggle, {
-    res <- brushedPoints(df, input$plot1_brush, allRows = TRUE)
-    
-    vals$keeprows <- xor(vals$keeprows, res$selected_)
-  })
+  #observeEvent(input$exclude_toggle, {
+  #  res <- brushedPoints(df, input$plot1_brush, allRows = TRUE)
+  #  
+  #  vals$keeprows <- xor(vals$keeprows, res$selected_)
+  #})
   
   # Reset all points
-  observeEvent(input$exclude_reset, {
-    vals$keeprows <- rep(TRUE, nrow(df))
-  })
+  #observeEvent(input$exclude_reset, {
+  #  vals$keeprows <- rep(TRUE, nrow(df))
+  #})
   
   observeEvent(input$plot1_brush, {
     enable("save_points")
@@ -224,6 +197,7 @@ server <- function(input, output) {
     max_freq = 1
     #browser()
     #get x and y cooridnates with max and min of nearPoints()
+    res <- nearPoints(df, input$plot1_click, allRows = TRUE)
     if (!is.null(brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M"),
                            file_name   = input$file1$name,
@@ -241,19 +215,9 @@ server <- function(input, output) {
     }
   })
   
-  #data <- reactive({
-  #  brushedPoints(df, input$plot1_brush, xvar = "time", yvar = "frequency")
-  #})
-  
-  #output$info <- renderPrint({data()})
-  
-  #observeEvent(input$save_points, {
-  #  write.csv(data(), 'brushed_data.csv', row.names = FALSE)
-  #})
-  
   eventReactive(input$play, {
     insertUI(selector = "#play",
-             ui       = tags$audio(src      = markdown:::.b64EncodeFile('tmp.wav'), 
+             ui       = tags$audio(src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
                                    type     = "audio/wav", 
                                    autoplay = TRUE, 
                                    controls = "controls", 
