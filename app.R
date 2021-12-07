@@ -2,12 +2,8 @@ library(ggplot2)
 library(shiny)
 library(shinyjs)
 #library(shinyFiles)
-#library(sound)
 library(tuneR)
 library(seewave) # for spectrogram
-#library(reticulate)
-#library(phonTools)
-#library(seewave)
 #library(plotly)
 #library(oce)
 library(viridis)
@@ -24,7 +20,6 @@ options(shiny.maxRequestSize = 30*1024^2)
 classes <- c("Eurasian Magpie",
              "European Goldfinch",
              "House Sparrow",
-             "European Greenfinch",
              "Noise",
              "Other Bird")
 classes <- sort(classes)
@@ -35,9 +30,10 @@ ui <- fluidPage(
     plotOutput("plot1",
                height = 250, #width = 800,
                click  = "plot1_click",
-               hover  = hoverOpts(id = "plot_hover"),
+               hover  = hoverOpts(id = "plot1_hover"),
                brush  = brushOpts(
-                 id = "plot1_brush"
+                 id   = "plot1_brush", 
+                 clip = FALSE
                )),
   ),
   fluidRow(
@@ -57,18 +53,15 @@ ui <- fluidPage(
                          accept   = "audio/*"))
     ),
     column(3,
-           div(h4("Play"), style = "color: black;",
-               actionButton("play","Play"))
-           #uiOutput('my_audio')
-    ),
-    column(3,
            radioButtons("label_points", "Label Selection:", 
                         choices = classes,
                         #TODO: get classes from other file
-                        inline = TRUE)
-    ),
-    column(3,
+                        inline = TRUE),
+           br(),
            disabled(actionButton("save_points", "Save Selection"))
+    ),
+    column(6,
+           uiOutput('my_audio')
     )
   )
 )
@@ -76,11 +69,6 @@ return(ui)
 }
 
 server <- function(input, output) {
-  # For storing which rows have been excluded
-  #asp_ratio <- 3
-  
-  #df <- data.frame(time = c(1), frequency = c(1), amplitude = c(1))
-  
   audioInput <- reactive({
     if(is.null(input$file1))     
       return(NULL) 
@@ -124,10 +112,12 @@ server <- function(input, output) {
     if(is.null(input$file1))     
       return(NULL)
     
-    p1 <- plot_spectrogram(specData())
+    p1 <- plot_spectrogram(specData(), input)
+    
     p1_widths(p1$widths)
     grid.draw(p1)
   })
+  
   output$plot2 <- renderPlot({
     if(is.null(input$file1))     
       return(NULL)
@@ -143,19 +133,19 @@ server <- function(input, output) {
   
   observeEvent(input$save_points, {
     brush <- input$plot1_brush
-    #browser()
+    
     max_time = 1
     max_freq = 1
-    #browser()
-    #get x and y cooridnates with max and min of nearPoints()
-    #browser()
+    
+    #get x and y cooridnates with max and min of brushedPoints()
+    
     res <- brushedPoints(specData(), input$plot1_brush, #allRows = TRUE,
                          xvar = 'time', yvar = 'frequency')
     
     #sel_rows <- specData()[res$selected_,]
-    
+    #browser()
     if (!is.null(brush)) {
-      lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M:%S"),
+      lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M:%s"),
                            file_name   = input$file1$name,
                            start_time  = min(res$time),#max_time*brush$xmin, 
                            end_time    = max(res$time),#max_time*brush$xmax, 
@@ -171,14 +161,22 @@ server <- function(input, output) {
     }
   })
   
-  observeEvent(input$play, {
-    insertUI(selector = "#play",
-             ui       = tags$audio(src      = input$file1$datapath, 
-                                   type     = "audio/wav", 
-                                   autoplay = NA, 
-                                   controls = NA))#"controls", 
-                                   #style    = "display:none;"))
-  })
+  output$my_audio <- renderUI({
+    if(is.null(input$file1))     
+      return(NULL)
+    tranquil <- "#E0FEFE"
+    tags$audio(id       = 'my_audio_player',
+               src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
+               type     = "audio/wav", 
+               autoplay = NA, 
+               controls = 'controls',
+               style    = HTML("color: tranquil;
+                                download: none;
+                                color: yellow;
+                                width: 250px")
+               )
+    })
 }
+
 
 shinyApp(ui_func(), server)

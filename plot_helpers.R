@@ -9,7 +9,7 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color="black", lin
                             axis.line          = element_blank(),
                             legend.position    = "none",
                             plot.background    = element_rect(fill="black"),
-                            plot.margin        = unit(c(0.3,0.2,0.2,0.1), "lines"),
+                            plot.margin        = unit(c(0.3,0.9,0.2,0.9), "lines"),
                             axis.title.y       = element_text(size=16, color = "grey",
                                                               margin = margin(0,30,0,0)), # element_blank(),
                             axis.title.x       = element_text(size=14, color = "grey"),
@@ -30,7 +30,7 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         legend.title         = element_text(size=16, color="grey"),
                         legend.text          = element_text(size=16, color="grey"),
                         plot.background      = element_rect(fill="black"),
-                        plot.margin          = margin(0.2,0.2,0.3,0.1, "lines"),
+                        plot.margin          = margin(0.2,0.9,0.3,0.9, "lines"),
                         axis.title.x         = element_blank(),
                         axis.title.y         = element_text(size=16, color = "grey",
                                                             margin = margin(0,30,0,0)),
@@ -63,7 +63,7 @@ plot_oscillogram <- function(df){
   return(p)
 }
 
-plot_spectrogram <- function(df){
+plot_spectrogram <- function(df, input){
   spec_plot <- ggplot(df, aes_string(x = 'time',
                                      y = 'frequency', 
                                      z = 'amplitude')) + 
@@ -79,6 +79,17 @@ plot_spectrogram <- function(df){
     hot_theme_grid
   spec_legend <- get_legend(spec_plot)
   spec_plot   <- spec_plot + theme(legend.position='none')
+  
+  #if(!is.null(input$plot1_brush)){
+  #  res <- brushedPoints(df, input$plot1_brush, #allRows = TRUE,
+  #                       xvar = 'time', yvar = 'frequency')
+  #  res$time <- res$time*max(df$time)
+  #  res$frequency <- res$frequency*max(df$frequency)
+  #  spec_plot <- spec_plot + geom_raster(data=res, aes = aes_string(x = 'time',
+  #                                                   y    = 'frequency'),
+  #                         fill = 'green')
+  #}
+  
   p <- ggplot_gtable(ggplot_build(spec_plot))
   
   #browser()
