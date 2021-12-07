@@ -9,9 +9,11 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color="black", lin
                             axis.line          = element_blank(),
                             legend.position    = "none",
                             plot.background    = element_rect(fill="black"),
-                            plot.margin        = unit(c(0,0.1,1,0.1), "lines"),
-                            axis.title.y       = element_blank(),
+                            plot.margin        = unit(c(0.3,0.2,0.2,0.1), "lines"),
+                            axis.title.y       = element_text(size=16, color = "grey",
+                                                              margin = margin(0,30,0,0)), # element_blank(),
                             axis.title.x       = element_text(size=14, color = "grey"),
+                            #axis.text.y        = element_text(margin = margin(0,10,0,0)),
                             axis.text          = element_text(size=14, color = "grey"),
                             axis.ticks         = element_line(color="grey"))
 
@@ -28,12 +30,15 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         legend.title         = element_text(size=16, color="grey"),
                         legend.text          = element_text(size=16, color="grey"),
                         plot.background      = element_rect(fill="black"),
-                        plot.margin          = margin(1,0.1,0,0.1, "lines"),
+                        plot.margin          = margin(0.2,0.2,0.3,0.1, "lines"),
                         axis.title.x         = element_blank(),
-                        axis.title.y         = element_text(size=16, color = "grey"),
+                        axis.title.y         = element_text(size=16, color = "grey",
+                                                            margin = margin(0,30,0,0)),
                         axis.text            = element_text(size=16, color = "grey"),
                         axis.text.x          = element_blank(),
-                        axis.ticks           = element_line(color="grey"))
+                        #axis.text.y          = element_text(margin = margin(0,10,0,0)),
+                        axis.ticks           = element_line(color="grey"),
+                        axis.ticks.x         = element_blank())
 
 plot_oscillogram <- function(df){
   osc_plot <- ggplot(df)+
@@ -41,12 +46,21 @@ plot_oscillogram <- function(df){
     #scale_x_continuous(labels=s_formatter, expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
     xlab("Time (s)") + 
-    geom_hline(yintercept = 0, color="white", linetype = "dotted")+
+    ylab("Amplitude") + 
+    geom_hline(yintercept = 0, color="white", linetype = "dotted") +
+    scale_x_continuous(expand = c(0, 0)) +
+    coord_cartesian(xlim = c(0, 15)) +
     oscillo_theme_dark
   
   osc_legend  <- get_legend(osc_plot)
   osc_plot    <- osc_plot  + theme(legend.position='none')
-  return(osc_plot)
+  p <- ggplot_gtable(ggplot_build(osc_plot))
+  
+  #browser()
+  #fixed_width <- unit(4, 'cm')
+  #p$widths[2:3] <- fixed_width
+  #p1_widths(p$widths)
+  return(p)
 }
 
 plot_spectrogram <- function(df){
@@ -59,8 +73,17 @@ plot_spectrogram <- function(df){
     xlab("Time (s)") + 
     ylab("Frequency (kHz)") + 
     scale_fill_viridis("Amplitude\n(dB)\n") +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    coord_cartesian(xlim = c(0, 15)) +
     hot_theme_grid
   spec_legend <- get_legend(spec_plot)
   spec_plot   <- spec_plot + theme(legend.position='none')
-  return(spec_plot)
+  p <- ggplot_gtable(ggplot_build(spec_plot))
+  
+  #browser()
+  #fixed_width <- unit(1, 'cm')
+  #p$widths[2] <- fixed_width
+  
+  return(p)
 }

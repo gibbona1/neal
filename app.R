@@ -1,48 +1,30 @@
 library(ggplot2)
 library(shiny)
 library(shinyjs)
-library(shinyFiles)
+#library(shinyFiles)
 #library(sound)
 library(tuneR)
-library(seewave)
-library(reticulate)
+library(seewave) # for spectrogram
+#library(reticulate)
 #library(phonTools)
 #library(seewave)
-library(plotly)
-library(oce)
+#library(plotly)
+#library(oce)
 library(viridis)
 library(grid)
-library(gridExtra)
-library(cowplot)
+#library(gridExtra)
+library(cowplot) # to get legend
 
 source('plot_helpers.R')
 source('spectrogram_params.R')
 
-mydir <- getwd()
-
-folder_path <- 'www'
-
-files       <- list.files(folder_path)
-
-tmp_file    <- files[1]
-tmp_path    <- file.path(folder_path, tmp_file)
-
-tmp_audio   <- readWave(tmp_path)
-tmp_audio
-
-spec <- spectro(tmp_audio, tmp_audio@samp.rate, 
-                wl       = params$window_width, 
-                ovlp     = params$fft_overlap, 
-                fastdisp = TRUE,
-                plot     = FALSE)
-
 #change file size to 30MB
-options(shiny.maxRequestSize=30*1024^2)
-
+options(shiny.maxRequestSize = 30*1024^2)
+ui_func <- function(){
 ui <- fluidPage(
   fluidRow(
     plotOutput("plot1",
-               #height = 200,
+               height = 250, #width = 800,
                click  = "plot1_click",
                hover  = hoverOpts(id = "plot_hover"),
                brush  = brushOpts(
@@ -51,7 +33,7 @@ ui <- fluidPage(
   ),
   fluidRow(
     plotOutput("plot2",
-               #height = 200,
+               height = 110, #width = 800,
                click  = "plot2_click",
                hover  = hoverOpts(id = "plot_hover"),
                brush  = brushOpts(
@@ -73,6 +55,7 @@ ui <- fluidPage(
     column(3,
            radioButtons("label_points", "Label Selection:", 
                         choices = c('birdA', 'birdB', 'noise'),
+                        #TODO: get classes from other file
                         inline = TRUE)
     ),
     column(3,
@@ -80,6 +63,8 @@ ui <- fluidPage(
     )
   )
 )
+return(ui)
+}
 
 server <- function(input, output) {
   # For storing which rows have been excluded
@@ -125,17 +110,23 @@ server <- function(input, output) {
     return(df2)
   }))
   
+  p1_widths <- reactiveVal(value = NULL)
+  
   output$plot1 <- renderPlot({
     if(is.null(input$file1))     
       return(NULL)
     
-    plot_spectrogram(specData())
+    p1 <- plot_spectrogram(specData())
+    p1_widths(p1$widths)
+    grid.draw(p1)
   })
   output$plot2 <- renderPlot({
     if(is.null(input$file1))     
       return(NULL)
     
-    plot_oscillogram(oscData())
+    p2 <- plot_oscillogram(oscData())
+    p2$widths <- p1_widths()
+    grid.draw(p2)
   })
   
   #  gA <- ggplot_gtable(ggplot_build(spec_plot))
@@ -188,14 +179,15 @@ server <- function(input, output) {
     
     res <- brushedPoints(specData(), input$plot1_brush, allRows = TRUE,
                          xvar = 'time', yvar = 'frequency')
-    browser()
+    #browser()
+    sel_rows <- res[res$selected_]
     if (!is.null(brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M"),
                            file_name   = input$file1$name,
-                           start_time  = max_time*brush$xmin, 
-                           end_time    = max_time*brush$xmax, 
-                           start_freq  = max_freq*brush$ymin, 
-                           end_freq    = max_freq*brush$ymax,
+                           start_time  = min(sel_rows$time),#max_time*brush$xmin, 
+                           end_time    = max(sel_rows$time),#max_time*brush$xmax, 
+                           start_freq  = min(sel_rows$freqiency),#max_freq*brush$ymin, 
+                           end_freq    = max(sel_rows$freqiency),#max_freq*brush$ymax,
                            class_label = input$save_points)
       file_name <- "tmp.csv"
       if(file.exists(file_name))
@@ -216,4 +208,4 @@ server <- function(input, output) {
   })
 }
 
-shinyApp(ui, server)
+shinyApp(ui_func(), server)
