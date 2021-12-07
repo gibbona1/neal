@@ -44,8 +44,18 @@ ui <- fluidPage(
     plotOutput("plot1",
                #height = 200,
                click  = "plot1_click",
+               hover  = hoverOpts(id = "plot_hover"),
                brush  = brushOpts(
                  id = "plot1_brush"
+               )),
+  ),
+  fluidRow(
+    plotOutput("plot2",
+               #height = 200,
+               click  = "plot2_click",
+               hover  = hoverOpts(id = "plot_hover"),
+               brush  = brushOpts(
+                 id = "plot2_brush"
                )),
   ),
   fluidRow(
@@ -118,54 +128,32 @@ server <- function(input, output) {
   output$plot1 <- renderPlot({
     if(is.null(input$file1))     
       return(NULL)
-    tmp_audio <- audioInput()
-    df <- specData()
-    df2 <- oscData()
     
-    spec_plot <- ggplot(df, aes_string(x = 'time',
-                                       y = 'frequency', 
-                                       z = 'amplitude')) + 
-      geom_raster(aes(fill = amplitude), 
-                  #alpha = (0.5 + 0.5*vals$keeprows), 
-                  interpolate = TRUE) +
-      xlab("Time (s)") + 
-      ylab("Frequency (kHz)") + 
-      scale_fill_viridis("Amplitude\n(dB)\n") +
-      hot_theme_grid
+    plot_spectrogram(specData())
+  })
+  output$plot2 <- renderPlot({
+    if(is.null(input$file1))     
+      return(NULL)
     
-        
-    osc_plot <- ggplot(df2)+
-      geom_line(mapping = aes(x=time, y=amplitude), color="red")+ 
-      #scale_x_continuous(labels=s_formatter, expand = c(0,0))+
-      scale_y_continuous(expand = c(0,0))+
-      xlab("Time (s)") + 
-      geom_hline(yintercept = 0, color="white", linetype = "dotted")+
-      oscillo_theme_dark
-    
-    spec_legend <- get_legend(spec_plot)
-    osc_legend  <- get_legend(osc_plot)
-    
-    spec_plot <- spec_plot + theme(legend.position='none')
-    osc_plot  <- osc_plot  + theme(legend.position='none')
-    
-    #plot_grid(plot_grid(spec_plot, spec_legend, align="h", rel_widths = c(1,0.1)),
-    #          plot_grid(osc_plot,  osc_legend, rel_widths = c(1,0.1)), nrow=2, rel_heights = c(1,0.4))
-    
-    gA <- ggplot_gtable(ggplot_build(spec_plot))
-    gB <- ggplot_gtable(ggplot_build(osc_plot))
-    maxWidth  <- grid::unit.pmax(gA$widths, gB$widths)
-    gA$widths <- as.list(maxWidth)
-    gB$widths <- as.list(maxWidth)
-    layo <- rbind(c(1,1,1),
-                  c(1,1,1),
-                  c(1,1,1),
-                  c(2,2,2),
-                  c(2,2,2))
-    
-    grid.newpage()
-    grid.arrange(gA, gB, layout_matrix = layo)
-    
-  })#, height = 300, width = 900)
+    plot_oscillogram(oscData())
+  })
+  
+  #  gA <- ggplot_gtable(ggplot_build(spec_plot))
+  #  gB <- ggplot_gtable(ggplot_build(osc_plot))
+  #  maxWidth  <- grid::unit.pmax(gA$widths, gB$widths)
+  #  gA$widths <- as.list(maxWidth)
+  #  gB$widths <- as.list(maxWidth)
+  #  layo <- rbind(c(1,1,1),
+  #                c(1,1,1),
+  #                c(1,1,1),
+  #                c(2,2,2),
+  #                c(2,2,2))
+  #  
+  #  grid.newpage()
+  #  grid.arrange(gA, gB, layout_matrix = layo)
+  #  #return(spec_plot)
+  #  
+  #})#, height = 300, width = 900)
   
   #observeEvent(input$plot1_click, {
   #  res <- nearPoints(df, input$plot1_click, 
@@ -197,7 +185,10 @@ server <- function(input, output) {
     max_freq = 1
     #browser()
     #get x and y cooridnates with max and min of nearPoints()
-    res <- nearPoints(df, input$plot1_click, allRows = TRUE)
+    
+    res <- brushedPoints(specData(), input$plot1_brush, allRows = TRUE,
+                         xvar = 'time', yvar = 'frequency')
+    browser()
     if (!is.null(brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M"),
                            file_name   = input$file1$name,
@@ -215,13 +206,13 @@ server <- function(input, output) {
     }
   })
   
-  eventReactive(input$play, {
+  observeEvent(input$play, {
     insertUI(selector = "#play",
-             ui       = tags$audio(src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
+             ui       = tags$audio(src      = input$file1$datapath, 
                                    type     = "audio/wav", 
-                                   autoplay = TRUE, 
-                                   controls = "controls", 
-                                   style    = "display:none;"))
+                                   autoplay = NA, 
+                                   controls = NA))#"controls", 
+                                   #style    = "display:none;"))
   })
 }
 

@@ -1,4 +1,6 @@
 library(ggplot2)
+library(gridExtra)
+
 oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color="black", linetype = "dotted"),
                             panel.grid.major.x = element_blank(),
                             panel.grid.minor   = element_blank(),
@@ -32,3 +34,33 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         axis.text            = element_text(size=16, color = "grey"),
                         axis.text.x          = element_blank(),
                         axis.ticks           = element_line(color="grey"))
+
+plot_oscillogram <- function(df){
+  osc_plot <- ggplot(df)+
+    geom_line(mapping = aes(x=time, y=amplitude), color="red")+ 
+    #scale_x_continuous(labels=s_formatter, expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    xlab("Time (s)") + 
+    geom_hline(yintercept = 0, color="white", linetype = "dotted")+
+    oscillo_theme_dark
+  
+  osc_legend  <- get_legend(osc_plot)
+  osc_plot    <- osc_plot  + theme(legend.position='none')
+  return(osc_plot)
+}
+
+plot_spectrogram <- function(df){
+  spec_plot <- ggplot(df, aes_string(x = 'time',
+                                     y = 'frequency', 
+                                     z = 'amplitude')) + 
+    geom_raster(aes(fill = amplitude), 
+                #alpha = (0.5 + 0.5*vals$keeprows), 
+                interpolate = TRUE) +
+    xlab("Time (s)") + 
+    ylab("Frequency (kHz)") + 
+    scale_fill_viridis("Amplitude\n(dB)\n") +
+    hot_theme_grid
+  spec_legend <- get_legend(spec_plot)
+  spec_plot   <- spec_plot + theme(legend.position='none')
+  return(spec_plot)
+}
