@@ -20,6 +20,15 @@ source('spectrogram_params.R')
 
 #change file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
+
+classes <- c("Eurasian Magpie",
+             "European Goldfinch",
+             "House Sparrow",
+             "European Greenfinch",
+             "Noise",
+             "Other Bird")
+classes <- sort(classes)
+
 ui_func <- function(){
 ui <- fluidPage(
   fluidRow(
@@ -54,7 +63,7 @@ ui <- fluidPage(
     ),
     column(3,
            radioButtons("label_points", "Label Selection:", 
-                        choices = c('birdA', 'birdB', 'noise'),
+                        choices = classes,
                         #TODO: get classes from other file
                         inline = TRUE)
     ),
@@ -92,7 +101,6 @@ server <- function(input, output) {
                     fastdisp = TRUE,
                     plot     = FALSE)
     #try to add noisereduction (optional possibly?)
-    #browser()
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
@@ -129,42 +137,6 @@ server <- function(input, output) {
     grid.draw(p2)
   })
   
-  #  gA <- ggplot_gtable(ggplot_build(spec_plot))
-  #  gB <- ggplot_gtable(ggplot_build(osc_plot))
-  #  maxWidth  <- grid::unit.pmax(gA$widths, gB$widths)
-  #  gA$widths <- as.list(maxWidth)
-  #  gB$widths <- as.list(maxWidth)
-  #  layo <- rbind(c(1,1,1),
-  #                c(1,1,1),
-  #                c(1,1,1),
-  #                c(2,2,2),
-  #                c(2,2,2))
-  #  
-  #  grid.newpage()
-  #  grid.arrange(gA, gB, layout_matrix = layo)
-  #  #return(spec_plot)
-  #  
-  #})#, height = 300, width = 900)
-  
-  #observeEvent(input$plot1_click, {
-  #  res <- nearPoints(df, input$plot1_click, 
-  #                    allRows = TRUE)
-  #  
-  #  vals$keeprows <- xor(vals$keeprows, res$selected_)
-  #})
-  
-  # Toggle points that are brushed, when button is clicked
-  #observeEvent(input$exclude_toggle, {
-  #  res <- brushedPoints(df, input$plot1_brush, allRows = TRUE)
-  #  
-  #  vals$keeprows <- xor(vals$keeprows, res$selected_)
-  #})
-  
-  # Reset all points
-  #observeEvent(input$exclude_reset, {
-  #  vals$keeprows <- rep(TRUE, nrow(df))
-  #})
-  
   observeEvent(input$plot1_brush, {
     enable("save_points")
   })
@@ -176,19 +148,20 @@ server <- function(input, output) {
     max_freq = 1
     #browser()
     #get x and y cooridnates with max and min of nearPoints()
-    
-    res <- brushedPoints(specData(), input$plot1_brush, allRows = TRUE,
-                         xvar = 'time', yvar = 'frequency')
     #browser()
-    sel_rows <- res[res$selected_]
+    res <- brushedPoints(specData(), input$plot1_brush, #allRows = TRUE,
+                         xvar = 'time', yvar = 'frequency')
+    
+    #sel_rows <- specData()[res$selected_,]
+    
     if (!is.null(brush)) {
-      lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M"),
+      lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M:%S"),
                            file_name   = input$file1$name,
-                           start_time  = min(sel_rows$time),#max_time*brush$xmin, 
-                           end_time    = max(sel_rows$time),#max_time*brush$xmax, 
-                           start_freq  = min(sel_rows$freqiency),#max_freq*brush$ymin, 
-                           end_freq    = max(sel_rows$freqiency),#max_freq*brush$ymax,
-                           class_label = input$save_points)
+                           start_time  = min(res$time),#max_time*brush$xmin, 
+                           end_time    = max(res$time),#max_time*brush$xmax, 
+                           start_freq  = min(res$frequency),#max_freq*brush$ymin, 
+                           end_freq    = max(res$frequency),#max_freq*brush$ymax,
+                           class_label = input$label_points)
       file_name <- "tmp.csv"
       if(file.exists(file_name))
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
