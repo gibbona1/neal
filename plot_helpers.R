@@ -19,6 +19,8 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", l
                                                               margin = margin(0,0,0.2,0)),
                             axis.text          = element_text(size=16, color = "grey"),
                             axis.ticks         = element_line(color="grey"))
+#TODO: minor ticks on x axis
+#TODO: check lineup of left y axes with no axis text
 
 hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linetype = "dotted"),
                         panel.grid.major.x   = element_blank(),
@@ -39,12 +41,11 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
 
 virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
 
-
 plot_oscillogram <- function(df){
   osc_plot <- ggplot(df)
   if(!is.null(df))
     osc_plot <- osc_plot + 
-      geom_line(mapping = aes(x=time, y=amplitude), color="red")
+      geom_line(aes(x = time, y = amplitude), color = "red")
   osc_plot <- osc_plot + 
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(breaks = -1:1, 
@@ -62,22 +63,19 @@ plot_spectrogram <- function(df, input){
                                      y = 'frequency', 
                                      z = 'amplitude')) + 
     geom_raster(aes(fill = amplitude), 
-                #TODO: keep some box over each label, even load any in the csv that exist for this file
+                #TODO: keep a box over each label, even load any in the csv that exist for this file
                 #alpha = (0.5 + 0.5*vals$keeprows), 
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
     ylab("Frequency (kHz)") + 
-    #scale_fill_viridis("Amplitude\n(dB)\n", #option = "C", #plasma
-    #                   limits = c(-96,96), na.value = "black") +
     scale_fill_gradientn(name   = "Amplitude\n(dB)\n",
                          colors = virpluscols,
                          limits = c(-96,96), 
                          na.value = "black") +
-    #try RdYlBu palette
-    #scale_fill_brewer(name = "Amplitude\n(dB)\n", palette = "RdYlBu"
-    #                  #limits = c(-96,96)
-    #                  ) +
+    #TODO: options for palettes (e.g. viridis, viridisplus, RdYlBu, magma, inferno)
+    #na.value would then be the min value of the palette
+    #TODO: invert palette
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
                        breaks = pretty(df$frequency, 5)

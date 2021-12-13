@@ -116,7 +116,7 @@ server <- function(input, output) {
     
     spec$amp <- spec$amp + input$db_gain
     spec$amp <- spec$amp + input$db_contrast
-    #try to add noisereduction (optional possibly?)
+    #TODO: try to add optional noise reduction
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
@@ -138,9 +138,9 @@ server <- function(input, output) {
   
   output$specplot <- renderPlot({
     if(is.null(input$file1)){
-      df <- data.frame(time      = rep(1:15, each = 10),
-                       frequency = rep(1:10, times = 15),
-                       amplitude = rep(-96,150^2))
+      df <- data.frame(time      = 1,
+                       frequency = 1:10,
+                       amplitude = rep(-96,10))
       return(plot_spectrogram(df, input))
     }     
     
