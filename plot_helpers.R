@@ -12,12 +12,12 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", l
                             axis.line          = element_blank(),
                             legend.position    = 'none',
                             plot.background    = element_rect(fill="black"),
-                            plot.margin        = unit(c(0.2,0.9,0.1,0.5), "lines"),
+                            plot.margin        = unit(c(0.2,0.9,0.1,0), "lines"),
                             axis.title.y       = element_text(size=16, color = "grey",
-                                                              margin = margin(0,30,0,0)), # element_blank(),
+                                                              margin = margin(0,10,0,1)), # element_blank(),
                             axis.title.x       = element_text(size=16, color = "grey",
-                                                              margin = margin(0,0,0.2,0)),
-                            axis.text          = element_text(size=16, color = "grey"),
+                                                              margin = margin(0,0,0.2,0.2)),
+                            axis.text          = element_text(size=16, color = "grey", family = "mono"),
                             axis.ticks         = element_line(color="grey"))
 #TODO: minor ticks on x axis
 #TODO: check lineup of left y axes with no axis text
@@ -30,11 +30,11 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         axis.line            = element_blank(),
                         legend.position      = 'none',
                         plot.background      = element_rect(fill="black"),
-                        plot.margin          = margin(0.2,0.9,0.25,0.5, "lines"),
+                        plot.margin          = margin(0.2,0.9,0.25,0, "lines"),
                         axis.title.x         = element_blank(),
                         axis.title.y         = element_text(size=16, color = "grey",
-                                                            margin = margin(0,30,0,0)),
-                        axis.text            = element_text(size=16, color = "grey"),
+                                                            margin = margin(0,10,0,1)),
+                        axis.text            = element_text(size=16, color = "grey", family = "mono"),
                         axis.text.x          = element_blank(),
                         axis.ticks           = element_line(color="grey"),
                         axis.ticks.x         = element_blank())
@@ -48,7 +48,7 @@ plot_oscillogram <- function(df){
       geom_line(aes(x = time, y = amplitude), color = "red")
   osc_plot <- osc_plot + 
     scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(breaks = -1:1, 
+    scale_y_continuous(breaks = -1:1,
                        expand = c(0.1,0.1),
                        limits = c(-1,1))+
     xlab("Time (s)") + 
@@ -79,6 +79,8 @@ plot_spectrogram <- function(df, input){
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
                        breaks = pretty(df$frequency, 5)
+                       #TODO: change labels to kHZ and remove y axis titles
+                       #labels = paste0(pretty(df$frequency, 5), "kHz")
                        ) +
     hot_theme_grid
   

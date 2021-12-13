@@ -192,6 +192,7 @@ server <- function(input, output) {
                src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
                type     = "audio/wav", 
                controls = 'controls',
+               #TODO: HTML styling (background colour, no download button, playback speed,...)
                style    = HTML("audio {
                background-color: #95B9C7;
                                }")
