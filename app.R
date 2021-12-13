@@ -10,7 +10,7 @@ library(viridis)
 library(grid)
 #library(gridExtra)
 library(cowplot) # to get legend
-library(profvis) #for checking code performance
+library(profvis) # for checking code performance
 
 source('plot_helpers.R')
 source('spectrogram_params.R')
@@ -23,51 +23,61 @@ classes <- c("Eurasian Magpie",
              "House Sparrow",
              "Noise",
              "Other Bird")
+
 classes <- sort(classes)
 
 ui_func <- function(){
-ui <- fluidPage(
-  fluidRow(
-    plotOutput("plot1",
-               height = 250, #width = 800,
-               click  = "plot1_click",
-               hover  = "plot1_hover",
-               brush  = "plot1_brush"),
-  ),
-  fluidRow(
-    plotOutput("plot2",
-               height = 110, #width = 800,
-               click  = "plot2_click",
-               hover  = hoverOpts(id = "plot_hover"),
-               brush  = brushOpts(
-                 id = "plot2_brush"
-               )),
-  ),
-  fluidRow(
-    column(3,
-           div(h4("Select a song"), style = "color: black;",
-               fileInput("file1","Choose File", 
-                         multiple = F, 
-                         accept   = "audio/*"))
+  ui <- fluidPage(
+    fluidRow(
+      plotOutput("specplot",
+                 height = 250,
+                 click  = "specplot_click",
+                 hover  = "specplot_hover", #TODO: hover tooltip
+                 brush  = "specplot_brush"),
     ),
-    column(3,
-           div(h4("Labelling"), style = "color: black;",
-           radioButtons("label_points", "Label Selection:", 
-                        choices = classes,
-                        #TODO: get classes from other file
-                        #inline = TRUE
-                        ),
-           #br(),
-           disabled(actionButton("save_points", "Save Selection"))
-           )
+    fluidRow(
+      plotOutput("oscplot",
+                 height = 110,
+                 click  = "oscplot_click",
+                 hover  = "oscplot_hover",
+                 brush  = "oscplot_brush"
+                 ),
     ),
-    column(6,
-           div(h4("Play audio"), style = "color: black;",
-           uiOutput('my_audio')
-           )
+    fluidRow(
+      column(6,
+      sliderInput("db_gain", "dB Gain:",
+                  min = -96, max = 96, value = 0,
+                  ticks = FALSE),
+      ),
+      column(6,
+      sliderInput("contrast", "Contrast:",
+                  min = 0, max = 1, value = 0.5,
+                  ticks = FALSE)
+      )
+    ),
+    fluidRow(
+      column(3,
+             div(h4("Select a song"), style = "color: black;",
+                 fileInput("file1", "Choose File", 
+                           multiple = F, 
+                           accept   = "audio/*"))
+      ),
+      column(3,
+             div(h4("Labelling"), style = "color: black;",
+             radioButtons("label_points", "Label Selection:", 
+                          choices = classes,
+                          #TODO: get classes from other file
+                          ),
+             disabled(actionButton("save_points", "Save Selection"))
+             )
+      ),
+      column(6,
+             div(h4("Play audio"), style = "color: black;",
+             uiOutput('my_audio')
+             )
+      )
     )
   )
-)
 return(ui)
 }
 
@@ -79,6 +89,21 @@ server <- function(input, output) {
     tmp_audio <- readWave(input$file1$datapath)
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     writeWave(tmp_audio, 'www/tmp.wav')
+    
+    #from torchaudio::functional_gain
+    audio_gain <- function (waveform, gain_db = 0) {
+      if (gain_db == 0)
+        return(waveform)
+      waveform <- waveform - gain_db
+      #db_mask <- waveform@left <= gain_db
+      #ratio <- 10^(gain_db/20)
+      #waveform@left[db_mask] <- ratio*waveform@left[db_mask] 
+      return(waveform)
+    }
+    #browser()
+    submean <- function(x) x - mean(x)
+    tmp_audio@left <- submean(tmp_audio@left)
+    tmp_audio <- audio_gain(tmp_audio, input$db_gain)
     tmp_audio <- normalize(tmp_audio, "1")
     return(tmp_audio)
   })
@@ -92,13 +117,16 @@ server <- function(input, output) {
                     wl       = params$window_width, 
                     ovlp     = params$fft_overlap, 
                     fastdisp = TRUE,
-                    plot     = FALSE)
+                    plot     = FALSE,
+                    db       = NULL)
+    
+    spec$amp <- spec$amp - input$db_gain
     #try to add noisereduction (optional possibly?)
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
     
-    write.csv(df, 'tmp_spec.csv')
+    write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
   })
   
@@ -106,16 +134,21 @@ server <- function(input, output) {
     if(is.null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
-    df2 <- data.frame(time    = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
+    df2 <- data.frame(time      = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
                       amplitude = tmp_audio@left - mean(tmp_audio@left))
     return(df2)
   }))
   
   p1_widths <- reactiveVal(value = NULL)
   
-  output$plot1 <- renderPlot({
-    if(is.null(input$file1))     
-      return(NULL)
+  output$specplot <- renderPlot({
+    if(is.null(input$file1)){
+      df <- data.frame(time      = rep(1:15, each = 10),
+                       frequency = rep(1:10, times = 15),
+                       amplitude = rep(-96,150^2))
+      return(plot_spectrogram(df, input))
+    }     
+      
     
     p1 <- plot_spectrogram(specData(), input)
     
@@ -124,9 +157,9 @@ server <- function(input, output) {
     p1
   })
   
-  output$plot2 <- renderPlot({
+  output$oscplot <- renderPlot({
     if(is.null(input$file1))     
-      return(NULL)
+      return(plot_oscillogram(NULL))
     
     p2 <- plot_oscillogram(oscData())
     #p2$widths <- p1_widths()
@@ -134,16 +167,16 @@ server <- function(input, output) {
     p2
   })
   
-  observeEvent(input$plot1_brush, {
+  observeEvent(input$specplot_brush, {
     enable("save_points")
   })
   
   observeEvent(input$save_points, {
-    #get x and y cooridnates with max and min of brushedPoints()
+    #get x and y coordinates with max and min of brushedPoints()
     
-    res <- brushedPoints(specData(), input$plot1_brush, #allRows = TRUE,
+    res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
-    if (!is.null(input$plot1_brush)) {
+    if (!is.null(input$specplot_brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1$name,
                            start_time  = min(res$time),
@@ -156,29 +189,26 @@ server <- function(input, output) {
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
       else
         write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
-      
     }
   })
   
   output$my_audio <- renderUI({
     if(is.null(input$file1))     
       return(tags$audio(id       = 'my_audio_player',
-                        src      = NA, 
+                        src      = "", 
                         type     = "audio/wav", 
-                        #autoplay = NA,
+                        controls = NA, 
+                        autoplay = NA
       ))
     tranquil <- "#E0FEFE"
     tags$audio(id       = 'my_audio_player',
                src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
                type     = "audio/wav", 
-               #autoplay = NA, 
-               controls = NA,#'controls',
-               #controlsList="nodownload",
+               controls = 'controls',
                style    = HTML("background-color: #007db5;") #width: 300px;
                )
     })
 }
-
 
 #profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
 

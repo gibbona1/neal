@@ -1,20 +1,23 @@
 library(ggplot2)
 library(gridExtra)
 
-oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color="black", linetype = "dotted"),
-                            panel.grid.major.x = element_blank(),
-                            panel.grid.minor   = element_blank(),
+#theming: https://rug.mnhn.fr/seewave/spec.html
+
+oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", linetype = "dotted"),
+                            panel.grid.major.x = element_line(color = "darkgrey", linetype = "dashed"),
+                            panel.grid.minor.x = element_blank(),
+                            panel.grid.minor.y = element_blank(),
                             panel.background   = element_rect(fill="transparent"),
                             panel.border       = element_rect(linetype = "solid", fill = NA, color = "grey"),
                             axis.line          = element_blank(),
-                            legend.position    = "none",
+                            legend.position    = 'none',
                             plot.background    = element_rect(fill="black"),
-                            plot.margin        = unit(c(0.3,0.9,0.2,0.72), "lines"),
+                            plot.margin        = unit(c(0.2,0.9,0.1,0.5), "lines"),
                             axis.title.y       = element_text(size=16, color = "grey",
                                                               margin = margin(0,30,0,0)), # element_blank(),
-                            axis.title.x       = element_text(size=14, color = "grey"),
-                            #axis.text.y        = element_text(margin = margin(0,10,0,0)),
-                            axis.text          = element_text(size=14, color = "grey"),
+                            axis.title.x       = element_text(size=16, color = "grey",
+                                                              margin = margin(0,0,0.2,0)),
+                            axis.text          = element_text(size=16, color = "grey"),
                             axis.ticks         = element_line(color="grey"))
 
 hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linetype = "dotted"),
@@ -23,49 +26,35 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         panel.background     = element_rect(fill="transparent"),
                         panel.border         = element_rect(linetype = "solid", fill = NA, color = "grey"),
                         axis.line            = element_blank(),
-                        #legend.position      = "right",
                         legend.position      = 'none',
-                        #legend.justification = "right",
-                        #legend.background    = element_rect(fill="black"),
-                        #legend.key.width     = unit(50, "native"),
-                        #legend.title         = element_text(size=16, color="grey"),
-                        #legend.text          = element_text(size=16, color="grey"),
                         plot.background      = element_rect(fill="black"),
-                        plot.margin          = margin(0.2,0.9,0.3,0.65, "lines"),
+                        plot.margin          = margin(0.2,0.9,0.25,0.5, "lines"),
                         axis.title.x         = element_blank(),
                         axis.title.y         = element_text(size=16, color = "grey",
                                                             margin = margin(0,30,0,0)),
                         axis.text            = element_text(size=16, color = "grey"),
                         axis.text.x          = element_blank(),
-                        #axis.text.y          = element_text(margin = margin(0,10,0,0)),
                         axis.ticks           = element_line(color="grey"),
                         axis.ticks.x         = element_blank())
 
+virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
+
+
 plot_oscillogram <- function(df){
-  osc_plot <- ggplot(df)+
-    geom_line(mapping = aes(x=time, y=amplitude), color="red")+ 
-    #scale_x_continuous(labels=s_formatter, expand = c(0,0))+
+  osc_plot <- ggplot(df)
+  if(!is.null(df))
+    osc_plot <- osc_plot + 
+      geom_line(mapping = aes(x=time, y=amplitude), color="red")
+  osc_plot <- osc_plot + 
+    scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(breaks = -1:1, 
                        expand = c(0.1,0.1),
                        limits = c(-1,1))+
     xlab("Time (s)") + 
     ylab("Amplitude") + 
-    geom_hline(yintercept = 0, color="white", linetype = "dotted") +
-    scale_x_continuous(expand = c(0, 0)) +
-    coord_cartesian(xlim = c(0, 15)) +
+    geom_hline(yintercept = 0, color = "white", linetype = "dotted") +
     oscillo_theme_dark
-  
-  #osc_legend  <- get_legend(osc_plot)
-  #osc_plot    <- osc_plot  + theme(legend.position='none')
-  #p <- ggplot_gtable(ggplot_build(osc_plot))
-  #p$layout$clip <- "on"
-  p <- osc_plot
-  #browser()
-  #browser()
-  #fixed_width <- unit(4, 'cm')
-  #p$widths[2:3] <- fixed_width
-  #p1_widths(p$theme$plot.margin)
-  return(p)
+  return(osc_plot)
 }
 
 plot_spectrogram <- function(df, input){
@@ -73,35 +62,32 @@ plot_spectrogram <- function(df, input){
                                      y = 'frequency', 
                                      z = 'amplitude')) + 
     geom_raster(aes(fill = amplitude), 
+                #TODO: keep some box over each label, even load any in the csv that exist for this file
                 #alpha = (0.5 + 0.5*vals$keeprows), 
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
     ylab("Frequency (kHz)") + 
-    scale_fill_viridis("Amplitude\n(dB)\n") +
+    #scale_fill_viridis("Amplitude\n(dB)\n", #option = "C", #plasma
+    #                   limits = c(-96,96), na.value = "black") +
+    scale_fill_gradientn(name   = "Amplitude\n(dB)\n",
+                         colors = virpluscols,
+                         limits = c(-96,96), 
+                         na.value = "black") +
+    #try RdYlBu palette
+    #scale_fill_brewer(name = "Amplitude\n(dB)\n", palette = "RdYlBu"
+    #                  #limits = c(-96,96)
+    #                  ) +
     scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0)) +
-    coord_cartesian(xlim = c(0, 15)) +
+    scale_y_continuous(expand = c(0, 0), 
+                       breaks = pretty(df$frequency, 5)
+                       ) +
     hot_theme_grid
-  #spec_legend <- get_legend(spec_plot)
-  #spec_plot   <- spec_plot + theme(legend.position='none')
   
   if(!is.null(input$plot1_brush)){
-    #browser()
-    res <- brushedPoints(df, input$plot1_brush, #allRows = TRUE,
+    res <- brushedPoints(df, input$plot1_brush,
                          xvar = 'time', yvar = 'frequency')
-    #res$time <- res$time*max(df$time)
-    #res$frequency <- res$frequency*max(df$frequency)
     spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
   }
-  
-  #p <- ggplot_gtable(ggplot_build(spec_plot))
-  #p$layout$clip <- "on"
-  p <- spec_plot
-  #p1 <- ggplot_gtable(ggplot_build(p))
-  #browser()
-  #fixed_width <- unit(1, 'cm')
-  #p$widths[2] <- fixed_width
-  
-  return(p)
+  return(spec_plot)
 }
