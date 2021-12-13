@@ -50,8 +50,8 @@ ui_func <- function(){
                   ticks = FALSE),
       ),
       column(6,
-      sliderInput("contrast", "Contrast:",
-                  min = 0, max = 1, value = 0.5,
+      sliderInput("db_contrast", "Contrast:",
+                  min = 0, max = 96, value = 0,
                   ticks = FALSE)
       )
     ),
@@ -90,17 +90,11 @@ server <- function(input, output) {
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     writeWave(tmp_audio, 'www/tmp.wav')
     
-    #from torchaudio::functional_gain
+    #originally tried method from torchaudio::functional_gain
+    #but wasn't making a difference
     audio_gain <- function (waveform, gain_db = 0) {
-      if (gain_db == 0)
-        return(waveform)
-      waveform <- waveform - gain_db
-      #db_mask <- waveform@left <= gain_db
-      #ratio <- 10^(gain_db/20)
-      #waveform@left[db_mask] <- ratio*waveform@left[db_mask] 
-      return(waveform)
+      return(waveform + gain_db)
     }
-    #browser()
     submean <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
     tmp_audio <- audio_gain(tmp_audio, input$db_gain)
@@ -120,7 +114,8 @@ server <- function(input, output) {
                     plot     = FALSE,
                     db       = NULL)
     
-    spec$amp <- spec$amp - input$db_gain
+    spec$amp <- spec$amp + input$db_gain
+    spec$amp <- spec$amp + input$db_contrast
     #try to add noisereduction (optional possibly?)
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
@@ -148,23 +143,15 @@ server <- function(input, output) {
                        amplitude = rep(-96,150^2))
       return(plot_spectrogram(df, input))
     }     
-      
     
-    p1 <- plot_spectrogram(specData(), input)
-    
-    #p1_widths(p1$widths)
-    #grid.draw(p1)
-    p1
+    return(plot_spectrogram(specData(), input))
   })
   
   output$oscplot <- renderPlot({
     if(is.null(input$file1))     
       return(plot_oscillogram(NULL))
     
-    p2 <- plot_oscillogram(oscData())
-    #p2$widths <- p1_widths()
-    #grid.draw(p2)
-    p2
+    return(plot_oscillogram(oscData()))
   })
   
   observeEvent(input$specplot_brush, {
@@ -205,7 +192,9 @@ server <- function(input, output) {
                src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
                type     = "audio/wav", 
                controls = 'controls',
-               style    = HTML("background-color: #007db5;") #width: 300px;
+               style    = HTML("audio {
+               background-color: #95B9C7;
+                               }")
                )
     })
 }

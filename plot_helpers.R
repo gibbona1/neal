@@ -1,7 +1,7 @@
 library(ggplot2)
 library(gridExtra)
 
-#theming: https://rug.mnhn.fr/seewave/spec.html
+#theming based on: https://rug.mnhn.fr/seewave/spec.html
 
 oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", linetype = "dotted"),
                             panel.grid.major.x = element_line(color = "darkgrey", linetype = "dashed"),
