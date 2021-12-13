@@ -10,6 +10,7 @@ library(viridis)
 library(grid)
 #library(gridExtra)
 library(cowplot) # to get legend
+library(profvis) #for checking code performance
 
 source('plot_helpers.R')
 source('spectrogram_params.R')
@@ -30,11 +31,8 @@ ui <- fluidPage(
     plotOutput("plot1",
                height = 250, #width = 800,
                click  = "plot1_click",
-               hover  = hoverOpts(id = "plot1_hover"),
-               brush  = brushOpts(
-                 id   = "plot1_brush", 
-                 clip = FALSE
-               )),
+               hover  = "plot1_hover",
+               brush  = "plot1_brush"),
   ),
   fluidRow(
     plotOutput("plot2",
@@ -53,15 +51,20 @@ ui <- fluidPage(
                          accept   = "audio/*"))
     ),
     column(3,
+           div(h4("Labelling"), style = "color: black;",
            radioButtons("label_points", "Label Selection:", 
                         choices = classes,
                         #TODO: get classes from other file
-                        inline = TRUE),
-           br(),
+                        #inline = TRUE
+                        ),
+           #br(),
            disabled(actionButton("save_points", "Save Selection"))
+           )
     ),
     column(6,
+           div(h4("Play audio"), style = "color: black;",
            uiOutput('my_audio')
+           )
     )
   )
 )
@@ -74,8 +77,9 @@ server <- function(input, output) {
       return(NULL) 
     
     tmp_audio <- readWave(input$file1$datapath)
-    setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
+    #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     writeWave(tmp_audio, 'www/tmp.wav')
+    tmp_audio <- normalize(tmp_audio, "1")
     return(tmp_audio)
   })
   
@@ -83,7 +87,8 @@ server <- function(input, output) {
     if(is.null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
-    spec <- spectro(tmp_audio, tmp_audio@samp.rate, 
+    spec <- spectro(tmp_audio,
+                    f        = tmp_audio@samp.rate, 
                     wl       = params$window_width, 
                     ovlp     = params$fft_overlap, 
                     fastdisp = TRUE,
@@ -93,7 +98,7 @@ server <- function(input, output) {
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
     
-    write.csv(df, 'tmp_df.csv')
+    write.csv(df, 'tmp_spec.csv')
     return(df)
   })
   
@@ -114,8 +119,9 @@ server <- function(input, output) {
     
     p1 <- plot_spectrogram(specData(), input)
     
-    p1_widths(p1$widths)
-    grid.draw(p1)
+    #p1_widths(p1$widths)
+    #grid.draw(p1)
+    p1
   })
   
   output$plot2 <- renderPlot({
@@ -123,8 +129,9 @@ server <- function(input, output) {
       return(NULL)
     
     p2 <- plot_oscillogram(oscData())
-    p2$widths <- p1_widths()
-    grid.draw(p2)
+    #p2$widths <- p1_widths()
+    #grid.draw(p2)
+    p2
   })
   
   observeEvent(input$plot1_brush, {
@@ -132,27 +139,19 @@ server <- function(input, output) {
   })
   
   observeEvent(input$save_points, {
-    brush <- input$plot1_brush
-    
-    max_time = 1
-    max_freq = 1
-    
     #get x and y cooridnates with max and min of brushedPoints()
     
     res <- brushedPoints(specData(), input$plot1_brush, #allRows = TRUE,
                          xvar = 'time', yvar = 'frequency')
-    
-    #sel_rows <- specData()[res$selected_,]
-    #browser()
-    if (!is.null(brush)) {
-      lab_df <- data.frame(date_time   = format(Sys.time(), "%d-%b-%Y %H:%M:%s"),
+    if (!is.null(input$plot1_brush)) {
+      lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1$name,
-                           start_time  = min(res$time),#max_time*brush$xmin, 
-                           end_time    = max(res$time),#max_time*brush$xmax, 
-                           start_freq  = min(res$frequency),#max_freq*brush$ymin, 
-                           end_freq    = max(res$frequency),#max_freq*brush$ymax,
+                           start_time  = min(res$time),
+                           end_time    = max(res$time),
+                           start_freq  = min(res$frequency),
+                           end_freq    = max(res$frequency),
                            class_label = input$label_points)
-      file_name <- "tmp.csv"
+      file_name <- "tmp_labels.csv"
       if(file.exists(file_name))
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
       else
@@ -163,20 +162,24 @@ server <- function(input, output) {
   
   output$my_audio <- renderUI({
     if(is.null(input$file1))     
-      return(NULL)
+      return(tags$audio(id       = 'my_audio_player',
+                        src      = NA, 
+                        type     = "audio/wav", 
+                        #autoplay = NA,
+      ))
     tranquil <- "#E0FEFE"
     tags$audio(id       = 'my_audio_player',
                src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
                type     = "audio/wav", 
-               autoplay = NA, 
-               controls = 'controls',
-               style    = HTML("color: tranquil;
-                                download: none;
-                                color: yellow;
-                                width: 250px")
+               #autoplay = NA, 
+               controls = NA,#'controls',
+               #controlsList="nodownload",
+               style    = HTML("background-color: #007db5;") #width: 300px;
                )
     })
 }
 
+
+#profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
 
 shinyApp(ui_func(), server)

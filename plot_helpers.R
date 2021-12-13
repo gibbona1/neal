@@ -9,7 +9,7 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color="black", lin
                             axis.line          = element_blank(),
                             legend.position    = "none",
                             plot.background    = element_rect(fill="black"),
-                            plot.margin        = unit(c(0.3,0.9,0.2,0.9), "lines"),
+                            plot.margin        = unit(c(0.3,0.9,0.2,0.72), "lines"),
                             axis.title.y       = element_text(size=16, color = "grey",
                                                               margin = margin(0,30,0,0)), # element_blank(),
                             axis.title.x       = element_text(size=14, color = "grey"),
@@ -23,14 +23,15 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         panel.background     = element_rect(fill="transparent"),
                         panel.border         = element_rect(linetype = "solid", fill = NA, color = "grey"),
                         axis.line            = element_blank(),
-                        legend.position      = "right",
-                        legend.justification = "right",
-                        legend.background    = element_rect(fill="black"),
-                        legend.key.width     = unit(50, "native"),
-                        legend.title         = element_text(size=16, color="grey"),
-                        legend.text          = element_text(size=16, color="grey"),
+                        #legend.position      = "right",
+                        legend.position      = 'none',
+                        #legend.justification = "right",
+                        #legend.background    = element_rect(fill="black"),
+                        #legend.key.width     = unit(50, "native"),
+                        #legend.title         = element_text(size=16, color="grey"),
+                        #legend.text          = element_text(size=16, color="grey"),
                         plot.background      = element_rect(fill="black"),
-                        plot.margin          = margin(0.2,0.9,0.3,0.9, "lines"),
+                        plot.margin          = margin(0.2,0.9,0.3,0.65, "lines"),
                         axis.title.x         = element_blank(),
                         axis.title.y         = element_text(size=16, color = "grey",
                                                             margin = margin(0,30,0,0)),
@@ -44,7 +45,9 @@ plot_oscillogram <- function(df){
   osc_plot <- ggplot(df)+
     geom_line(mapping = aes(x=time, y=amplitude), color="red")+ 
     #scale_x_continuous(labels=s_formatter, expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
+    scale_y_continuous(breaks = -1:1, 
+                       expand = c(0.1,0.1),
+                       limits = c(-1,1))+
     xlab("Time (s)") + 
     ylab("Amplitude") + 
     geom_hline(yintercept = 0, color="white", linetype = "dotted") +
@@ -52,14 +55,16 @@ plot_oscillogram <- function(df){
     coord_cartesian(xlim = c(0, 15)) +
     oscillo_theme_dark
   
-  osc_legend  <- get_legend(osc_plot)
-  osc_plot    <- osc_plot  + theme(legend.position='none')
-  p <- ggplot_gtable(ggplot_build(osc_plot))
-  
+  #osc_legend  <- get_legend(osc_plot)
+  #osc_plot    <- osc_plot  + theme(legend.position='none')
+  #p <- ggplot_gtable(ggplot_build(osc_plot))
+  #p$layout$clip <- "on"
+  p <- osc_plot
+  #browser()
   #browser()
   #fixed_width <- unit(4, 'cm')
   #p$widths[2:3] <- fixed_width
-  #p1_widths(p$widths)
+  #p1_widths(p$theme$plot.margin)
   return(p)
 }
 
@@ -69,7 +74,8 @@ plot_spectrogram <- function(df, input){
                                      z = 'amplitude')) + 
     geom_raster(aes(fill = amplitude), 
                 #alpha = (0.5 + 0.5*vals$keeprows), 
-                interpolate = TRUE) +
+                interpolate = TRUE
+                ) +
     xlab("Time (s)") + 
     ylab("Frequency (kHz)") + 
     scale_fill_viridis("Amplitude\n(dB)\n") +
@@ -77,21 +83,22 @@ plot_spectrogram <- function(df, input){
     scale_y_continuous(expand = c(0, 0)) +
     coord_cartesian(xlim = c(0, 15)) +
     hot_theme_grid
-  spec_legend <- get_legend(spec_plot)
-  spec_plot   <- spec_plot + theme(legend.position='none')
+  #spec_legend <- get_legend(spec_plot)
+  #spec_plot   <- spec_plot + theme(legend.position='none')
   
-  #if(!is.null(input$plot1_brush)){
-  #  res <- brushedPoints(df, input$plot1_brush, #allRows = TRUE,
-  #                       xvar = 'time', yvar = 'frequency')
-  #  res$time <- res$time*max(df$time)
-  #  res$frequency <- res$frequency*max(df$frequency)
-  #  spec_plot <- spec_plot + geom_raster(data=res, aes = aes_string(x = 'time',
-  #                                                   y    = 'frequency'),
-  #                         fill = 'green')
-  #}
+  if(!is.null(input$plot1_brush)){
+    #browser()
+    res <- brushedPoints(df, input$plot1_brush, #allRows = TRUE,
+                         xvar = 'time', yvar = 'frequency')
+    #res$time <- res$time*max(df$time)
+    #res$frequency <- res$frequency*max(df$frequency)
+    spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
+  }
   
-  p <- ggplot_gtable(ggplot_build(spec_plot))
-  
+  #p <- ggplot_gtable(ggplot_build(spec_plot))
+  #p$layout$clip <- "on"
+  p <- spec_plot
+  #p1 <- ggplot_gtable(ggplot_build(p))
   #browser()
   #fixed_width <- unit(1, 'cm')
   #p$widths[2] <- fixed_width
