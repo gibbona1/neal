@@ -70,7 +70,8 @@ ui_func <- function(){
                                tipify(actionButton("next_file", "", icon = icon("arrow-right")), "Next"))
              ),
              div(style="display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-               actionButton("plt_reset", "Reset Plot")))
+               actionButton("plt_reset", "Reset Plot"))
+             )
     ),
     fluidRow(
       column(5,
@@ -89,8 +90,9 @@ ui_func <- function(){
              radioButtons("label_points", "Label Selection:", 
                           choices = classes
                           ),
+             #TODO: "other" button should come with textInput box, and can't submit unless it is filled (use shinyvalidate)
              #TODO: Other info to label/record - 
-             ## type of call e.g. alarm call, flight call, flock
+             ## type of sound e.g. alarm call, flight call, flock
              ## naming groups: Order, Family, Genus, Species, Subspecies
              ## altitude of recorder (check if in metadata)
              disabled(actionButton("save_points", "Save Selection"))
@@ -99,7 +101,11 @@ ui_func <- function(){
       column(4,
              div(h4("Play audio"), style = "color: black;",
              uiOutput('my_audio')
-             )
+             ),
+             selectInput("noisereduction", "Spectrogram Noise reduction:", 
+                         choices  = c("None", "Rows", "Columns"),
+                         selected = "None",
+                         width    = '100%')
       )
     )
   )
@@ -158,17 +164,22 @@ server <- function(input, output) {
     if(is.null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
+    noisered <- switch(input$noisereduction,
+                       None    = NULL,
+                       Rows    = 1,
+                       Columns = 2)
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
                     wl       = params$window_width, 
                     ovlp     = params$fft_overlap, 
                     fastdisp = TRUE,
                     plot     = FALSE,
-                    db       = NULL)
+                    db       = NULL,
+                    noisereduction = noisered)
     
     spec$amp <- spec$amp + input$db_gain
     spec$amp <- spec$amp + input$db_contrast
-    #TODO: try to add optional noise reduction
+    
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
