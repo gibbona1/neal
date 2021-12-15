@@ -1,7 +1,7 @@
 library(ggplot2)
 library(shiny)
 library(shinyjs)
-#library(shinyFiles)
+library(shinyFiles)
 library(tuneR)
 library(seewave) # for spectrogram
 #library(plotly)
@@ -68,11 +68,16 @@ ui_func <- function(){
     ),
     fluidRow(
       #TODO: folder input and move between files in it
-      column(3,
-             div(h4("Select a song"), style = "color: black;",
-                 fileInput("file1", "Choose File", 
-                           multiple = F, 
-                           accept   = "audio/*"))
+      column(5,
+             div(h4("Select a folder"), style = "color: black;",
+                 shinyDirButton('folder', 
+                                label    = 'Folder select', 
+                                title    = 'Please select a folder')
+                 ),
+             verbatimTextOutput("folder", placeholder = TRUE), br(),
+             selectInput("file1", "Select File:", 
+                         choices = list.files('www/'),
+                         width   = '100%')
       ),
       column(3,
              div(h4("Labelling"), style = "color: black;",
@@ -88,7 +93,7 @@ ui_func <- function(){
              disabled(actionButton("save_points", "Save Selection"))
              )
       ),
-      column(6,
+      column(4,
              div(h4("Play audio"), style = "color: black;",
              uiOutput('my_audio')
              )
@@ -99,11 +104,36 @@ return(ui)
 }
 
 server <- function(input, output) {
+  volumes <- c(Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+  shinyDirChoose(
+    input          = input,
+    id             = 'folder',
+    roots          = volumes,
+    filetypes      = c('wav'),
+    allowDirCreate = FALSE
+  )
+  
+  global <- reactiveValues(datapath = getwd())
+  
+  mydir <- reactive(input$folder)
+  
+  output$folder <- renderText({global$datapath})
+  
+  output$files <- renderPrint(list.files(global$datapath))
+  
+  observeEvent(ignoreNULL  = TRUE, eventExpr = {input$folder},
+               handlerExpr = {
+                 if (!"path" %in% names(dir())) return()
+                 home <- normalizePath("~")
+                 global$datapath <-
+                   file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
+               })
+  #browser()
   audioInput <- reactive({
     if(is.null(input$file1))     
       return(NULL) 
     
-    tmp_audio <- readWave(input$file1$datapath)
+    tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     writeWave(tmp_audio, 'www/tmp.wav')
     #TODO: Only play zoomed spectrogram/oscillogram times/frequencies
