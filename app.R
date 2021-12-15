@@ -56,6 +56,7 @@ ui_func <- function(){
       )
     ),
     fluidRow(
+      #TODO: folder input and move between files in it
       column(3,
              div(h4("Select a song"), style = "color: black;",
                  fileInput("file1", "Choose File", 
@@ -68,6 +69,11 @@ ui_func <- function(){
                           choices = classes,
                           #TODO: get classes from other file
                           ),
+             #TODO: Other info to label/record - 
+             ## type of call e.g. alarm call, flight call, flock
+             ## naming groups: Order, Family, Genus, Species, Subspecies
+             ## name of labeler
+             ## altitude of recorder (check if in metadata)
              disabled(actionButton("save_points", "Save Selection"))
              )
       ),
