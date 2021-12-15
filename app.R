@@ -252,17 +252,17 @@ server <- function(input, output) {
   
   observeEvent(input$save_points, {
     #get x and y coordinates with max and min of brushedPoints()
-    
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
     if (!is.null(input$specplot_brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-                           file_name   = input$file1$name,
+                           file_name   = input$file1,
                            start_time  = min(res$time),
                            end_time    = max(res$time),
                            start_freq  = min(res$frequency),
                            end_freq    = max(res$frequency),
-                           class_label = input$label_points)
+                           class_label = input$label_points,
+                           labeller    = Sys.info()[["user"]])
       file_name <- "tmp_labels.csv"
       if(file.exists(file_name))
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
