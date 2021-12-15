@@ -1,6 +1,7 @@
 library(ggplot2)
 library(shiny)
 library(shinyjs)
+library(shinyBS)
 library(shinyFiles)
 library(tuneR)
 library(seewave) # for spectrogram
@@ -23,6 +24,8 @@ classes <- c("Eurasian Magpie",
              "House Sparrow",
              "Noise",
              "Other Bird")
+
+file_list <- list.files('www/')
 
 classes <- sort(classes)
 
@@ -64,7 +67,14 @@ ui_func <- function(){
       ),
       column(2,
              br(),
-             actionButton("plt_reset", "Reset Plot"))
+             fixedRow(tags$div(style="display: inline-block; vertical-align:center; horizontal-align:center", class = "row-fluid",
+                               tipify(actionButton("prev_file", "", icon = icon("arrow-left")),  "Prev"),
+                               disabled(tipify(actionButton("prev_section", "", icon = icon("chevron-left")),  "prev section")),
+                               disabled(tipify(actionButton("next_section", "", icon = icon("chevron-right")), "next section")),
+                               tipify(actionButton("next_file", "", icon = icon("arrow-right")), "Next"))
+             ),
+             div(style="display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
+               actionButton("plt_reset", "Reset Plot")))
     ),
     fluidRow(
       #TODO: folder input and move between files in it
@@ -76,7 +86,7 @@ ui_func <- function(){
                  ),
              verbatimTextOutput("folder", placeholder = TRUE), br(),
              selectInput("file1", "Select File:", 
-                         choices = list.files('www/'),
+                         choices = file_list,
                          width   = '100%')
       ),
       column(3,
@@ -128,7 +138,7 @@ server <- function(input, output) {
                  global$datapath <-
                    file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
                })
-  #browser()
+  
   audioInput <- reactive({
     if(is.null(input$file1))     
       return(NULL) 
@@ -286,6 +296,30 @@ server <- function(input, output) {
                                }")
                )
     })
+  
+  observeEvent(input$prev_file, {
+    idx <- which(input$file1 == file_list) - 1
+    if(idx == 0)
+      idx <- length(file_list)
+    ranges_spec$x <- NULL
+    ranges_spec$y <- NULL
+    ranges_osc$x  <- NULL
+    updateSelectInput(inputId  = "file1",
+                      choices  = file_list,
+                      selected = file_list[idx])
+  })
+  
+  observeEvent(input$next_file, {
+    idx <- which(input$file1 == file_list) + 1
+    if(idx > length(file_list))
+      idx <- 1
+    ranges_spec$x <- NULL
+    ranges_spec$y <- NULL
+    ranges_osc$x  <- NULL
+    updateSelectInput(inputId  = "file1",
+                      choices  = file_list,
+                      selected = file_list[idx])
+  })
 }
 
 #profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
