@@ -52,16 +52,19 @@ ui_func <- function(){
                  ),
     ),
     fluidRow(
-      column(6,
+      column(5,
       sliderInput("db_gain", "dB Gain:",
                   min = -96, max = 96, value = 0,
                   ticks = FALSE),
       ),
-      column(6,
+      column(5,
       sliderInput("db_contrast", "Contrast:",
                   min = 0, max = 96, value = 0,
                   ticks = FALSE)
-      )
+      ),
+      column(2,
+             br(),
+             actionButton("plt_reset", "Reset Plot"))
     ),
     fluidRow(
       #TODO: folder input and move between files in it
@@ -176,9 +179,9 @@ server <- function(input, output) {
     
     p <- plot_oscillogram(oscData())
     if(!is.null(ranges_spec$x))
-      p <- p + coord_cartesian(xlim = ranges_spec$x, expand = FALSE)
+      p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
     else if(!is.null(ranges_osc$x))
-      p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
+      p <- p + coord_cartesian(xlim = ranges_osc$x, expand = TRUE)
     return(p)
   })
   
@@ -201,6 +204,12 @@ server <- function(input, output) {
       ranges_osc$x <- c(brush$xmin, brush$xmax)
     else
       ranges_osc$x <- NULL
+  })
+  
+  observeEvent(input$plt_reset, {
+    ranges_spec$x <- NULL
+    ranges_spec$y <- NULL
+    ranges_osc$x  <- NULL
   })
   
   observeEvent(input$specplot_brush, {
