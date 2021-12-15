@@ -19,11 +19,7 @@ source('spectrogram_params.R')
 #change file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
 
-classes <- c("Eurasian Magpie",
-             "European Goldfinch",
-             "House Sparrow",
-             "Noise",
-             "Other Bird")
+classes <- c(read.csv("species_list.csv")[,1], "Noise", "Other")
 
 file_list <- list.files('www/')
 
@@ -77,7 +73,6 @@ ui_func <- function(){
                actionButton("plt_reset", "Reset Plot")))
     ),
     fluidRow(
-      #TODO: folder input and move between files in it
       column(5,
              div(h4("Select a folder"), style = "color: black;",
                  shinyDirButton('folder', 
@@ -92,8 +87,7 @@ ui_func <- function(){
       column(3,
              div(h4("Labelling"), style = "color: black;",
              radioButtons("label_points", "Label Selection:", 
-                          choices = classes,
-                          #TODO: get classes from other file
+                          choices = classes
                           ),
              #TODO: Other info to label/record - 
              ## type of call e.g. alarm call, flight call, flock
