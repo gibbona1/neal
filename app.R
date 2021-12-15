@@ -92,7 +92,6 @@ ui_func <- function(){
              #TODO: Other info to label/record - 
              ## type of call e.g. alarm call, flight call, flock
              ## naming groups: Order, Family, Genus, Species, Subspecies
-             ## name of labeler
              ## altitude of recorder (check if in metadata)
              disabled(actionButton("save_points", "Save Selection"))
              )
@@ -291,6 +290,7 @@ server <- function(input, output) {
                )
     })
   
+  # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
     idx <- which(input$file1 == file_list) - 1
     if(idx == 0)
@@ -303,6 +303,7 @@ server <- function(input, output) {
                       selected = file_list[idx])
   })
   
+  # move to next file (resetting zoom)
   observeEvent(input$next_file, {
     idx <- which(input$file1 == file_list) + 1
     if(idx > length(file_list))
