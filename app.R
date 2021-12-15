@@ -30,17 +30,25 @@ ui_func <- function(){
   ui <- fluidPage(
     fluidRow(
       plotOutput("specplot",
-                 height = 250,
-                 click  = "specplot_click",
-                 hover  = "specplot_hover", #TODO: hover tooltip
-                 brush  = "specplot_brush"),
+                 height   = 250,
+                 click    = "specplot_click",
+                 dblclick = "specplot_dblclick",
+                 hover    = "specplot_hover", #TODO: hover tooltip
+                 brush    = brushOpts(
+                   id         = "specplot_brush",
+                   resetOnNew = TRUE)
+                 ),
     ),
     fluidRow(
       plotOutput("oscplot",
-                 height = 110,
-                 click  = "oscplot_click",
-                 hover  = "oscplot_hover",
-                 brush  = "oscplot_brush"
+                 height   = 110,
+                 click    = "oscplot_click",
+                 dblclick = "oscplot_dblclick",
+                 hover    = "oscplot_hover",
+                 brush    = brushOpts(
+                   id         = "oscplot_brush",
+                   direction  = "x",
+                   resetOnNew = TRUE)
                  ),
     ),
     fluidRow(
@@ -140,7 +148,9 @@ server <- function(input, output) {
     return(df2)
   }))
   
-  p1_widths <- reactiveVal(value = NULL)
+  p1_widths   <- reactiveVal(value = NULL)
+  ranges_spec <- reactiveValues(x = NULL, y = NULL)
+  ranges_osc  <- reactiveValues(x = NULL)
   
   output$specplot <- renderPlot({
     if(is.null(input$file1)){
@@ -150,14 +160,45 @@ server <- function(input, output) {
       return(plot_spectrogram(df, input))
     }     
     
-    return(plot_spectrogram(specData(), input))
+    p <- plot_spectrogram(specData(), input)
+    if(!is.null(ranges_spec$x))
+      p <- p + coord_cartesian(xlim = ranges_spec$x, ylim = ranges_spec$y, expand = FALSE)
+    else if(!is.null(ranges_osc$x))
+      p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
+    return(p)
   })
   
   output$oscplot <- renderPlot({
     if(is.null(input$file1))     
       return(plot_oscillogram(NULL))
     
-    return(plot_oscillogram(oscData()))
+    p <- plot_oscillogram(oscData())
+    if(!is.null(ranges_spec$x))
+      p <- p + coord_cartesian(xlim = ranges_spec$x, expand = FALSE)
+    else if(!is.null(ranges_osc$x))
+      p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
+    return(p)
+  })
+  
+  # When a double-click happens, check if there's a brush on the plot.
+  # If so, zoom to the brush bounds; if not, reset the zoom.
+  observeEvent(input$specplot_dblclick, {
+    brush <- input$specplot_brush
+    if (!is.null(brush)) {
+      ranges_spec$x <- c(brush$xmin, brush$xmax)
+      ranges_spec$y <- c(brush$ymin, brush$ymax)
+    } else {
+      ranges_spec$x <- NULL
+      ranges_spec$y <- NULL
+    }
+  })
+  
+  observeEvent(input$oscplot_dblclick, {
+    brush <- input$oscplot_brush
+    if (!is.null(brush))
+      ranges_osc$x <- c(brush$xmin, brush$xmax)
+    else
+      ranges_osc$x <- NULL
   })
   
   observeEvent(input$specplot_brush, {

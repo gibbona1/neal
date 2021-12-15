@@ -20,7 +20,8 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", l
                             axis.text          = element_text(size=16, color = "grey", family = "mono"),
                             axis.ticks         = element_line(color="grey"))
 #TODO: minor ticks on x axis
-#TODO: check lineup of left y axes with no axis text
+#TODO: check lineup of left y axes - not exact and will be noticeable if oscillogram not normalized 
+# or spectrogram frequency goes into triple digits)
 
 hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linetype = "dotted"),
                         panel.grid.major.x   = element_blank(),
