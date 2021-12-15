@@ -103,6 +103,7 @@ server <- function(input, output) {
     tmp_audio <- readWave(input$file1$datapath)
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     writeWave(tmp_audio, 'www/tmp.wav')
+    #TODO: Only play zoomed spectrogram/oscillogram times/frequencies
     
     #originally tried method from torchaudio::functional_gain
     #but wasn't making a difference
@@ -112,6 +113,7 @@ server <- function(input, output) {
     submean <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
     tmp_audio <- audio_gain(tmp_audio, input$db_gain)
+    #don't need this if we can fix y axis alignment problem
     tmp_audio <- normalize(tmp_audio, "1")
     return(tmp_audio)
   })
