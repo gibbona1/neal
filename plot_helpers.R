@@ -13,11 +13,9 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", l
                             legend.position    = 'none',
                             plot.background    = element_rect(fill="black"),
                             plot.margin        = unit(c(0.2,0.9,0.1,0), "lines"),
-                            axis.title.y       = element_text(size=16, color = "grey",
-                                                              margin = margin(0,10,0,1)), # element_blank(),
-                            axis.title.x       = element_text(size=16, color = "grey",
-                                                              margin = margin(0,0,0.2,0.2)),
-                            axis.text          = element_text(size=16, color = "grey", family = "mono"),
+                            axis.title         = element_blank(),
+                            axis.text.x        = element_text(size=16, color = "grey"),
+                            axis.text.y        = element_text(size=14, color = "grey"),
                             axis.ticks         = element_line(color="grey"))
 #TODO: minor ticks on x axis
 #TODO: check lineup of left y axes - not exact and will be noticeable if oscillogram not normalized 
@@ -32,10 +30,8 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
                         legend.position      = 'none',
                         plot.background      = element_rect(fill="black"),
                         plot.margin          = margin(0.2,0.9,0.25,0, "lines"),
-                        axis.title.x         = element_blank(),
-                        axis.title.y         = element_text(size=16, color = "grey",
-                                                            margin = margin(0,10,0,1)),
-                        axis.text            = element_text(size=16, color = "grey", family = "mono"),
+                        axis.title           = element_blank(),
+                        axis.text.y          = element_text(size=14, color = "grey"),
                         axis.text.x          = element_blank(),
                         axis.ticks           = element_line(color="grey"),
                         axis.ticks.x         = element_blank())
@@ -43,15 +39,16 @@ hot_theme_grid <- theme(panel.grid.major.y   = element_line(color="black", linet
 virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
 
 plot_oscillogram <- function(df){
+  lim16 <- 2^15-1
   osc_plot <- ggplot(df)
   if(!is.null(df))
     osc_plot <- osc_plot + 
       geom_line(aes(x = time, y = amplitude), color = "red")
   osc_plot <- osc_plot + 
     scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(breaks = -1:1,
+    scale_y_continuous(breaks = c(-lim16,0,lim16),
                        expand = c(0.1,0.1),
-                       limits = c(-1,1))+
+                       limits = c(-lim16,lim16))+
     xlab("Time (s)") + 
     ylab("Amplitude") + 
     geom_hline(yintercept = 0, color = "white", linetype = "dotted") +
@@ -76,19 +73,18 @@ plot_spectrogram <- function(df, input){
                          na.value = "black") +
     #TODO: options for palettes (e.g. viridis, viridisplus, RdYlBu, magma, inferno)
     #na.value would then be the min value of the palette
-    #TODO: invert palette
+    #TODO: invert palette option
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
-                       breaks = pretty(df$frequency, 5)
-                       #TODO: change labels to kHZ and remove y axis titles
-                       #labels = paste0(pretty(df$frequency, 5), "kHz")
+                       breaks = pretty(df$frequency, 5),
+                       labels = paste0(" ", pretty(df$frequency, 5), "kHz")
                        ) +
     hot_theme_grid
   
-  if(!is.null(input$plot1_brush)){
-    res <- brushedPoints(df, input$plot1_brush,
-                         xvar = 'time', yvar = 'frequency')
-    spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
-  }
+  #if(!is.null(input$specplot_brush)){
+  #  res <- brushedPoints(df, input$specplot_brush,
+  #                       xvar = 'time', yvar = 'frequency')
+  #  spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
+  #}
   return(spec_plot)
 }

@@ -138,6 +138,9 @@ server <- function(input, output) {
                    file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
                })
   
+  ranges_spec <- reactiveValues(x = NULL, y = NULL)
+  ranges_osc  <- reactiveValues(x = NULL)
+  
   audioInput <- reactive({
     if(is.null(input$file1))     
       return(NULL) 
@@ -156,7 +159,7 @@ server <- function(input, output) {
     tmp_audio@left <- submean(tmp_audio@left)
     tmp_audio <- audio_gain(tmp_audio, input$db_gain)
     #don't need this if we can fix y axis alignment problem
-    tmp_audio <- normalize(tmp_audio, "1")
+    tmp_audio <- normalize(tmp_audio, "16")
     return(tmp_audio)
   })
   
@@ -164,10 +167,12 @@ server <- function(input, output) {
     if(is.null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
+    
     noisered <- switch(input$noisereduction,
                        None    = NULL,
                        Rows    = 1,
                        Columns = 2)
+    
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
                     wl       = params$window_width, 
@@ -183,6 +188,28 @@ server <- function(input, output) {
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
+    #browser()
+    
+    #spec_zoomed <- spec
+    
+    #if(!is.null(ranges_spec$x) || !is.null(ranges_osc$x)){
+    #  complex_spec <- spectro(tmp_audio,
+    #                          f        = tmp_audio@samp.rate, 
+    #                          wl       = params$window_width, 
+    #                          ovlp     = params$fft_overlap, 
+    #                          #fastdisp = TRUE,
+    #                          plot     = FALSE,
+    #                          db       = NULL,
+    #                          complex  = FALSE,
+    #                          noisereduction = noisered)
+    #  #get a (complex) zero matrix and paste in the zoomed area we're keeping
+      #can chop off time axis
+    #}
+    #in_range <- function(vec, range2) return(vec >= range2[1] & vec <= range2[2])
+    #if(!is.null(ranges_spec$x))
+    #  df[!(in_range(df$time, ranges_spec$x) & in_range(df$frequency, ranges_spec$y)),3] <- min(df$amplitude)
+    #else if(!is.null(ranges_osc$x))
+    #  df[!in_range(df$time, ranges_osc$x),3] <- min(df$amplitude)
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
@@ -197,10 +224,6 @@ server <- function(input, output) {
     return(df2)
   }))
   
-  p1_widths   <- reactiveVal(value = NULL)
-  ranges_spec <- reactiveValues(x = NULL, y = NULL)
-  ranges_osc  <- reactiveValues(x = NULL)
-  
   output$specplot <- renderPlot({
     if(is.null(input$file1)){
       df <- data.frame(time      = 1,
@@ -210,10 +233,10 @@ server <- function(input, output) {
     }     
     
     p <- plot_spectrogram(specData(), input)
-    if(!is.null(ranges_spec$x))
-      p <- p + coord_cartesian(xlim = ranges_spec$x, ylim = ranges_spec$y, expand = FALSE)
-    else if(!is.null(ranges_osc$x))
-      p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
+    #if(!is.null(ranges_spec$x))
+    #  p <- p + coord_cartesian(xlim = ranges_spec$x, ylim = ranges_spec$y, expand = FALSE)
+    #else if(!is.null(ranges_osc$x))
+    #  p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
     return(p)
   })
   
