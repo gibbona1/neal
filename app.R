@@ -86,7 +86,7 @@ ui_func <- function(){
                          width   = '100%')
       ),
       column(3,
-             div(h4("Labelling"), style = "color: black;",
+             div(h4("labeling"), style = "color: black;",
              radioButtons("label_points", "Label Selection:", 
                           choices = classes
                           ),
@@ -295,7 +295,7 @@ server <- function(input, output) {
                            start_freq  = min(res$frequency),
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
-                           labeller    = Sys.info()[["user"]])
+                           labeler    = Sys.info()[["user"]])
       file_name <- "tmp_labels.csv"
       if(file.exists(file_name))
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
