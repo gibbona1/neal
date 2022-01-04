@@ -25,6 +25,8 @@ file_list <- list.files('www/')
 
 classes <- sort(classes)
 
+.is_null <- function(x) return(is.null(x) | x == "<NULL>")
+
 ui_func <- function(){
   ui <- fluidPage(
     fluidRow(
@@ -82,7 +84,7 @@ ui_func <- function(){
                  ),
              verbatimTextOutput("folder", placeholder = TRUE), br(),
              selectInput("file1", "Select File:", 
-                         choices = file_list,
+                         choices = c("<NULL>", file_list),
                          width   = '100%')
       ),
       column(3,
@@ -141,13 +143,28 @@ server <- function(input, output) {
   ranges_spec <- reactiveValues(x = NULL, y = NULL)
   ranges_osc  <- reactiveValues(x = NULL)
   
+  audio_path <- reactive({
+    if(!is.null(ranges_spec$x)){}#do nothing
+    if(!is.null(ranges_osc$x)){}#do nothing
+    return('www/tmp.wav')
+    })
+  
   audioInput <- reactive({
-    if(is.null(input$file1))     
+    if(.is_null(input$file1))     
       return(NULL) 
     
     tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
-    writeWave(tmp_audio, 'www/tmp.wav')
+    if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)){
+      #time crop
+      if(!is.null(ranges_osc$x))
+        tc <- ranges_osc$x
+      if(!is.null(ranges_spec$x))
+        tc <- ranges_spec$x
+      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
+    }
+    #browser()
+    writeWave(tmp_audio, audio_path())
     #TODO: Only play zoomed spectrogram/oscillogram times/frequencies
     
     #originally tried method from torchaudio::functional_gain
@@ -164,7 +181,7 @@ server <- function(input, output) {
   })
   
   specData <- reactive({
-    if(is.null(input$file1))     
+    if(.is_null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
     
@@ -189,6 +206,10 @@ server <- function(input, output) {
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
     #browser()
+    if(!is.null(ranges_osc$x))
+      df$time <- df$time + ranges_osc$x[1]
+    if(!is.null(ranges_spec$x))
+      df$time <- df$time + ranges_spec$x[1]
     
     #spec_zoomed <- spec
     
@@ -216,32 +237,41 @@ server <- function(input, output) {
   })
   
   oscData <- reactive(({
-    if(is.null(input$file1))     
+    if(.is_null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
     df2 <- data.frame(time      = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
                       amplitude = tmp_audio@left - mean(tmp_audio@left))
+    if(!is.null(ranges_osc$x))
+      df2$time <- df2$time + ranges_osc$x[1]
+    if(!is.null(ranges_spec$x))
+      df2$time <- df2$time + ranges_spec$x[1]
     return(df2)
   }))
   
   output$specplot <- renderPlot({
-    if(is.null(input$file1)){
+    if(.is_null(input$file1)){
       df <- data.frame(time      = 1,
                        frequency = 1:10,
                        amplitude = rep(-96,10))
-      return(plot_spectrogram(df, input))
+      return(plot_spectrogram(df))
     }     
     
-    p <- plot_spectrogram(specData(), input)
-    #if(!is.null(ranges_spec$x))
-    #  p <- p + coord_cartesian(xlim = ranges_spec$x, ylim = ranges_spec$y, expand = FALSE)
+    p <- plot_spectrogram(specData())
+    if(!is.null(ranges_spec$y))
+      p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
     #else if(!is.null(ranges_osc$x))
     #  p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
+    #if(!is.null(input$specplot_brush)){
+    #  res <- brushedPoints(df, input$specplot_brush,
+    #                       xvar = 'time', yvar = 'frequency')
+    #  spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
+    #}
     return(p)
   })
   
   output$oscplot <- renderPlot({
-    if(is.null(input$file1))     
+    if(.is_null(input$file1))     
       return(plot_oscillogram(NULL))
     
     p <- plot_oscillogram(oscData())
@@ -305,23 +335,24 @@ server <- function(input, output) {
   })
   
   output$my_audio <- renderUI({
-    if(is.null(input$file1))     
+    file_name   <- audio_path()
+    audio_style <- HTML("audio:{
+    color:        rgb(214, 122, 127);
+    }")
+    if(.is_null(input$file1))     
       return(tags$audio(id       = 'my_audio_player',
                         src      = "", 
                         type     = "audio/wav", 
                         controls = NA, 
-                        autoplay = NA
+                        autoplay = NA,
+                        style    = audio_style
       ))
-    tranquil <- "#E0FEFE"
     tags$audio(id       = 'my_audio_player',
-               src      = markdown:::.b64EncodeFile('www/tmp.wav'), 
+               src      = markdown:::.b64EncodeFile(file_name), 
                type     = "audio/wav", 
-               controls = 'controls',
+               controls = HTML('controlsList: nodownload'),
                #TODO: HTML styling (background colour, no download button, playback speed,...)
-               style    = HTML("audio {
-               background-color: #95B9C7;
-                               }")
-               )
+               style    = audio_style)
     })
   
   # move to previous file (resetting zoom)

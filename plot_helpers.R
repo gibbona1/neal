@@ -56,7 +56,7 @@ plot_oscillogram <- function(df){
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input){
+plot_spectrogram <- function(df){
   spec_plot <- ggplot(df, aes_string(x = 'time',
                                      y = 'frequency', 
                                      z = 'amplitude')) + 
@@ -81,10 +81,5 @@ plot_spectrogram <- function(df, input){
                        ) +
     hot_theme_grid
   
-  #if(!is.null(input$specplot_brush)){
-  #  res <- brushedPoints(df, input$specplot_brush,
-  #                       xvar = 'time', yvar = 'frequency')
-  #  spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
-  #}
   return(spec_plot)
 }
