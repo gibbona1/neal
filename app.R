@@ -92,12 +92,17 @@ ui_func <- function(){
              radioButtons("label_points", "Label Selection:", 
                           choices = classes
                           ),
+             textInput("otherCategory", "Type in additional category"),
+             fixedRow(
+             actionButton("addCategory", "Add category"),
+             actionButton("resetCategory", "Reset categories")
+             ),
              #TODO: "other" button should come with textInput box, and can't submit unless it is filled (use shinyvalidate)
              #TODO: Other info to label/record - 
              ## type of sound e.g. alarm call, flight call, flock
              ## naming groups: Order, Family, Genus, Species, Subspecies
              ## altitude of recorder (check if in metadata)
-             disabled(actionButton("save_points", "Save Selection"))
+             disabled(actionButton("save_points", HTML("<b>Save Selection</b>")))
              )
       ),
       column(4,
@@ -316,6 +321,17 @@ server <- function(input, output) {
   
   observeEvent(input$specplot_brush, {
     enable("save_points")
+  })
+  
+  observeEvent(input$addCategory, {
+    if(input$label_points == "Other"){
+      updatedValues <- c(classes, input$otherCategory)
+      updateRadioButtons(inputId = "label_points", choices = updatedValues)
+    }
+  })
+  
+  observeEvent(input$resetCategory, {
+    updateRadioButtons(inputId = "label_points", choices = classes)
   })
   
   observeEvent(input$save_points, {
