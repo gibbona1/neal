@@ -145,7 +145,8 @@ server <- function(input, output) {
   
   audio_path <- reactive({
     if(!is.null(ranges_spec$x)){}#do nothing
-    if(!is.null(ranges_osc$x)){}#do nothing
+    if(!is.null(ranges_osc$x)){} #do nothing
+    if(input$db_gain !=0){}     #do nothing
     return('www/tmp.wav')
     })
   
@@ -163,20 +164,24 @@ server <- function(input, output) {
         tc <- ranges_spec$x
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
     }
-    #browser()
-    writeWave(tmp_audio, audio_path())
     #TODO: Only play zoomed spectrogram/oscillogram times/frequencies
     
-    #originally tried method from torchaudio::functional_gain
-    #but wasn't making a difference
-    audio_gain <- function (waveform, gain_db = 0) {
-      return(waveform + gain_db)
+    #based on torchaudio::functional_gain
+    audio_gain <- function (waveform, gain_db = 0){
+      ratio <- 10^(gain_db/20)
+      return(waveform * ratio)
     }
     submean <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
-    tmp_audio <- audio_gain(tmp_audio, input$db_gain)
+    tmp_audio      <- audio_gain(tmp_audio, input$db_gain)
+    #anything outside the range [-32768, 32767] will be rounded
+    tmp_audio@left[tmp_audio@left > 32767]  <- 32767
+    tmp_audio@left[tmp_audio@left < -32768] <- -32768
+    tmp_audio@left <- as.integer(tmp_audio@left)
     #don't need this if we can fix y axis alignment problem
-    tmp_audio <- normalize(tmp_audio, "16")
+    #tmp_audio <- normalize(tmp_audio, "16")
+    writeWave(tmp_audio, audio_path())
+    
     return(tmp_audio)
   })
   
@@ -336,9 +341,10 @@ server <- function(input, output) {
   
   output$my_audio <- renderUI({
     file_name   <- audio_path()
-    audio_style <- HTML("audio:{
-    color:        rgb(214, 122, 127);
-    }")
+    audio_style <- HTML("
+    filter: sepia(50%);
+    background-color: red;
+    color: green;")
     if(.is_null(input$file1))     
       return(tags$audio(id       = 'my_audio_player',
                         src      = "", 
@@ -350,7 +356,7 @@ server <- function(input, output) {
     tags$audio(id       = 'my_audio_player',
                src      = markdown:::.b64EncodeFile(file_name), 
                type     = "audio/wav", 
-               controls = HTML('controlsList: nodownload'),
+               controls = "controls",#HTML('controlsList: nodownload'),
                #TODO: HTML styling (background colour, no download button, playback speed,...)
                style    = audio_style)
     })
