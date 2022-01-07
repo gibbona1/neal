@@ -88,7 +88,7 @@ ui_func <- function(){
                          width   = '100%')
       ),
       column(3,
-             div(h4("labeling"), style = "color: black;",
+             div(h4("Labeling"), style = "color: black;",
              radioButtons("label_points", "Label Selection:", 
                           choices = classes
                           ),
@@ -112,7 +112,10 @@ ui_func <- function(){
              selectInput("noisereduction", "Spectrogram Noise reduction:", 
                          choices  = c("None", "Rows", "Columns"),
                          selected = "None",
-                         width    = '100%')
+                         width    = '100%'),
+             selectInput("palette_selected", "Spectrogram colour palette:", 
+                         choices = palette_list,
+                         width   = '100%')
       )
     )
   )
@@ -264,10 +267,10 @@ server <- function(input, output) {
       df <- data.frame(time      = 1,
                        frequency = 1:10,
                        amplitude = rep(-96,10))
-      return(plot_spectrogram(df))
+      return(plot_spectrogram(df, input))
     }     
     
-    p <- plot_spectrogram(specData())
+    p <- plot_spectrogram(specData(), input)
     if(!is.null(ranges_spec$y))
       p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
     #else if(!is.null(ranges_osc$x))
