@@ -97,7 +97,6 @@ ui_func <- function(){
              actionButton("addCategory", "Add category"),
              actionButton("resetCategory", "Reset categories")
              ),
-             #TODO: "other" button should come with textInput box, and can't submit unless it is filled (use shinyvalidate)
              #TODO: Other info to label/record - 
              ## type of sound e.g. alarm call, flight call, flock
              ## naming groups: Order, Family, Genus, Species, Subspecies
@@ -119,7 +118,8 @@ ui_func <- function(){
                          width    = '100%'),
              selectInput("palette_selected", "Spectrogram colour palette:", 
                          choices = palette_list,
-                         width   = '100%')
+                         width   = '100%'),
+             checkboxInput("palette_invert", "Invert color palette")
       )
     )
   )

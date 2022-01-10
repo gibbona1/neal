@@ -68,6 +68,8 @@ plot_spectrogram <- function(df, input){
   }
   
   sel_col <- palette_cols(input$palette_selected)
+  if(input$palette_invert)
+    sel_col <- rev(sel_col)
   
   spec_plot <- ggplot(df, aes_string(x = 'time',
                                      y = 'frequency', 
@@ -83,13 +85,12 @@ plot_spectrogram <- function(df, input){
                          colors = sel_col,
                          limits = c(-96,96), 
                          na.value = sel_col[1]) +
-    #TODO: invert palette option
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
                        breaks = pretty(df$frequency, 5),
                        labels = paste0(" ", pretty(df$frequency, 5), "kHz")
                        ) +
     hot_theme_grid
-  
+    browser()
   return(spec_plot)
 }
