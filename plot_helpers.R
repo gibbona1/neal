@@ -80,12 +80,15 @@ plot_spectrogram <- function(df, input, length_ylabs){
   
   y_breaks <- pretty(df$frequency, 5)
   
+  #TODO: keep a box over each label (spec and osc plots) by loading any in the csv that exist for this file
+  #TODO: show details of labels in this list in a sidebar
+  #TODO: on clicking label in sidebar, zooms to the label (option to play it)
+  
   spec_plot <- ggplot(df, aes_string(x = 'time',
                                      y = 'frequency', 
                                      z = 'amplitude')) + 
     geom_raster(aes(fill = amplitude), 
-                #TODO: keep a box over each label, even load any in the csv that exist for this file
-                #alpha = (0.5 + 0.5*vals$keeprows), 
+                #alpha = 0.5*(1+vals$keeprows), 
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 

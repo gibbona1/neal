@@ -12,6 +12,8 @@ library(grid)
 #library(gridExtra)
 library(cowplot) # to get legend
 library(profvis) # for checking code performance
+library(dplyr)
+library(stringr)
 
 source('plot_helpers.R')
 source('spectrogram_params.R')
@@ -153,7 +155,8 @@ server <- function(input, output) {
   
   output$files <- renderPrint(list.files(global$datapath))
   
-  observeEvent(ignoreNULL  = TRUE, eventExpr = {input$folder},
+  observeEvent(ignoreNULL  = TRUE, 
+               eventExpr   = {input$folder},
                handlerExpr = {
                  if (!"path" %in% names(dir())) return()
                  home <- normalizePath("~")
@@ -161,14 +164,17 @@ server <- function(input, output) {
                    file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
                })
   
-  ranges_spec <- reactiveValues(x = NULL, y = NULL)
-  ranges_osc  <- reactiveValues(x = NULL)
-  
+  ranges_spec  <- reactiveValues(x = NULL, y = NULL)
+  ranges_osc   <- reactiveValues(x = NULL)
   length_ylabs <- reactiveValues(osc = 4, spec = 0)
   
   length_b10 <- function(x){
-    range_x <- as.integer(range(x))
-    return(max(stringr::str_length(as.character(range_x))))
+    return(x %>% 
+             range %>% 
+             as.integer %>% 
+             as.character %>% 
+             str_length %>% 
+             max)
   }
   
   audioInput <- reactive({
@@ -188,7 +194,8 @@ server <- function(input, output) {
         tc <- ranges_spec$x
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
     }
-    #TODO: Only play zoomed spectrogram/oscillogram times/frequencies
+    #TODO: Only play zoomed spectrogram frequencies 
+    #requires working on complex spectrogram before getting modulus
     
     #based on torchaudio::functional_gain
     audio_gain <- function (waveform, gain_db = 0){
@@ -198,13 +205,10 @@ server <- function(input, output) {
     submean <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
     tmp_audio      <- audio_gain(tmp_audio, input$db_gain)
-    #anything outside the range [-32768, 32767] will be rounded
+    #anything outside the 16-bit range [-32768, 32767] will be rounded
     tmp_audio@left[tmp_audio@left >  32767] <-  32767
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
-    #don't need this if we can fix y axis alignment problem
-    #tmp_audio <- normalize(tmp_audio, "16")
-    
     return(tmp_audio)
   })
   
@@ -303,13 +307,6 @@ server <- function(input, output) {
     p <- plot_spectrogram(specData(), input, length_ylabs)
     if(!is.null(ranges_spec$y))
       p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
-    #else if(!is.null(ranges_osc$x))
-    #  p <- p + coord_cartesian(xlim = ranges_osc$x, expand = FALSE)
-    #if(!is.null(input$specplot_brush)){
-    #  res <- brushedPoints(df, input$specplot_brush,
-    #                       xvar = 'time', yvar = 'frequency')
-    #  spec_plot <- spec_plot + geom_raster(data = res, fill = 'green')
-    #}
     return(p)
   })
   
