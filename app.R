@@ -16,6 +16,12 @@ library(profvis) # for checking code performance
 source('plot_helpers.R')
 source('spectrogram_params.R')
 
+#TODO: navbarPage() to have distinct pages: label, verify/check, run model
+#from https://shiny.rstudio.com/articles/layout-guide.html
+#TODO: collapsible sidebar panel to clear up the app
+#TODO: color/highlight plot as it plays e.g. blue over red in oscillogram
+#TODO: put fft/spectrogram parameters (and any others) in sidebar when made
+
 #change file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
 
@@ -29,6 +35,7 @@ classes <- sort(classes)
 
 ui_func <- function(){
   ui <- fluidPage(
+    useShinyjs(),
     fluidRow(
       plotOutput("specplot",
                  height   = 250,
@@ -119,7 +126,9 @@ ui_func <- function(){
              selectInput("palette_selected", "Spectrogram colour palette:", 
                          choices = palette_list,
                          width   = '100%'),
-             checkboxInput("palette_invert", "Invert color palette")
+             checkboxInput("palette_invert", "Invert color palette"),
+             checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
+             checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE)
       )
     )
   )
@@ -190,7 +199,7 @@ server <- function(input, output) {
     tmp_audio@left <- submean(tmp_audio@left)
     tmp_audio      <- audio_gain(tmp_audio, input$db_gain)
     #anything outside the range [-32768, 32767] will be rounded
-    tmp_audio@left[tmp_audio@left > 32767]  <- 32767
+    tmp_audio@left[tmp_audio@left >  32767] <-  32767
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
     #don't need this if we can fix y axis alignment problem
@@ -273,11 +282,11 @@ server <- function(input, output) {
       spec_freq <- spec_freq[spec_freq >= ranges_spec$y[1] & spec_freq <= ranges_spec$y[2]]
     strlen_spec_y <- length_b10(pretty(spec_freq, 5))
     
-    if(strlen_spec_y+3 <= strlen_osc_y){
+    if(strlen_spec_y + 3 <= strlen_osc_y){
       length_ylabs$osc  <- 0
-      length_ylabs$spec <- strlen_osc_y-strlen_spec_y-3
+      length_ylabs$spec <- strlen_osc_y - strlen_spec_y - 3
     } else {
-      length_ylabs$osc  <- strlen_spec_y+3-strlen_osc_y
+      length_ylabs$osc  <- strlen_spec_y + 3 - strlen_osc_y
       length_ylabs$spec <- 0
     }
     return(df2)
@@ -406,6 +415,22 @@ server <- function(input, output) {
                #TODO: HTML styling (background colour, no download button, playback speed,...)
                style    = audio_style)
     })
+  
+  observe({
+    shinyjs::toggle(id  = "specplot",
+              anim      = TRUE,
+              animType  = "fade",
+              time      = 0.5,
+              condition = input$toggle_spec)
+  })
+  
+  observe({
+    shinyjs::toggle(id  = "oscplot",
+              anim      = TRUE,
+              animType  = "fade",
+              time      = 0.5,
+              condition = input$toggle_osc)
+  })
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
