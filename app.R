@@ -328,7 +328,7 @@ server <- function(input, output) {
   observeEvent(input$addCategory, {
     if(input$label_points == "Other"){
       updatedValues <- c(classes, input$otherCategory)
-      updateRadioButtons(inputId = "label_points", choices = updatedValues)
+      updateRadioButtons(inputId = "label_points", choices = updatedValues, selected = input$otherCategory)
     }
   })
   
@@ -348,12 +348,13 @@ server <- function(input, output) {
                            start_freq  = min(res$frequency),
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
-                           labeler    = Sys.info()[["user"]])
+                           labeler     = Sys.info()[["user"]])
       file_name <- "tmp_labels.csv"
       if(file.exists(file_name))
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
       else
         write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+      showNotification("Label successfully saved!", type = "message")
     }
   })
   
