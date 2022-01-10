@@ -107,7 +107,11 @@ ui_func <- function(){
       ),
       column(4,
              div(h4("Play audio"), style = "color: black;",
-             uiOutput('my_audio')
+             uiOutput('my_audio'),
+             selectInput("playbackrate", "Playback Speed:", 
+                         choices  = c("0.1x","0.25x","0.5x","1.0x","2.0x","5.0x","10.0x"),
+                         selected = "1.0x",
+                         width    = '100%')
              ),
              selectInput("noisereduction", "Spectrogram Noise reduction:", 
                          choices  = c("None", "Rows", "Columns"),
@@ -151,18 +155,14 @@ server <- function(input, output) {
   ranges_spec <- reactiveValues(x = NULL, y = NULL)
   ranges_osc  <- reactiveValues(x = NULL)
   
-  audio_path <- reactive({
-    if(!is.null(ranges_spec$x)){}#do nothing
-    if(!is.null(ranges_osc$x)){} #do nothing
-    if(input$db_gain !=0){}     #do nothing
-    return('www/tmp.wav')
-    })
-  
   audioInput <- reactive({
     if(.is_null(input$file1))     
       return(NULL) 
     
     tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
+    
+    tmp_audio@samp.rate <- tmp_audio@samp.rate * as.numeric(gsub("x", "", input$playbackrate))
+    
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)){
       #time crop
@@ -188,7 +188,6 @@ server <- function(input, output) {
     tmp_audio@left <- as.integer(tmp_audio@left)
     #don't need this if we can fix y axis alignment problem
     #tmp_audio <- normalize(tmp_audio, "16")
-    writeWave(tmp_audio, audio_path())
     
     return(tmp_audio)
   })
@@ -359,7 +358,10 @@ server <- function(input, output) {
   })
   
   output$my_audio <- renderUI({
-    file_name   <- audio_path()
+    file_name   <-  'www/tmp.wav'
+    if(!is.null(audioInput()))
+      writeWave(audioInput(), file_name)
+    
     audio_style <- HTML("
     filter: sepia(50%);
     background-color: red;
