@@ -340,7 +340,7 @@ server <- function(input, output) {
     #get x and y coordinates with max and min of brushedPoints()
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
-    if (!is.null(input$specplot_brush)) {
+    if(!is.null(input$specplot_brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
                            start_time  = min(res$time),
@@ -354,7 +354,9 @@ server <- function(input, output) {
         write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
       else
         write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
-      showNotification("Label successfully saved!", type = "message")
+      showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
+    } else {
+      showNotification("Label not saved, nothing selected!", type = "error")
     }
   })
   
