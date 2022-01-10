@@ -155,6 +155,13 @@ server <- function(input, output) {
   ranges_spec <- reactiveValues(x = NULL, y = NULL)
   ranges_osc  <- reactiveValues(x = NULL)
   
+  length_ylabs <- reactiveValues(osc = 4, spec = 0)
+  
+  length_b10 <- function(x){
+    range_x <- as.integer(range(x))
+    return(max(stringr::str_length(as.character(range_x))))
+  }
+  
   audioInput <- reactive({
     if(.is_null(input$file1))     
       return(NULL) 
@@ -217,7 +224,6 @@ server <- function(input, output) {
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
-    #browser()
     if(!is.null(ranges_osc$x))
       df$time <- df$time + ranges_osc$x[1]
     if(!is.null(ranges_spec$x))
@@ -248,7 +254,7 @@ server <- function(input, output) {
     return(df)
   })
   
-  oscData <- reactive(({
+  oscData <- reactive({
     if(.is_null(input$file1))     
       return(NULL)
     tmp_audio <- audioInput()
@@ -258,18 +264,34 @@ server <- function(input, output) {
       df2$time <- df2$time + ranges_osc$x[1]
     if(!is.null(ranges_spec$x))
       df2$time <- df2$time + ranges_spec$x[1]
+    
+    #spacing for "custom" y axis margin
+    strlen_osc_y  <- length_b10(df2$amplitude)
+    
+    spec_freq <- specData()$frequency
+    if(!is.null(ranges_spec$y))
+      spec_freq <- spec_freq[spec_freq >= ranges_spec$y[1] & spec_freq <= ranges_spec$y[2]]
+    strlen_spec_y <- length_b10(pretty(spec_freq, 5))
+    
+    if(strlen_spec_y+3 <= strlen_osc_y){
+      length_ylabs$osc  <- 0
+      length_ylabs$spec <- strlen_osc_y-strlen_spec_y-3
+    } else {
+      length_ylabs$osc  <- strlen_spec_y+3-strlen_osc_y
+      length_ylabs$spec <- 0
+    }
     return(df2)
-  }))
+  })
   
   output$specplot <- renderPlot({
     if(.is_null(input$file1)){
       df <- data.frame(time      = 1,
                        frequency = 1:10,
                        amplitude = rep(-96,10))
-      return(plot_spectrogram(df, input))
+      return(plot_spectrogram(df, input, length_ylabs))
     }     
     
-    p <- plot_spectrogram(specData(), input)
+    p <- plot_spectrogram(specData(), input, length_ylabs)
     if(!is.null(ranges_spec$y))
       p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
     #else if(!is.null(ranges_osc$x))
@@ -283,10 +305,10 @@ server <- function(input, output) {
   })
   
   output$oscplot <- renderPlot({
-    if(.is_null(input$file1))     
-      return(plot_oscillogram(NULL))
+    if(.is_null(input$file1))
+      return(plot_oscillogram(NULL, length_ylabs))
     
-    p <- plot_oscillogram(oscData())
+    p <- plot_oscillogram(oscData(), length_ylabs)
     if(!is.null(ranges_spec$x))
       p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
     else if(!is.null(ranges_osc$x))
