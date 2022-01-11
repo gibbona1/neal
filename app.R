@@ -40,6 +40,7 @@ ui_func <- function() {
   ui <- fluidPage(
     theme = shinytheme("slate"),
     useShinyjs(),
+    htmlOutput("file1"),
     fluidRow(
       div(
         style = "position:relative",
@@ -53,7 +54,6 @@ ui_func <- function() {
             delay     = 50,
             delayType = "debounce"
           ),
-          #"specplot_hover", #TODO: hover tooltip
           brush    = brushOpts(
             id         = "specplot_brush",
             resetOnNew = TRUE)
@@ -266,6 +266,13 @@ server <- function(input, output) {
     tmp_audio@left <- as.integer(tmp_audio@left)
     return(tmp_audio)
   })
+  
+  output$file1 <- renderUI({
+    if(.is_null(input$file1))
+      return(NULL)
+    else
+      return(HTML(paste0('<b>', input$file1, '</b>')))
+    })
   
   specData <- reactive({
     if(.is_null(input$file1))     
