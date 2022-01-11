@@ -184,7 +184,8 @@ ui_func <- function() {
           checkboxInput("palette_invert", "Invert color palette"),
           checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
           checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
-          actionButton("savespec", "Save Spectrogram")
+          actionButton("savespec", "Save Spectrogram"),
+          checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE)
         )
       )
     )
@@ -391,9 +392,8 @@ server <- function(input, output) {
   })
   
   output$hover_info <- renderUI({
-    if(.is_null(input$file1))
+    if(.is_null(input$file1) | !input$include_hover)
       return(NULL)
-    #browser()
     hover <- input$specplot_hover
     point <- nearPoints(specData(), hover, threshold = 5, maxpoints = 1, addDist = TRUE, xvar="time", yvar="frequency")
     if(nrow(point) == 0) 
@@ -405,16 +405,13 @@ server <- function(input, output) {
     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
     top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
     
-    # calculate distance from left and bottom side of the picture in pixels
-    left_px <- hover$range$left + left_pct * (hover$range$right - hover$range$left)
-    top_px  <- hover$range$top  + top_pct  * (hover$range$bottom - hover$range$top)
-    
-    # create style property fot tooltip
-    # background color is set so tooltip is a bit transparent
+    # create style property for tooltip
+    # background color is set so tooltip is a almost transparent
     # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(120, 120, 120, 0.15); ",
-                    "color: rgb(255, 255, 255); ",
-                    "left:", left_px, "px; top:", top_px, "px;")
+    style <- paste0("position:absolute; z-index:100; ",
+                    "background-color: rgba(120, 120, 120, 0.15); ",
+                    "color: rgb(245, 245, 245); padding: 1%;",
+                    "left:", 100*left_pct+2, "%; top:", 100*top_pct+2, "%;")
     
     # actual tooltip created as wellPanel
     wellPanel(
