@@ -185,7 +185,9 @@ ui_func <- function() {
           checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
           checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
           actionButton("savespec", "Save Spectrogram"),
-          checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE)
+          checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
+          checkboxInput("spec_labs", "Show spectrogram labels"),
+          checkboxInput("osc_labs", "Show oscillogram labels")
         )
       )
     )
@@ -388,9 +390,9 @@ server <- function(input, output) {
   
   output$oscplot <- renderPlot({
     if(.is_null(input$file1))
-      return(plot_oscillogram(NULL, length_ylabs))
+      return(plot_oscillogram(NULL, input, length_ylabs))
     
-    p <- plot_oscillogram(oscData(), length_ylabs)
+    p <- plot_oscillogram(oscData(), input, length_ylabs)
     if(!is.null(ranges_spec$x))
       p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
     else if(!is.null(ranges_osc$x))

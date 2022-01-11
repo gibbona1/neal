@@ -39,7 +39,7 @@ virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", 
 palette_list <- c("viridisplus", "magma", "inferno", "plasma", 
                   "viridis", "cividis", "rocket", "mako", "turbo")
 
-plot_oscillogram <- function(df, length_ylabs){
+plot_oscillogram <- function(df, input, length_ylabs){
   lim16    <- 2^15-1
   osc_plot <- ggplot(df)
   if(!is.null(df)){
@@ -54,15 +54,29 @@ plot_oscillogram <- function(df, length_ylabs){
   osc_plot <- osc_plot + 
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(breaks = y_breaks,
-                       #breaks = c(-lim16,0,lim16),
                        expand = c(0.1,0.1),
-                       #limits = c(-lim16,lim16)
                        labels = y_labels
                        ) +
     xlab("Time (s)") + 
     ylab("Amplitude") + 
     geom_hline(yintercept = 0, color = "white", linetype = "dotted") +
     oscillo_theme_dark
+  
+  lab_df <- read.csv("tmp_labels.csv")
+  lab_df <- lab_df[lab_df$file_name == input$file1,]
+  if(nrow(lab_df)==0)
+    return(osc_plot)
+  if(input$osc_labs){
+    osc_plot <- osc_plot +
+      geom_rect(data = lab_df, 
+              aes(xmin = start_time,
+                  xmax = end_time,
+                  ymin = -Inf, 
+                  ymax = Inf),
+      color = "red",
+      fill  = "lightgrey",
+      alpha = 0.15)
+  }
   return(osc_plot)
 }
 
@@ -83,12 +97,10 @@ plot_spectrogram <- function(df, input, length_ylabs){
   #TODO: keep a box over each label (spec and osc plots) by loading any in the csv that exist for this file
   #TODO: show details of labels in this list in a sidebar
   #TODO: on clicking label in sidebar, zooms to the label (option to play it)
-  
-  spec_plot <- ggplot(df, aes_string(x = 'time',
-                                     y = 'frequency', 
-                                     z = 'amplitude')) + 
-    geom_raster(aes(fill = amplitude), 
-                #alpha = 0.5*(1+vals$keeprows), 
+  spec_plot <- ggplot(df) + 
+    geom_raster(aes(x    = time,
+                    y    = frequency, 
+                    fill = amplitude),
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
@@ -105,5 +117,20 @@ plot_spectrogram <- function(df, input, length_ylabs){
                        ) +
     hot_theme_grid
     
+  lab_df <- read.csv("tmp_labels.csv")
+  lab_df <- lab_df[lab_df$file_name == input$file1,]
+  if(nrow(lab_df)==0)
+    return(spec_plot)
+  if(input$spec_labs){
+    spec_plot <- spec_plot +
+      geom_rect(data = lab_df, 
+                mapping = aes(xmin = start_time,
+                              xmax = end_time,
+                              ymin = start_freq, 
+                              ymax = end_freq),
+                color = "green",
+                fill  = "lightgrey",
+                alpha = 0.15)
+  }
   return(spec_plot)
 }
