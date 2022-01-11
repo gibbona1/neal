@@ -367,25 +367,30 @@ server <- function(input, output) {
       return(plot_spectrogram(specData(), input, length_ylabs))
     }     
     
-    p <- plot_spectrogram(specData(), input, length_ylabs)
-    if(!is.null(ranges_spec$y))
-      p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
-    observeEvent(input$savespec, {
-      saveplt <- p + 
-        theme_void() + 
-        theme(legend.position = 'none')
-      spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
-      file_nm <- file.path(getwd(), "images", spec_name)
-      #ggsave(file_nm, plot = saveplt)
-      png(file_nm)
-      print(saveplt)
-      dev.off()
-      showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
-                       #TODO: clickable link to images folder
-                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
-                       type = "message")
+    withProgress(message = 'Creating Spectrogram', value = 0.1, {
+      p <- plot_spectrogram(specData(), input, length_ylabs)
+      incProgress(0.5)
+      
+      if(!is.null(ranges_spec$y))
+        p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
+      observeEvent(input$savespec, {
+        saveplt <- p + 
+          theme_void() + 
+          theme(legend.position = 'none')
+        spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
+        file_nm <- file.path(getwd(), "images", spec_name)
+        #ggsave(file_nm, plot = saveplt)
+        png(file_nm)
+        print(saveplt)
+        dev.off()
+        showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
+                         #TODO: clickable link to images folder
+                         #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                         type = "message")
+      })
+      incProgress(0.3)
     })
-    return(p)
+      return(p)
   })
   
   output$oscplot <- renderPlot({
