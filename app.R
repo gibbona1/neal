@@ -130,7 +130,8 @@ ui_func <- function(){
                          width   = '100%'),
              checkboxInput("palette_invert", "Invert color palette"),
              checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
-             checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE)
+             checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
+             actionButton("savespec", "Save Spectrogram")
       )
     )
   )
@@ -307,6 +308,21 @@ server <- function(input, output) {
     p <- plot_spectrogram(specData(), input, length_ylabs)
     if(!is.null(ranges_spec$y))
       p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
+    observeEvent(input$savespec, {
+      saveplt <- p + 
+        theme_void() + 
+        theme(legend.position = 'none')
+      spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
+      file_nm <- file.path(getwd(), "images", spec_name)
+      #ggsave(file_nm, plot = saveplt)
+      png(file_nm)
+      print(saveplt)
+      dev.off()
+      showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
+                       #TODO: clickable link to images folder
+                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                       type = "message")
+    })
     return(p)
   })
   
