@@ -36,107 +36,159 @@ classes <- sort(classes)
 
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
-ui_func <- function(){
-  ui <- fluidPage(theme = shinytheme("slate"),
+ui_func <- function() {
+  ui <- fluidPage(
+    theme = shinytheme("slate"),
     useShinyjs(),
     fluidRow(
-      plotOutput("specplot",
-                 height   = 250,
-                 click    = "specplot_click",
-                 dblclick = "specplot_dblclick",
-                 hover    = "specplot_hover", #TODO: hover tooltip
-                 brush    = brushOpts(
-                   id         = "specplot_brush",
-                   resetOnNew = TRUE)
+      div(
+        style = "position:relative",
+        plotOutput(
+          "specplot",
+          height   = 250,
+          click    = "specplot_click",
+          dblclick = "specplot_dblclick",
+          hover    = hoverOpts(
+            id        = "specplot_hover",
+            delay     = 50,
+            delayType = "debounce"
+          ),
+          #"specplot_hover", #TODO: hover tooltip
+          brush    = brushOpts(
+            id         = "specplot_brush",
+            resetOnNew = TRUE)
+        ),
+        uiOutput("hover_info")
+      )),
+      fluidRow(
+        plotOutput(
+          "oscplot",
+          height   = 110,
+          click    = "oscplot_click",
+          dblclick = "oscplot_dblclick",
+          hover    = "oscplot_hover",
+          brush    = brushOpts(
+            id         = "oscplot_brush",
+            direction  = "x",
+            resetOnNew = TRUE
+          )
+        ),
+      ),
+      fluidRow(
+        column(
+          5,
+          sliderInput(
+            "db_gain",
+            "dB Gain:",
+            min = -96,
+            max = 96,
+            value = 0,
+            ticks = FALSE
+          ),
+        ),
+        column(
+          5,
+          sliderInput(
+            "db_contrast",
+            "Contrast:",
+            min = 0,
+            max = 96,
+            value = 0,
+            ticks = FALSE
+          )
+        ),
+        column(
+          2,
+          br(),
+          fixedRow(
+            tags$div(
+              style = "display: inline-block; vertical-align:center; horizontal-align:center",
+              class = "row-fluid",
+              tipify(actionButton("prev_file", "", icon = icon("arrow-left")),  "Prev"),
+              disabled(tipify(
+                actionButton("prev_section", "", icon = icon("chevron-left")),  "prev section"
+              )),
+              disabled(tipify(
+                actionButton("next_section", "", icon = icon("chevron-right")), "next section"
+              )),
+              tipify(actionButton("next_file", "", icon = icon("arrow-right")), "Next")
+            )
+          ),
+          div(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
+              actionButton("plt_reset", "Reset Plot"))
+        )
+      ),
+      fluidRow(
+        column(
+          5,
+          div(
+            h4("Select a folder"),
+            shinyDirButton('folder',
+                           label    = 'Folder select',
+                           title    = 'Please select a folder')
+          ),
+          verbatimTextOutput("folder", placeholder = TRUE),
+          br(),
+          selectInput(
+            "file1",
+            "Select File:",
+            choices = c("<NULL>", file_list),
+            width   = '100%'
+          )
+        ),
+        column(3,
+               div(
+                 h4("Labeling"),
+                 radioButtons("label_points", "Label Selection:",
+                              choices = classes),
+                 textInput("otherCategory", "Type in additional category"),
+                 fixedRow(
+                   actionButton("addCategory", "Add category"),
+                   actionButton("resetCategory", "Reset categories")
                  ),
-    ),
-    fluidRow(
-      plotOutput("oscplot",
-                 height   = 110,
-                 click    = "oscplot_click",
-                 dblclick = "oscplot_dblclick",
-                 hover    = "oscplot_hover",
-                 brush    = brushOpts(
-                   id         = "oscplot_brush",
-                   direction  = "x",
-                   resetOnNew = TRUE)
-                 ),
-    ),
-    fluidRow(
-      column(5,
-      sliderInput("db_gain", "dB Gain:",
-                  min = -96, max = 96, value = 0,
-                  ticks = FALSE),
-      ),
-      column(5,
-      sliderInput("db_contrast", "Contrast:",
-                  min = 0, max = 96, value = 0,
-                  ticks = FALSE)
-      ),
-      column(2,
-             br(),
-             fixedRow(tags$div(style="display: inline-block; vertical-align:center; horizontal-align:center", class = "row-fluid",
-                               tipify(actionButton("prev_file", "", icon = icon("arrow-left")),  "Prev"),
-                               disabled(tipify(actionButton("prev_section", "", icon = icon("chevron-left")),  "prev section")),
-                               disabled(tipify(actionButton("next_section", "", icon = icon("chevron-right")), "next section")),
-                               tipify(actionButton("next_file", "", icon = icon("arrow-right")), "Next"))
-             ),
-             div(style="display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-               actionButton("plt_reset", "Reset Plot"))
-             )
-    ),
-    fluidRow(
-      column(5,
-             div(h4("Select a folder"),
-                 shinyDirButton('folder', 
-                                label    = 'Folder select', 
-                                title    = 'Please select a folder')
-                 ),
-             verbatimTextOutput("folder", placeholder = TRUE), br(),
-             selectInput("file1", "Select File:", 
-                         choices = c("<NULL>", file_list),
-                         width   = '100%')
-      ),
-      column(3,
-             div(h4("Labeling"),
-             radioButtons("label_points", "Label Selection:", 
-                          choices = classes
-                          ),
-             textInput("otherCategory", "Type in additional category"),
-             fixedRow(
-             actionButton("addCategory", "Add category"),
-             actionButton("resetCategory", "Reset categories")
-             ),
-             #TODO: Other info to label/record - 
-             ## type of sound e.g. alarm call, flight call, flock
-             ## naming groups: Order, Family, Genus, Species, Subspecies
-             ## altitude of recorder (check if in metadata)
-             disabled(actionButton("save_points", HTML("<b>Save Selection</b>")))
-             )
-      ),
-      column(4,
-             div(h4("Play audio"), #style = "color: black;",
-             uiOutput('my_audio'),
-             selectInput("playbackrate", "Playback Speed:", 
-                         choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
-                         selected = "1x",
-                         width    = '100%')
-             ),
-             selectInput("noisereduction", "Spectrogram Noise reduction:", 
-                         choices  = c("None", "Rows", "Columns"),
-                         selected = "None",
-                         width    = '100%'),
-             selectInput("palette_selected", "Spectrogram colour palette:", 
-                         choices = palette_list,
-                         width   = '100%'),
-             checkboxInput("palette_invert", "Invert color palette"),
-             checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
-             checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
-             actionButton("savespec", "Save Spectrogram")
+                 #TODO: Other info to label/record -
+                 ## type of sound e.g. alarm call, flight call, flock
+                 ## naming groups: Order, Family, Genus, Species, Subspecies
+                 ## altitude of recorder (check if in metadata)
+                 disabled(actionButton(
+                   "save_points", HTML("<b>Save Selection</b>")
+                 ))
+               )),
+        column(
+          4,
+          div(
+            h4("Play audio"),
+            #style = "color: black;",
+            uiOutput('my_audio'),
+            selectInput(
+              "playbackrate",
+              "Playback Speed:",
+              choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
+              selected = "1x",
+              width    = '100%'
+            )
+          ),
+          selectInput(
+            "noisereduction",
+            "Spectrogram Noise reduction:",
+            choices  = c("None", "Rows", "Columns"),
+            selected = "None",
+            width    = '100%'
+          ),
+          selectInput(
+            "palette_selected",
+            "Spectrogram colour palette:",
+            choices = palette_list,
+            width   = '100%'
+          ),
+          checkboxInput("palette_invert", "Invert color palette"),
+          checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
+          checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
+          actionButton("savespec", "Save Spectrogram")
+        )
       )
     )
-  )
-return(ui)
+    return(ui)
 }
 
 server <- function(input, output) {
@@ -216,7 +268,9 @@ server <- function(input, output) {
   
   specData <- reactive({
     if(.is_null(input$file1))     
-      return(NULL)
+      return(data.frame(time      = 1,
+                        frequency = 1:10,
+                        amplitude = rep(-96,10)))
     tmp_audio <- audioInput()
     
     noisered <- switch(input$noisereduction,
@@ -300,10 +354,7 @@ server <- function(input, output) {
   
   output$specplot <- renderPlot({
     if(.is_null(input$file1)){
-      df <- data.frame(time      = 1,
-                       frequency = 1:10,
-                       amplitude = rep(-96,10))
-      return(plot_spectrogram(df, input, length_ylabs))
+      return(plot_spectrogram(specData(), input, length_ylabs))
     }     
     
     p <- plot_spectrogram(specData(), input, length_ylabs)
@@ -337,6 +388,41 @@ server <- function(input, output) {
     else if(!is.null(ranges_osc$x))
       p <- p + coord_cartesian(xlim = ranges_osc$x, expand = TRUE)
     return(p)
+  })
+  
+  output$hover_info <- renderUI({
+    if(.is_null(input$file1))
+      return(NULL)
+    #browser()
+    hover <- input$specplot_hover
+    point <- nearPoints(specData(), hover, threshold = 5, maxpoints = 1, addDist = TRUE, xvar="time", yvar="frequency")
+    if(nrow(point) == 0) 
+      return(NULL)
+    point <- round(point, 3)
+    
+    # calculate point position INSIDE the image as percent of total dimensions
+    # from left (horizontal) and from top (vertical)
+    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+    top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
+    
+    # calculate distance from left and bottom side of the picture in pixels
+    left_px <- hover$range$left + left_pct * (hover$range$right - hover$range$left)
+    top_px  <- hover$range$top  + top_pct  * (hover$range$bottom - hover$range$top)
+    
+    # create style property fot tooltip
+    # background color is set so tooltip is a bit transparent
+    # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
+    style <- paste0("position:absolute; z-index:100; background-color: rgba(120, 120, 120, 0.15); ",
+                    "color: rgb(255, 255, 255); ",
+                    "left:", left_px, "px; top:", top_px, "px;")
+    
+    # actual tooltip created as wellPanel
+    wellPanel(
+      style = style,
+      p(HTML(paste0("<b> Time: </b>", point$time, " seconds<br/>", 
+                    "<b> Frequency: </b>", point$frequency, " kHz<br/>",
+                    "<b> Amplitude: </b>", point$amplitude, " dB")))
+    )
   })
   
   # When a double-click happens, check if there's a brush on the plot.
