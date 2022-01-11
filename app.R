@@ -3,6 +3,7 @@ library(shiny)
 library(shinyjs)
 library(shinyBS)
 library(shinyFiles)
+library(shinythemes)
 library(tuneR)
 library(seewave) # for spectrogram
 #library(plotly)
@@ -36,7 +37,7 @@ classes <- sort(classes)
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
 ui_func <- function(){
-  ui <- fluidPage(
+  ui <- fluidPage(theme = shinytheme("slate"),
     useShinyjs(),
     fluidRow(
       plotOutput("specplot",
@@ -86,7 +87,7 @@ ui_func <- function(){
     ),
     fluidRow(
       column(5,
-             div(h4("Select a folder"), style = "color: black;",
+             div(h4("Select a folder"),
                  shinyDirButton('folder', 
                                 label    = 'Folder select', 
                                 title    = 'Please select a folder')
@@ -97,7 +98,7 @@ ui_func <- function(){
                          width   = '100%')
       ),
       column(3,
-             div(h4("Labeling"), style = "color: black;",
+             div(h4("Labeling"),
              radioButtons("label_points", "Label Selection:", 
                           choices = classes
                           ),
@@ -114,11 +115,11 @@ ui_func <- function(){
              )
       ),
       column(4,
-             div(h4("Play audio"), style = "color: black;",
+             div(h4("Play audio"), #style = "color: black;",
              uiOutput('my_audio'),
              selectInput("playbackrate", "Playback Speed:", 
-                         choices  = c("0.1x","0.25x","0.5x","1.0x","2.0x","5.0x","10.0x"),
-                         selected = "1.0x",
+                         choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
+                         selected = "1x",
                          width    = '100%')
              ),
              selectInput("noisereduction", "Spectrogram Noise reduction:", 
