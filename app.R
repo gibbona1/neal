@@ -414,6 +414,20 @@ server <- function(input, output) {
     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
     top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
     
+    in_label_box <- function(df, point)
+      return(point$time      >= df$start_time & 
+             point$time      <= df$end_time &
+             point$frequency >= df$start_freq &
+             point$frequency <= df$end_freq)
+    lab_df <- read.csv("tmp_labels.csv")
+    lab_df <- lab_df[lab_df$file_name == input$file1 & in_label_box(lab_df, point),]
+    if(nrow(lab_df) == 0)
+      species_in_hover <- ''
+    else{
+      lab_df <- lab_df[1,]
+      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label)
+    }
+    
     # create style property for tooltip
     # background color is set so tooltip is a almost transparent
     # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
@@ -427,7 +441,8 @@ server <- function(input, output) {
       style = style,
       p(HTML(paste0("<b> Time: </b>", point$time, " seconds<br/>", 
                     "<b> Frequency: </b>", point$frequency, " kHz<br/>",
-                    "<b> Amplitude: </b>", point$amplitude, " dB")))
+                    "<b> Amplitude: </b>", point$amplitude, " dB",
+                    species_in_hover)))
     )
   })
   
