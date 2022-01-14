@@ -67,10 +67,11 @@ plot_oscillogram <- function(df, input, length_ylabs){
   if(nrow(lab_df)==0)
     return(osc_plot)
   if(input$osc_labs){
+    pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
     osc_plot <- osc_plot +
       geom_rect(data = lab_df, 
-              aes(xmin = start_time,
-                  xmax = end_time,
+              aes(xmin = start_time / pb_rate,
+                  xmax = end_time   / pb_rate,
                   ymin = -Inf, 
                   ymax = Inf),
       color = "red",
@@ -121,12 +122,13 @@ plot_spectrogram <- function(df, input, length_ylabs){
   if(nrow(lab_df)==0)
     return(spec_plot)
   if(input$spec_labs){
+    pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
     spec_plot <- spec_plot +
       geom_rect(data = lab_df, 
-                mapping = aes(xmin = start_time,
-                              xmax = end_time,
-                              ymin = start_freq, 
-                              ymax = end_freq),
+                mapping = aes(xmin = start_time / pb_rate,
+                              xmax = end_time   / pb_rate,
+                              ymin = start_freq * pb_rate, 
+                              ymax = end_freq   * pb_rate),
                 color = "green",
                 fill  = "lightgrey",
                 alpha = 0.15)

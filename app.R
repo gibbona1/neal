@@ -419,11 +419,13 @@ server <- function(input, output) {
     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
     top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
     
-    in_label_box <- function(df, point)
-      return(point$time      >= df$start_time & 
-             point$time      <= df$end_time &
-             point$frequency >= df$start_freq &
-             point$frequency <= df$end_freq)
+    in_label_box <- function(df, point){
+      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
+      return(point$time      >= df$start_time / pb_rate & 
+             point$time      <= df$end_time   / pb_rate &
+             point$frequency >= df$start_freq * pb_rate &
+             point$frequency <= df$end_freq   * pb_rate)
+    }
     lab_df <- read.csv("tmp_labels.csv")
     lab_df <- lab_df[lab_df$file_name == input$file1 & in_label_box(lab_df, point),]
     if(nrow(lab_df) == 0)
