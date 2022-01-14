@@ -25,7 +25,8 @@ source('spectrogram_params.R')
 #TODO: color/highlight plot as it plays e.g. blue over red in oscillogram
 #TODO: put fft/spectrogram parameters (and any others) in sidebar when made
 #TODO: Option for Action Buttons instead of radio buttons for labeling which can be pressed and unpressed if labels want to be removed
-#TODO: Use Intersection over union (IOU) with bounding boxes to see if there's already a box in that area, use warning if box is unpressed (with undo option)
+#TODO: Seperate button to remove label and Button to undo it
+#TODO: Reactive object of classes to add more than one species, option to save list
 #TODO: Colour buttons (action or radio) same as bounding boxes (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead
 #TODO: show details of saved labels in list in a sidebar
@@ -592,21 +593,15 @@ server <- function(input, output) {
       full_df_rm <- c()
       for(idx in 1:nrow(full_df)){
         bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
-        check_df <- full_df[idx, bb_cols]
+        check_df <- full_df[idx,]
         
-        row_iou <- bb_iou(lab_df[,bb_cols], check_df)
+        row_iou <- bb_iou(lab_df[,bb_cols], check_df[,bb_cols])
         #print(row_iou)
         if(row_iou > 0.6){
           full_df_rm <- c(full_df_rm, idx)
-          showNotification(HTML("Label removed!, click <b>Save Selection</b> again to re-save"), type = "warning", duration = 10)
-          if(input$spec_labs){
-            updateCheckboxInput(inputId = "spec_labs", value = FALSE)
-            updateCheckboxInput(inputId = "spec_labs", value = TRUE)
-          }
-          if(input$osc_labs){
-            updateCheckboxInput(inputId = "osc_labs", value = FALSE)
-            updateCheckboxInput(inputId = "osc_labs", value = TRUE)
-          }
+          showNotification(HTML("Label removed from overlapping selection!, click <b>Save Selection</b> again to re-save"), type = "warning", duration = 10)
+          #TODO: clickable link to undo removal
+          #action = a(href = "javascript:someUndoButton.click();", "Undo", target = "_blank"),
         }
       }
       if(!is.null(full_df_rm)){
@@ -618,6 +613,14 @@ server <- function(input, output) {
         else
           write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
         showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
+      }
+      if(input$spec_labs){
+        updateCheckboxInput(inputId = "spec_labs", value = FALSE)
+        updateCheckboxInput(inputId = "spec_labs", value = TRUE)
+      }
+      if(input$osc_labs){
+        updateCheckboxInput(inputId = "osc_labs", value = FALSE)
+        updateCheckboxInput(inputId = "osc_labs", value = TRUE)
       }
     } else {
       showNotification("Label not saved, nothing selected!", type = "error")
