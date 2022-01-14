@@ -95,8 +95,6 @@ plot_spectrogram <- function(df, input, length_ylabs){
   
   y_breaks <- pretty(df$frequency, 5)
   
-  #TODO: show details of labels in this list in a sidebar
-  #TODO: on clicking label in sidebar, zooms to the label (option to play it)
   spec_plot <- ggplot(df) + 
     geom_raster(aes(x    = time,
                     y    = frequency, 

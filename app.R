@@ -24,6 +24,12 @@ source('spectrogram_params.R')
 #TODO: collapsible sidebar panel to clear up the app
 #TODO: color/highlight plot as it plays e.g. blue over red in oscillogram
 #TODO: put fft/spectrogram parameters (and any others) in sidebar when made
+#TODO: Option for Action Buttons instead of radio buttons for labeling which can be pressed and unpressed if labels want to be removed
+#TODO: Use Intersection over union (IOU) with bounding boxes to see if there's already a box in that area, use warning if box is unpressed (with undo option)
+#TODO: Colour buttons (action or radio) same as bounding boxes (ggplot override aes) (notification label colour too)
+#TODO: Label hover click option instead
+#TODO: show details of saved labels in list in a sidebar
+#TODO: on clicking label in sidebar, highlights or zooms to the label (option to play it)
 
 #change file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
