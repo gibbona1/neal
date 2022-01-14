@@ -66,13 +66,18 @@ ui_func <- function() {
           height   = 110,
           click    = "oscplot_click",
           dblclick = "oscplot_dblclick",
-          hover    = "oscplot_hover",
+          hover    = hoverOpts(
+            id        = "oscplot_hover",
+            delay     = 50,
+            delayType = "debounce"
+          ),
           brush    = brushOpts(
             id         = "oscplot_brush",
             direction  = "x",
             resetOnNew = TRUE
           )
         ),
+        uiOutput("hover_info_osc")
       ),
       fluidRow(
         column(
@@ -186,6 +191,7 @@ ui_func <- function() {
           checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
           actionButton("savespec", "Save Spectrogram"),
           checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
+          checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
           checkboxInput("spec_labs", "Show spectrogram labels"),
           checkboxInput("osc_labs", "Show oscillogram labels")
         )
@@ -428,7 +434,7 @@ server <- function(input, output) {
     }
     lab_df <- read.csv("tmp_labels.csv")
     lab_df <- lab_df[lab_df$file_name == input$file1 & in_label_box(lab_df, point),]
-    if(nrow(lab_df) == 0)
+    if(nrow(lab_df) == 0 | !input$spec_labs)
       species_in_hover <- ''
     else{
       lab_df <- lab_df[1,]
@@ -449,6 +455,51 @@ server <- function(input, output) {
       p(HTML(paste0("<b> Time: </b>", point$time, " seconds<br/>", 
                     "<b> Frequency: </b>", point$frequency, " kHz<br/>",
                     "<b> Amplitude: </b>", point$amplitude, " dB",
+                    species_in_hover)))
+    )
+  })
+  
+  output$hover_info_osc <- renderUI({
+    if(.is_null(input$file1) | !input$include_hover_osc)
+      return(NULL)
+    hover <- input$oscplot_hover
+    point <- nearPoints(oscData(), hover, threshold = 5, maxpoints = 1, addDist = TRUE, xvar="time")
+    if(nrow(point) == 0) 
+      return(NULL)
+    point <- round(point, 3)
+    
+    # calculate point position INSIDE the image as percent of total dimensions
+    # from left (horizontal) and from top (vertical)
+    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+    top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
+    
+    in_label_box <- function(df, point){
+      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
+      return(point$time      >= df$start_time / pb_rate & 
+             point$time      <= df$end_time   / pb_rate)
+    }
+    lab_df <- read.csv("tmp_labels.csv")
+    lab_df <- lab_df[lab_df$file_name == input$file1 & in_label_box(lab_df, point),]
+    if(nrow(lab_df) == 0 | !input$osc_labs)
+      species_in_hover <- ''
+    else{
+      lab_df <- lab_df[1,]
+      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label)
+    }
+    
+    # create style property for tooltip
+    # background color is set so tooltip is a almost transparent
+    # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
+    style <- paste0("position:absolute; z-index:100; ",
+                    "background-color: rgba(120, 120, 120, 0.15); ",
+                    "color: rgb(245, 245, 245); padding: 1%;",
+                    "left:", 100*left_pct+2, "%; top:", 100*top_pct+2, "%;")
+    
+    # actual tooltip created as wellPanel
+    wellPanel(
+      style = style,
+      p(HTML(paste0("<b> Time: </b>", point$time, " seconds<br/>", 
+                    "<b> Amplitude: </b>", point$amplitude,
                     species_in_hover)))
     )
   })
