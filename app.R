@@ -556,6 +556,26 @@ server <- function(input, output) {
     #get x and y coordinates with max and min of brushedPoints()
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
+    bb_iou <- function(boxA, boxB){
+      # intersection_over_union
+      # boxes have column start_time, end_time, start_freq, end_freq
+      # determine the (x, y)-coordinates of the intersection rectangle
+      xA <- max(boxA[,1], boxB[,1])
+      yA <- max(boxA[,3], boxB[,3])
+      xB <- min(boxA[,2], boxB[,2])
+      yB <- min(boxA[,4], boxB[,4])
+      #apply(rbind(boxA,boxB),2,max)
+      # compute the area of intersection rectangle
+      interArea <- max(0, xB - xA) * max(0, yB - yA)
+      # compute the area of both boxA and boxB
+      box_area <- function(box)
+        return((box[,2] - box[,1]) * (box[,4] - box[,3]))
+      boxAArea <- box_area(boxA)
+      boxBArea <- box_area(boxB)
+      # compute the intersection over union
+      iou <- interArea / (boxAArea + boxBArea - interArea)
+      return(iou)
+    }
     if(!is.null(input$specplot_brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
@@ -565,12 +585,40 @@ server <- function(input, output) {
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
                            labeler     = Sys.info()[["user"]])
+      
       file_name <- "tmp_labels.csv"
-      if(file.exists(file_name))
-        write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
-      else
-        write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
-      showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
+      full_df   <- read.csv(file_name)
+      #browser()
+      full_df_rm <- c()
+      for(idx in 1:nrow(full_df)){
+        bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
+        check_df <- full_df[idx, bb_cols]
+        
+        row_iou <- bb_iou(lab_df[,bb_cols], check_df)
+        #print(row_iou)
+        if(row_iou > 0.6){
+          full_df_rm <- c(full_df_rm, idx)
+          showNotification(HTML("Label removed!, click <b>Save Selection</b> again to re-save"), type = "warning", duration = 10)
+          if(input$spec_labs){
+            updateCheckboxInput(inputId = "spec_labs", value = FALSE)
+            updateCheckboxInput(inputId = "spec_labs", value = TRUE)
+          }
+          if(input$osc_labs){
+            updateCheckboxInput(inputId = "osc_labs", value = FALSE)
+            updateCheckboxInput(inputId = "osc_labs", value = TRUE)
+          }
+        }
+      }
+      if(!is.null(full_df_rm)){
+        full_df <- full_df[-full_df_rm,]
+        write.table(full_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+      } else {
+        if(file.exists(file_name))
+          write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
+        else
+          write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+        showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
+      }
     } else {
       showNotification("Label not saved, nothing selected!", type = "error")
     }
