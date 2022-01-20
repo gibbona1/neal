@@ -39,6 +39,7 @@ virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", 
 palette_list <- c("viridisplus", "magma", "inferno", "plasma", 
                   "viridis", "cividis", "rocket", "mako", "turbo")
 
+#TODO: greyscale palette with grey.colors()
 plot_oscillogram <- function(df, input, length_ylabs){
   lim16    <- 2^15-1
   osc_plot <- ggplot(df)
