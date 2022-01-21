@@ -64,6 +64,11 @@ ui_func <- function() {
             id         = "specplot_brush",
             resetOnNew = TRUE)
         ),
+        plotOutput(
+          "specplot_blank",
+          height   = 25,
+        ),
+        uiOutput("spec_collapse"),
         uiOutput("hover_info")
       )),
       fluidRow(
@@ -83,6 +88,11 @@ ui_func <- function() {
             resetOnNew = TRUE
           )
         ),
+        plotOutput(
+          "oscplot_blank",
+          height   = 25,
+        ),
+        uiOutput("osc_collapse"),
         uiOutput("hover_info_osc")
       ),
       fluidRow(
@@ -243,6 +253,7 @@ server <- function(input, output) {
   ranges_osc   <- reactiveValues(x = NULL)
   length_ylabs <- reactiveValues(osc = 4, spec = 0)
   deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
+  plots_open   <- reactiveValues(osc = TRUE, spec = TRUE)
   
   length_b10 <- function(x){
     return(x %>% 
@@ -412,6 +423,13 @@ server <- function(input, output) {
       return(p)
   })
   
+  output$specplot_blank <- renderPlot({
+    if(plots_open$spec)
+      return(NULL)
+    else 
+      ggplot() + theme_void()
+    })
+  
   output$oscplot <- renderPlot({
     if(.is_null(input$file1))
       return(plot_oscillogram(NULL, input, length_ylabs))
@@ -438,6 +456,13 @@ server <- function(input, output) {
                        type = "message")
     })
     return(p)
+  })
+  
+  output$oscplot_blank <- renderPlot({
+    if(plots_open$osc)
+      return(NULL)
+    else 
+      ggplot() + theme_void()
   })
   
   output$hover_info <- renderUI({
@@ -488,6 +513,35 @@ server <- function(input, output) {
     )
   })
   
+  output$spec_collapse <- renderUI({
+    style <- paste0("position:absolute; z-index:99; ",
+                    "background-color: rgba(120, 120, 120, 0); ",
+                    "color: rgba(255, 255, 255,0); padding: 0px;",
+                    "right:", 0, "%; top:", 0, "%;")
+    if(plots_open$spec){
+      button_id    <- "collapse_spec"
+      button_icon  <- "chevron-up"
+      button_hover <- "Collapse Spec"
+    } else {
+      button_id    <- "open_spec"
+      button_icon  <- "chevron-down"
+      button_hover <- "Open Spec"
+    }
+    wellPanel(
+      style = style,
+      fluidRow(
+        tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:50%'),  button_hover),
+    ))
+    })
+  
+  observeEvent(input$collapse_spec, {
+    plots_open$spec <- FALSE
+  })
+  
+  observeEvent(input$open_spec, {
+    plots_open$spec <- TRUE
+  })
+  
   output$hover_info_osc <- renderUI({
     if(.is_null(input$file1) | !input$include_hover_osc)
       return(NULL)
@@ -532,6 +586,36 @@ server <- function(input, output) {
                     "<b> Amplitude: </b>", point$amplitude,
                     species_in_hover)))
     )
+  })
+  
+  output$osc_collapse <- renderUI({
+    if(plots_open$osc){
+      button_id    <- "collapse_osc"
+      button_icon  <- "chevron-up"
+      button_hover <- "Collapse Osc"
+    } else {
+      button_id    <- "open_osc"
+      button_icon  <- "chevron-down"
+      button_hover <- "Open Osc"
+    }
+    button_ypos  <- 47*plots_open$spec + 5
+    style <- paste0("position:absolute; z-index:99; ",
+                    "background-color: rgba(120, 120, 120, 0); ",
+                    "color: rgba(255, 255, 255,0); padding: 0px;",
+                    "right:", 0, "%; top:", button_ypos, "%;")
+    wellPanel(
+      style = style,
+      fluidRow(
+        tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:50%'),  button_hover),
+      ))
+  })
+  
+  observeEvent(input$collapse_osc, {
+    plots_open$osc <- FALSE
+  })
+  
+  observeEvent(input$open_osc, {
+    plots_open$osc <- TRUE
   })
   
   observeEvent(input$specplot_dblclick, {
@@ -727,7 +811,9 @@ server <- function(input, output) {
               anim      = TRUE,
               animType  = "fade",
               time      = 0.5,
-              condition = input$toggle_spec)
+              condition = plots_open$spec)
+    shinyjs::toggle(id  = "specplot_blank",
+                    condition = !plots_open$spec)
   })
   
   observe({
@@ -735,7 +821,9 @@ server <- function(input, output) {
               anim      = TRUE,
               animType  = "fade",
               time      = 0.5,
-              condition = input$toggle_osc)
+              condition = plots_open$osc)
+    shinyjs::toggle(id  = "oscplot_blank",
+                    condition = !plots_open$osc)
   })
   
   # move to previous file (resetting zoom)
