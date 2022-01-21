@@ -209,8 +209,6 @@ ui_func <- function() {
             width   = '100%'
           ),
           checkboxInput("palette_invert", "Invert color palette"),
-          checkboxInput("toggle_spec", "Show Spectrogram", value = TRUE),
-          checkboxInput("toggle_osc",  "Show Oscillogram", value = TRUE),
           actionButton("savespec", "Save Spectrogram"),
           actionButton("saveosc", "Save Oscilloogram"),
           checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
@@ -427,7 +425,12 @@ server <- function(input, output) {
     if(plots_open$spec)
       return(NULL)
     else 
-      ggplot() + theme_void()
+      ggplot() + 
+      geom_text(aes(x = 0, y = 0), label = "Spectrogram", colour = "white", face = "bold") +
+      theme_void() + 
+      theme(
+        plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
+        legend.position = "none")
     })
   
   output$oscplot <- renderPlot({
@@ -462,7 +465,12 @@ server <- function(input, output) {
     if(plots_open$osc)
       return(NULL)
     else 
-      ggplot() + theme_void()
+      ggplot() + 
+      geom_text(aes(x = 0, y = 0), label = "Oscillogram", colour = "white", face = "bold") +
+      theme_void() + 
+      theme(
+        plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
+        legend.position = "none")
   })
   
   output$hover_info <- renderUI({
@@ -515,17 +523,17 @@ server <- function(input, output) {
   
   output$spec_collapse <- renderUI({
     style <- paste0("position:absolute; z-index:99; ",
-                    "background-color: rgba(120, 120, 120, 0); ",
+                    "background-color: rgba(255, 255, 255, 0); ",
                     "color: rgba(255, 255, 255,0); padding: 0px;",
                     "right:", 0, "%; top:", 0, "%;")
     if(plots_open$spec){
       button_id    <- "collapse_spec"
       button_icon  <- "chevron-up"
-      button_hover <- "Collapse Spec"
+      button_hover <- "Collapse Spectrogram"
     } else {
       button_id    <- "open_spec"
       button_icon  <- "chevron-down"
-      button_hover <- "Open Spec"
+      button_hover <- "Open Spectrogram"
     }
     wellPanel(
       style = style,
@@ -592,15 +600,16 @@ server <- function(input, output) {
     if(plots_open$osc){
       button_id    <- "collapse_osc"
       button_icon  <- "chevron-up"
-      button_hover <- "Collapse Osc"
+      button_hover <- "Collapse Oscillogram"
     } else {
       button_id    <- "open_osc"
       button_icon  <- "chevron-down"
-      button_hover <- "Open Osc"
+      button_hover <- "Open Oscillogram"
     }
-    button_ypos  <- 47*plots_open$spec + 5
+    #hard-coded, may need to change based on window size
+    button_ypos  <- 47*plots_open$spec + 5.25
     style <- paste0("position:absolute; z-index:99; ",
-                    "background-color: rgba(120, 120, 120, 0); ",
+                    "background-color: rgba(255, 255, 255, 0); ",
                     "color: rgba(255, 255, 255,0); padding: 0px;",
                     "right:", 0, "%; top:", button_ypos, "%;")
     wellPanel(
