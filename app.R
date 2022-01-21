@@ -25,7 +25,6 @@ source('spectrogram_params.R')
 #TODO: color/highlight plot as it plays e.g. blue over red in oscillogram
 #TODO: put fft/spectrogram parameters (and any others) in sidebar when made
 #TODO: Option for Action Buttons instead of radio buttons for labeling which can be pressed and unpressed if labels want to be removed
-#TODO: Seperate button to remove label and Button to undo it
 #TODO: Reactive object of classes to add more than one species, option to save list
 #TODO: Colour buttons (action or radio) same as bounding boxes (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead

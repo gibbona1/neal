@@ -36,10 +36,9 @@ hot_theme_grid <- theme(panel.grid.major.y = element_line(color = "black", linet
 
 virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
 
-palette_list <- c("viridisplus", "magma", "inferno", "plasma", 
+palette_list <- c("viridisplus", "greyscale", "magma", "inferno", "plasma", 
                   "viridis", "cividis", "rocket", "mako", "turbo")
 
-#TODO: greyscale palette with grey.colors()
 plot_oscillogram <- function(df, input, length_ylabs){
   lim16    <- 2^15-1
   osc_plot <- ggplot(df)
@@ -86,6 +85,8 @@ plot_spectrogram <- function(df, input, length_ylabs){
   palette_cols <- function(pal_name, n=6){
     if(pal_name == "viridisplus")
       return(virpluscols)
+    else if(pal_name == "greyscale")
+      return(grey.colors(n, start = 0, end = 1))
     else
       return(viridis(n, option = pal_name))
   }
