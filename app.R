@@ -426,7 +426,7 @@ server <- function(input, output) {
       return(NULL)
     else 
       ggplot() + 
-      geom_text(aes(x = 0, y = 0), label = "Spectrogram", colour = "white", face = "bold") +
+      geom_text(aes(x = 0, y = 0), label = "Spectrogram", colour = "white") +
       theme_void() + 
       theme(
         plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
@@ -466,7 +466,7 @@ server <- function(input, output) {
       return(NULL)
     else 
       ggplot() + 
-      geom_text(aes(x = 0, y = 0), label = "Oscillogram", colour = "white", face = "bold") +
+      geom_text(aes(x = 0, y = 0), label = "Oscillogram", colour = "white") +
       theme_void() + 
       theme(
         plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
@@ -524,8 +524,10 @@ server <- function(input, output) {
   output$spec_collapse <- renderUI({
     style <- paste0("position:absolute; z-index:99; ",
                     "background-color: rgba(255, 255, 255, 0); ",
-                    "color: rgba(255, 255, 255,0); padding: 0px;",
-                    "right:", 0, "%; top:", 0, "%;")
+                    "color: rgba(255, 255, 255, 0);",
+                    "border-color: rgba(255, 255, 255, 0);",
+                    "padding: 0px;",
+                    "right:", 0.25, "%; top:", 0, "%;")
     if(plots_open$spec){
       button_id    <- "collapse_spec"
       button_icon  <- "chevron-up"
@@ -537,9 +539,8 @@ server <- function(input, output) {
     }
     wellPanel(
       style = style,
-      fluidRow(
-        tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:50%'),  button_hover),
-    ))
+      tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:55%'),  button_hover),
+    )
     })
   
   observeEvent(input$collapse_spec, {
@@ -610,13 +611,14 @@ server <- function(input, output) {
     button_ypos  <- 47*plots_open$spec + 5.25
     style <- paste0("position:absolute; z-index:99; ",
                     "background-color: rgba(255, 255, 255, 0); ",
-                    "color: rgba(255, 255, 255,0); padding: 0px;",
-                    "right:", 0, "%; top:", button_ypos, "%;")
+                    "color: rgba(255, 255, 255, 0);",
+                    "border-color: rgba(255, 255, 255, 0);",
+                    "padding: 0px;",
+                    "right:", 0.25, "%; top:", button_ypos, "%;")
     wellPanel(
       style = style,
-      fluidRow(
-        tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:50%'),  button_hover),
-      ))
+        tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:55%'),  button_hover),
+      )
   })
   
   observeEvent(input$collapse_osc, {
