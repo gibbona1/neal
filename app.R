@@ -262,6 +262,38 @@ server <- function(input, output) {
              max)
   }
   
+  blank_plot <- function(label){
+    p <- ggplot() + 
+      geom_text(aes(x = 0, y = 0), label = label, colour = "white") +
+      theme_void() + 
+      theme(
+        plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
+        legend.position = "none")
+    return(p)
+  }
+  
+  plot_collapse_button <- function(name, id, top_pad = 0){
+    style <- paste0("position:absolute; z-index:99; ",
+                    "background-color: rgba(255, 255, 255, 0); ",
+                    "color: rgba(255, 255, 255, 0);",
+                    "border-color: rgba(255, 255, 255, 0);",
+                    "padding: 0px;",
+                    "right:", 0.25, "%; top:", top_pad, "%;")
+    if(plots_open[[id]]){
+      button_id    <- paste0("collapse_", id)
+      button_icon  <- "chevron-up"
+      button_hover <- paste("Collapse", name)
+    } else {
+      button_id    <- paste0("open_", id)
+      button_icon  <- "chevron-down"
+      button_hover <- paste("Open", name)
+    }
+    wellPanel(
+      style = style,
+      tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:55%'),  button_hover),
+    )
+  }
+  
   audioInput <- reactive({
     if(.is_null(input$file1))     
       return(NULL) 
@@ -425,12 +457,7 @@ server <- function(input, output) {
     if(plots_open$spec)
       return(NULL)
     else 
-      ggplot() + 
-      geom_text(aes(x = 0, y = 0), label = "Spectrogram", colour = "white") +
-      theme_void() + 
-      theme(
-        plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
-        legend.position = "none")
+      blank_plot(label = "Spectrogram")
     })
   
   output$oscplot <- renderPlot({
@@ -465,12 +492,7 @@ server <- function(input, output) {
     if(plots_open$osc)
       return(NULL)
     else 
-      ggplot() + 
-      geom_text(aes(x = 0, y = 0), label = "Oscillogram", colour = "white") +
-      theme_void() + 
-      theme(
-        plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
-        legend.position = "none")
+      blank_plot(label = "Oscillogram")
   })
   
   output$hover_info <- renderUI({
@@ -522,25 +544,7 @@ server <- function(input, output) {
   })
   
   output$spec_collapse <- renderUI({
-    style <- paste0("position:absolute; z-index:99; ",
-                    "background-color: rgba(255, 255, 255, 0); ",
-                    "color: rgba(255, 255, 255, 0);",
-                    "border-color: rgba(255, 255, 255, 0);",
-                    "padding: 0px;",
-                    "right:", 0.25, "%; top:", 0, "%;")
-    if(plots_open$spec){
-      button_id    <- "collapse_spec"
-      button_icon  <- "chevron-up"
-      button_hover <- "Collapse Spectrogram"
-    } else {
-      button_id    <- "open_spec"
-      button_icon  <- "chevron-down"
-      button_hover <- "Open Spectrogram"
-    }
-    wellPanel(
-      style = style,
-      tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:55%'),  button_hover),
-    )
+    plot_collapse_button("Spectrogram", 'spec')
     })
   
   observeEvent(input$collapse_spec, {
@@ -598,27 +602,7 @@ server <- function(input, output) {
   })
   
   output$osc_collapse <- renderUI({
-    if(plots_open$osc){
-      button_id    <- "collapse_osc"
-      button_icon  <- "chevron-up"
-      button_hover <- "Collapse Oscillogram"
-    } else {
-      button_id    <- "open_osc"
-      button_icon  <- "chevron-down"
-      button_hover <- "Open Oscillogram"
-    }
-    #hard-coded, may need to change based on window size
-    button_ypos  <- 47*plots_open$spec + 5.25
-    style <- paste0("position:absolute; z-index:99; ",
-                    "background-color: rgba(255, 255, 255, 0); ",
-                    "color: rgba(255, 255, 255, 0);",
-                    "border-color: rgba(255, 255, 255, 0);",
-                    "padding: 0px;",
-                    "right:", 0.25, "%; top:", button_ypos, "%;")
-    wellPanel(
-      style = style,
-        tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:55%'),  button_hover),
-      )
+    plot_collapse_button("Oscillogram", 'osc', top_pad = 47*plots_open$spec + 5.25)
   })
   
   observeEvent(input$collapse_osc, {
