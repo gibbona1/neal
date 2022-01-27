@@ -9,9 +9,9 @@ library(seewave) # for spectrogram
 #library(plotly)
 #library(oce)
 library(viridis)
-library(grid)
+#library(grid)
 #library(gridExtra)
-library(cowplot) # to get legend
+#library(cowplot) # to get legend
 library(profvis) # for checking code performance
 library(dplyr)
 library(stringr)
@@ -49,7 +49,6 @@ ui_func <- function() {
     htmlOutput("file1"),
     fluidRow(
       div(
-        style = "position:relative",
         plotOutput(
           "specplot",
           height   = 250,
@@ -59,19 +58,20 @@ ui_func <- function() {
             id        = "specplot_hover",
             delay     = 50,
             delayType = "debounce"
-          ),
+            ),
           brush    = brushOpts(
             id         = "specplot_brush",
             resetOnNew = TRUE)
-        ),
+          ),
         plotOutput(
           "specplot_blank",
           height   = 25,
-        ),
-        uiOutput("spec_collapse"),
+          ),
         uiOutput("hover_info")
-      )),
+        ),
+      ),
       fluidRow(
+        div(
         plotOutput(
           "oscplot",
           height   = 110,
@@ -81,67 +81,62 @@ ui_func <- function() {
             id        = "oscplot_hover",
             delay     = 50,
             delayType = "debounce"
-          ),
+            ),
           brush    = brushOpts(
             id         = "oscplot_brush",
             direction  = "x",
             resetOnNew = TRUE
-          )
-        ),
+            )
+          ),
         plotOutput(
           "oscplot_blank",
           height   = 25,
-        ),
-        uiOutput("osc_collapse"),
+          ),
         uiOutput("hover_info_osc")
+        ),
       ),
       fluidRow(
-        column(
-          5,
+        column(5,
           sliderInput(
             "db_gain",
             "dB Gain:",
-            min = -96,
-            max = 96,
+            min   = -96,
+            max   = 96,
             value = 0,
             ticks = FALSE
+            ),
           ),
-        ),
-        column(
-          5,
+        column(5,
           sliderInput(
             "db_contrast",
             "Contrast:",
-            min = 0,
-            max = 96,
+            min   = 0,
+            max   = 96,
             value = 0,
             ticks = FALSE
-          )
-        ),
-        column(
-          2,
-          br(),
-          fixedRow(
-            tags$div(
-              style = "display: inline-block; vertical-align:center; horizontal-align:center",
-              class = "row-fluid",
-              tipify(actionButton("prev_file", "", icon = icon("arrow-left")),  "Prev"),
-              disabled(tipify(
-                actionButton("prev_section", "", icon = icon("chevron-left")),  "prev section"
-              )),
-              disabled(tipify(
-                actionButton("next_section", "", icon = icon("chevron-right")), "next section"
-              )),
-              tipify(actionButton("next_file", "", icon = icon("arrow-right")), "Next")
             )
           ),
-          div(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-              actionButton("plt_reset", "Reset Plot"))
-        )
-      ),
+        column(2,
+          br(),
+          fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
+            div(
+              tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; font-size:90%'),  "Previous File"),
+              disabled(tipify(
+                actionButton("prev_section", "", icon = icon("chevron-left"), style='padding:1%; font-size:90%'),  "previous section"
+              )),
+              disabled(tipify(
+                actionButton("next_section", "", icon = icon("chevron-right"), style='padding:1%; font-size:90%'), "next section"
+              )),
+              tipify(actionButton("next_file", "", icon = icon("arrow-right"), style='padding:1%; font-size:90%'), "Next File")
+            ),
+            fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
+              actionButton("plt_reset", "Reset Plot")
+              )
+          )
+          ),
+        ),
       fluidRow(
-        column(
-          5,
+        column(5,
           div(
             h4("Select a folder"),
             shinyDirButton('folder',
@@ -155,8 +150,8 @@ ui_func <- function() {
             "Select File:",
             choices = c("<NULL>", file_list),
             width   = '100%'
-          )
-        ),
+            )
+          ),
         column(3,
                div(
                  h4("Labeling"),
@@ -180,9 +175,9 @@ ui_func <- function() {
                  actionButton(
                    "undo_delete_lab", HTML("<b>Undo Deletion</b>")
                  )
-               )),
-        column(
-          4,
+                 )
+               ),
+        column(4,
           div(
             h4("Play audio"),
             #style = "color: black;",
@@ -214,11 +209,13 @@ ui_func <- function() {
           checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
           checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
           checkboxInput("spec_labs", "Show spectrogram labels"),
-          checkboxInput("osc_labs", "Show oscillogram labels")
+          checkboxInput("osc_labs", "Show oscillogram labels"),
+          uiOutput("spec_collapse"),
+          uiOutput("osc_collapse")
+          )
         )
-      )
     )
-    return(ui)
+  return(ui)
 }
 
 server <- function(input, output) {
@@ -273,12 +270,6 @@ server <- function(input, output) {
   }
   
   plot_collapse_button <- function(name, id, top_pad = 0){
-    style <- paste0("position:absolute; z-index:99; ",
-                    "background-color: rgba(255, 255, 255, 0); ",
-                    "color: rgba(255, 255, 255, 0);",
-                    "border-color: rgba(255, 255, 255, 0);",
-                    "padding: 0px;",
-                    "right:", 0.25, "%; top:", top_pad, "%;")
     if(plots_open[[id]]){
       button_id    <- paste0("collapse_", id)
       button_icon  <- "chevron-up"
@@ -288,10 +279,7 @@ server <- function(input, output) {
       button_icon  <- "chevron-down"
       button_hover <- paste("Open", name)
     }
-    wellPanel(
-      style = style,
-      tipify(actionButton(button_id, "", icon = icon(button_icon), style='padding:0px; font-size:55%'),  button_hover),
-    )
+    actionButton(button_id, button_hover, icon = icon(button_icon))
   }
   
   audioInput <- reactive({
@@ -602,7 +590,7 @@ server <- function(input, output) {
   })
   
   output$osc_collapse <- renderUI({
-    plot_collapse_button("Oscillogram", 'osc', top_pad = 47*plots_open$spec + 5.25)
+    plot_collapse_button("Oscillogram", 'osc')
   })
   
   observeEvent(input$collapse_osc, {
@@ -823,28 +811,40 @@ server <- function(input, output) {
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
-    idx <- which(input$file1 == file_list) - 1
-    if(idx == 0)
-      idx <- length(file_list)
-    ranges_spec$x <- NULL
-    ranges_spec$y <- NULL
-    ranges_osc$x  <- NULL
-    updateSelectInput(inputId  = "file1",
-                      choices  = file_list,
-                      selected = file_list[idx])
+    if(.is_null(input$file1))
+      updateSelectInput(inputId  = "file1",
+                        choices  = file_list,
+                        selected = file_list[length(file_list)])
+    else {
+      idx <- which(input$file1 == file_list) - 1
+      if(idx == 0)
+        idx <- length(file_list)
+      ranges_spec$x <- NULL
+      ranges_spec$y <- NULL
+      ranges_osc$x  <- NULL
+      updateSelectInput(inputId  = "file1",
+                        choices  = file_list,
+                        selected = file_list[idx])
+    }
   })
   
   # move to next file (resetting zoom)
   observeEvent(input$next_file, {
-    idx <- which(input$file1 == file_list) + 1
-    if(idx > length(file_list))
-      idx <- 1
-    ranges_spec$x <- NULL
-    ranges_spec$y <- NULL
-    ranges_osc$x  <- NULL
-    updateSelectInput(inputId  = "file1",
-                      choices  = file_list,
-                      selected = file_list[idx])
+    if(.is_null(input$file1))
+      updateSelectInput(inputId  = "file1",
+                        choices  = file_list,
+                        selected = file_list[1])
+    else {
+      idx <- which(input$file1 == file_list) + 1
+      if(idx > length(file_list))
+        idx <- 1
+      ranges_spec$x <- NULL
+      ranges_spec$y <- NULL
+      ranges_osc$x  <- NULL
+      updateSelectInput(inputId  = "file1",
+                        choices  = file_list,
+                        selected = file_list[idx])
+    }
   })
 }
 
