@@ -4,6 +4,7 @@ library(shinyjs)
 library(shinyBS)
 library(shinyFiles)
 library(shinythemes)
+library(shinydashboard)
 library(tuneR)
 library(seewave) # for spectrogram
 #library(plotly)
@@ -43,8 +44,27 @@ classes <- sort(classes)
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
 ui_func <- function() {
-  ui <- fluidPage(
-    theme = shinytheme("slate"),
+    sidebar <- {dashboardSidebar(
+      h2("Configuration"),
+      div(
+      h5("Select a folder"),
+      shinyDirButton('folder',
+                     label    = 'Folder select',
+                     title    = 'Please select a folder')
+      ),
+      verbatimTextOutput("folder", placeholder = TRUE),
+      selectInput(
+        "file1",
+        "Select File:",
+        choices = c("<NULL>", file_list),
+        width   = '100%'
+        ),
+      
+      
+      collapsed = TRUE)}
+    
+    body <- dashboardBody(
+    theme = "blue_gradient",
     useShinyjs(),
     htmlOutput("file1"),
     fluidRow(
@@ -136,22 +156,6 @@ ui_func <- function() {
           ),
         ),
       fluidRow(
-        column(5,
-          div(
-            h4("Select a folder"),
-            shinyDirButton('folder',
-                           label    = 'Folder select',
-                           title    = 'Please select a folder')
-          ),
-          verbatimTextOutput("folder", placeholder = TRUE),
-          br(),
-          selectInput(
-            "file1",
-            "Select File:",
-            choices = c("<NULL>", file_list),
-            width   = '100%'
-            )
-          ),
         column(3,
                div(
                  h4("Labeling"),
@@ -215,6 +219,11 @@ ui_func <- function() {
           )
         )
     )
+  ui = dashboardPage(
+    dashboardHeader(title = "Audio Labeler App"),
+    sidebar,
+    body
+  )
   return(ui)
 }
 
