@@ -3,3 +3,5 @@ profiling/*
 .Rhistory
 .RData
 .Ruserdata
+www/tmp.wav
+tmp_spec.csv
