@@ -18,19 +18,16 @@ library(dplyr)
 library(stringr)
 
 source('plot_helpers.R')
-source('spectrogram_params.R')
 
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
-#TODO: collapsible sidebar panel to clear up the app
 #TODO: color/highlight plot as it plays e.g. blue over red in oscillogram
-#TODO: put fft/spectrogram parameters (and any others) in sidebar when made
 #TODO: Option for Action Buttons instead of radio buttons for labeling which can be pressed and unpressed if labels want to be removed
 #TODO: Reactive object of classes to add more than one species, option to save list
 #TODO: Colour buttons (action or radio) same as bounding boxes (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead
-#TODO: show details of saved labels in list in a sidebar
-#TODO: on clicking label in sidebar, highlights or zooms to the label (option to play it)
+#TODO: Show details of saved labels in list in a sidebar
+#TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
 
 #change file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -94,9 +91,14 @@ ui_func <- function() {
              ),
       checkboxInput("palette_invert", "Invert color palette"),
       actionButton("savespec", "Save Spectrogram"),
-      checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
+      checkboxInput("include_hover", "Include spectrogram hover tooltip", value = FALSE),
       checkboxInput("spec_labs", "Show spectrogram labels"),
       uiOutput("spec_collapse"),
+      #Fast Fourier Transform
+      h5("FFT Settings"),
+      numericInput('window_width', 'Window Size (number of points)', value = 128),
+      numericInput('fft_overlap', 'FFT Overlap', value = 0.5, min = 0.01, max = 0.99),
+
       #Oscillogram
       h4("Oscillogram Settings"),
       actionButton("saveosc", "Save Oscilloogram"),
@@ -235,7 +237,7 @@ ui_func <- function() {
           )
         })
     )
-  ui = dashboardPage(
+  ui <- dashboardPage(
     dashboardHeader(title = "Audio Labeler App"),
     sidebar,
     body
@@ -363,8 +365,8 @@ server <- function(input, output) {
     
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
-                    wl       = params$window_width, 
-                    ovlp     = params$fft_overlap, 
+                    wl       = input$window_width, 
+                    ovlp     = input$fft_overlap, 
                     fastdisp = TRUE,
                     plot     = FALSE,
                     db       = NULL,
