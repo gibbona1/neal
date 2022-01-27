@@ -110,7 +110,8 @@ ui_func <- function() {
     theme = "blue_gradient",
     useShinyjs(),
     htmlOutput("file1"),
-    fluidRow(
+    #Spectrogram Plot
+    fluidRow({
       div(
         plotOutput(
           "specplot",
@@ -131,10 +132,11 @@ ui_func <- function() {
           height   = 25,
           ),
         uiOutput("hover_info")
-        ),
-      ),
-      fluidRow(
-        div(
+        )
+    }),
+    #Oscillogram Plot
+    fluidRow({
+      div(
         plotOutput(
           "oscplot",
           height   = 110,
@@ -156,11 +158,39 @@ ui_func <- function() {
           height   = 25,
           ),
         uiOutput("hover_info_osc")
-        ),
-      ),
-      fluidRow(
-        column(2,
-          br(),
+        )
+      }),
+    #One row of audio settings
+    fluidRow({
+      div(
+      column(4,{
+        div(
+             sliderInput(
+               "frequency_range",
+               "Audio Frequency Range:",
+               min   = 0,
+               max   = 100,
+               value = c(4,95),
+               ticks = FALSE
+               ))
+             }),
+      column(4,{
+             div(
+               HTML("<b>Play audio:<b/>"),
+               #style = "color: black;",
+               uiOutput('my_audio')
+               )
+        }),
+      column(2,{
+               selectInput(
+                 "playbackrate",
+                 "Playback Speed:",
+                 choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
+                 selected = "1x",
+                 width    = '100%'
+               )
+               }),
+      column(2,{
           fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
             div(
               tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; font-size:90%'),  "Previous File"),
@@ -176,49 +206,34 @@ ui_func <- function() {
               actionButton("plt_reset", "Reset Plot")
               )
             )
+          })
+      )
+      }),
+    #Labelling
+    fluidRow({
+      div(h4("Labeling"),
+          radioButtons("label_points", "Label Selection:",
+                      choices = classes),
+          textInput("otherCategory", "Type in additional category"),
+          fixedRow(
+           actionButton("addCategory", "Add category"),
+           actionButton("resetCategory", "Reset categories")
           ),
-        ),
-      fluidRow(
-        column(3,
-               div(
-                 h4("Labeling"),
-                 radioButtons("label_points", "Label Selection:",
-                              choices = classes),
-                 textInput("otherCategory", "Type in additional category"),
-                 fixedRow(
-                   actionButton("addCategory", "Add category"),
-                   actionButton("resetCategory", "Reset categories")
-                 ),
-                 #TODO: Other info to label/record -
-                 ## type of sound e.g. alarm call, flight call, flock
-                 ## naming groups: Order, Family, Genus, Species, Subspecies
-                 ## altitude of recorder (check if in metadata)
-                 actionButton(
-                   "save_points", HTML("<b>Save Selection</b>")
-                 ),
-                 actionButton(
-                   "remove_points", HTML("<b>Delete Selection</b>")
-                 ),
-                 actionButton(
-                   "undo_delete_lab", HTML("<b>Undo Deletion</b>")
-                 )
-                 )
-               ),
-        column(4,
-          div(
-            h4("Play audio"),
-            #style = "color: black;",
-            uiOutput('my_audio'),
-            selectInput(
-              "playbackrate",
-              "Playback Speed:",
-              choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
-              selected = "1x",
-              width    = '100%'
-            )
+          #TODO: Other info to label/record -
+          ## type of sound e.g. alarm call, flight call, flock
+          ## naming groups: Order, Family, Genus, Species, Subspecies
+          ## altitude of recorder (check if in metadata)
+          actionButton(
+           "save_points", HTML("<b>Save Selection</b>")
+          ),
+          actionButton(
+           "remove_points", HTML("<b>Delete Selection</b>")
+          ),
+          actionButton(
+           "undo_delete_lab", HTML("<b>Undo Deletion</b>")
           )
           )
-        )
+        })
     )
   ui = dashboardPage(
     dashboardHeader(title = "Audio Labeler App"),
