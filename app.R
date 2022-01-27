@@ -45,9 +45,9 @@ classes <- sort(classes)
 
 ui_func <- function() {
     sidebar <- {dashboardSidebar(
-      h2("Configuration"),
+      h3("Configuration"),
+      #File/Folder selection
       div(
-      h5("Select a folder"),
       shinyDirButton('folder',
                      label    = 'Folder select',
                      title    = 'Please select a folder')
@@ -59,8 +59,51 @@ ui_func <- function() {
         choices = c("<NULL>", file_list),
         width   = '100%'
         ),
+      h4("Sound Settings"),
+      selectInput(
+        "noisereduction",
+        "Spectrogram Noise reduction:",
+        choices  = c("None", "Rows", "Columns"),
+        selected = "None",
+        width    = '100%'
+      ),
+      sliderInput(
+               "db_gain",
+               "dB Gain:",
+               min   = -96,
+               max   = 96,
+               value = 0,
+               ticks = FALSE
+             ),
+      #Spectrogram
+      h4("Spectrogram Settings"),
       
-      
+      selectInput(
+        "palette_selected",
+        "Spectrogram colour palette:",
+        choices = palette_list,
+        width   = '100%'
+      ),
+      sliderInput(
+               "db_contrast",
+               "Contrast:",
+               min   = 0,
+               max   = 96,
+               value = 0,
+               ticks = FALSE
+             ),
+      checkboxInput("palette_invert", "Invert color palette"),
+      actionButton("savespec", "Save Spectrogram"),
+      checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
+      checkboxInput("spec_labs", "Show spectrogram labels"),
+      uiOutput("spec_collapse"),
+      #Oscillogram
+      h4("Oscillogram Settings"),
+      actionButton("saveosc", "Save Oscilloogram"),
+      checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
+      checkboxInput("osc_labs", "Show oscillogram labels"),
+      uiOutput("osc_collapse"),
+      #Options for sidebar
       collapsed = TRUE)}
     
     body <- dashboardBody(
@@ -116,26 +159,6 @@ ui_func <- function() {
         ),
       ),
       fluidRow(
-        column(5,
-          sliderInput(
-            "db_gain",
-            "dB Gain:",
-            min   = -96,
-            max   = 96,
-            value = 0,
-            ticks = FALSE
-            ),
-          ),
-        column(5,
-          sliderInput(
-            "db_contrast",
-            "Contrast:",
-            min   = 0,
-            max   = 96,
-            value = 0,
-            ticks = FALSE
-            )
-          ),
         column(2,
           br(),
           fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
@@ -152,7 +175,7 @@ ui_func <- function() {
             fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
               actionButton("plt_reset", "Reset Plot")
               )
-          )
+            )
           ),
         ),
       fluidRow(
@@ -193,29 +216,7 @@ ui_func <- function() {
               selected = "1x",
               width    = '100%'
             )
-          ),
-          selectInput(
-            "noisereduction",
-            "Spectrogram Noise reduction:",
-            choices  = c("None", "Rows", "Columns"),
-            selected = "None",
-            width    = '100%'
-          ),
-          selectInput(
-            "palette_selected",
-            "Spectrogram colour palette:",
-            choices = palette_list,
-            width   = '100%'
-          ),
-          checkboxInput("palette_invert", "Invert color palette"),
-          actionButton("savespec", "Save Spectrogram"),
-          actionButton("saveosc", "Save Oscilloogram"),
-          checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
-          checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
-          checkboxInput("spec_labs", "Show spectrogram labels"),
-          checkboxInput("osc_labs", "Show oscillogram labels"),
-          uiOutput("spec_collapse"),
-          uiOutput("osc_collapse")
+          )
           )
         )
     )
