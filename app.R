@@ -171,8 +171,8 @@ ui_func <- function() {
                "frequency_range",
                "Audio Frequency Range:",
                min   = 0,
-               max   = 100,
-               value = c(4,95),
+               max   = 10,
+               value = c(0,10),
                ticks = FALSE
                ))
              }),
@@ -361,11 +361,29 @@ server <- function(input, output) {
       return(HTML(paste0('<b>', input$file1, '</b>')))
     })
   
+  observe({
+    if(.is_null(input$file1))
+      return(NULL)
+    tmp_audio <- audioInput()
+    
+    spec <- spectro(tmp_audio,
+                    f        = tmp_audio@samp.rate, 
+                    wl       = input$window_width, 
+                    ovlp     = input$fft_overlap, 
+                    plot     = FALSE)
+    
+    updateSliderInput(inputId = "frequency_range", 
+                      value   = range(spec$freq),
+                      min     = min(spec$freq),
+                      max     = max(spec$freq))
+  })
+  
   specData <- reactive({
     if(.is_null(input$file1))     
-      return(data.frame(time      = 1,
-                        frequency = 1:10,
-                        amplitude = rep(-96,10)))
+      return(data.frame(time        = 1,
+                        frequency   = 1:10,
+                        amplitude   = rep(-96,10),
+                        freq_select = 1))
     tmp_audio <- audioInput()
     
     noisered <- switch(input$noisereduction,
@@ -377,9 +395,7 @@ server <- function(input, output) {
                     f        = tmp_audio@samp.rate, 
                     wl       = input$window_width, 
                     ovlp     = input$fft_overlap, 
-                    fastdisp = TRUE,
                     plot     = FALSE,
-                    db       = NULL,
                     noisereduction = noisered)
     
     spec$amp <- spec$amp + input$db_gain
@@ -393,26 +409,23 @@ server <- function(input, output) {
     if(!is.null(ranges_spec$x))
       df$time <- df$time + ranges_spec$x[1]
     
-    #spec_zoomed <- spec
+    df$freq_select <- 1
+    frange_check <- function(vec, freq_range){
+      return((vec[1] > freq_range[1]) | (vec[2] < freq_range[2]))
+    }
+    frange <- input$frequency_range
+    if(frange_check(frange, range(df$frequency)))
+      df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
     
     #if(!is.null(ranges_spec$x) || !is.null(ranges_osc$x)){
     #  complex_spec <- spectro(tmp_audio,
     #                          f        = tmp_audio@samp.rate, 
     #                          wl       = params$window_width, 
-    #                          ovlp     = params$fft_overlap, 
-    #                          #fastdisp = TRUE,
-    #                          plot     = FALSE,
-    #                          db       = NULL,
-    #                          complex  = FALSE,
+    #                          ovlp     = params$fft_overlap,
+    #                          complex  = TRUE,
     #                          noisereduction = noisered)
-    #  #get a (complex) zero matrix and paste in the zoomed area we're keeping
-      #can chop off time axis
+    #TODO: put zeros outside frequency range and reconstruct audio file from complex spec
     #}
-    #in_range <- function(vec, range2) return(vec >= range2[1] & vec <= range2[2])
-    #if(!is.null(ranges_spec$x))
-    #  df[!(in_range(df$time, ranges_spec$x) & in_range(df$frequency, ranges_spec$y)),3] <- min(df$amplitude)
-    #else if(!is.null(ranges_osc$x))
-    #  df[!in_range(df$time, ranges_osc$x),3] <- min(df$amplitude)
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)

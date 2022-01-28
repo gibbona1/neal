@@ -44,7 +44,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
   osc_plot <- ggplot(df)
   if(!is.null(df)){
     osc_plot <- osc_plot + 
-      geom_line(aes(x = time, y = amplitude), color = "red")
+      geom_line(aes(x = time, y = amplitude), colour = "red")
     y_breaks <- pretty(df$amplitude, 3)
   } else {
     y_breaks <- -1:1
@@ -59,7 +59,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
                        ) +
     xlab("Time (s)") + 
     ylab("Amplitude") + 
-    geom_hline(yintercept = 0, color = "white", linetype = "dotted") +
+    geom_hline(yintercept = 0, colour = "white", linetype = "dotted") +
     oscillo_theme_dark
   
   lab_df <- read.csv("tmp_labels.csv")
@@ -74,9 +74,9 @@ plot_oscillogram <- function(df, input, length_ylabs){
                   xmax = end_time   / pb_rate,
                   ymin = -Inf, 
                   ymax = Inf),
-      color = "red",
-      fill  = "lightgrey",
-      alpha = 0.15)
+      colour = "red",
+      fill   = "lightgrey",
+      alpha  = 0.15)
   }
   return(osc_plot)
 }
@@ -101,13 +101,14 @@ plot_spectrogram <- function(df, input, length_ylabs){
     geom_raster(aes(x    = time,
                     y    = frequency, 
                     fill = amplitude),
+                alpha       = df$freq_select,
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
     ylab("Frequency (kHz)") + 
-    scale_fill_gradientn(name   = "Amplitude\n(dB)\n",
-                         colors = sel_col,
-                         limits = c(-96,96), 
+    scale_fill_gradientn(name     = "Amplitude\n(dB)\n",
+                         colours  = sel_col,
+                         limits   = c(-96,96), 
                          na.value = sel_col[1]) +
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), 
@@ -129,9 +130,9 @@ plot_spectrogram <- function(df, input, length_ylabs){
                               xmax = end_time   / pb_rate,
                               ymin = start_freq * pb_rate, 
                               ymax = end_freq   * pb_rate),
-                color = "green",
-                fill  = "lightgrey",
-                alpha = 0.15)
+                colour = "green",
+                fill   = "lightgrey",
+                alpha  = 0.15)
   }
   return(spec_plot)
 }
