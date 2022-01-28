@@ -180,7 +180,17 @@ ui_func <- function() {
              div(
                HTML("<b>Play audio:<b/>"),
                #style = "color: black;",
-               uiOutput('my_audio')
+               uiOutput('my_audio'),
+               tags$script('
+               var id = setInterval(audio_pos, 100);
+               function audio_pos() {
+                var audio = document.getElementById("my_audio_player");
+                var curtime = audio.currentTime;
+                console.log(audio);
+                Shiny.onInputChange("get_time", curtime);
+               };'),
+               #actionButton("get_time", "Get Time", onclick = js),
+               verbatimTextOutput("audio_time")
                )
         }),
       column(2,{
@@ -416,7 +426,7 @@ server <- function(input, output) {
                       amplitude = tmp_audio@left - mean(tmp_audio@left))
     if(!is.null(ranges_osc$x))
       df2$time <- df2$time + ranges_osc$x[1]
-    if(!is.null(ranges_spec$x))
+    else if(!is.null(ranges_spec$x))
       df2$time <- df2$time + ranges_spec$x[1]
     
     #spacing for "custom" y axis margin
@@ -635,6 +645,7 @@ server <- function(input, output) {
     if (!is.null(brush)) {
       ranges_spec$x <- c(brush$xmin, brush$xmax)
       ranges_spec$y <- c(brush$ymin, brush$ymax)
+      showNotification("Double click either plot to reset zoom", type = "default") 
     } else {
       ranges_spec$x <- NULL
       ranges_spec$y <- NULL
@@ -643,9 +654,10 @@ server <- function(input, output) {
   
   observeEvent(input$oscplot_dblclick, {
     brush <- input$oscplot_brush
-    if (!is.null(brush))
+    if (!is.null(brush)){
       ranges_osc$x <- c(brush$xmin, brush$xmax)
-    else
+      showNotification("Double click either plot to reset zoom", type = "default") 
+    } else
       ranges_osc$x <- NULL
   })
   
@@ -815,6 +827,15 @@ server <- function(input, output) {
                #TODO: HTML styling (background colour, no download button, playback speed,...)
                style    = audio_style)
     })
+  
+  output$audio_time <- renderPrint({
+    #browser()
+    if(.is_null(input$file1))
+      return("<NULL>")
+    else {
+      input$get_time
+    }
+  })
   
   observe({
     shinyjs::toggle(id  = "specplot",
