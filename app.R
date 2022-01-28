@@ -96,8 +96,8 @@ ui_func <- function() {
       uiOutput("spec_collapse"),
       #Fast Fourier Transform
       h5("FFT Settings"),
-      numericInput('window_width', 'Window Size (number of points)', value = 128),
-      numericInput('fft_overlap', 'FFT Overlap', value = 0.5, min = 0.01, max = 0.99),
+      numericInput('window_width', 'Window Size (number of points)', value = 1024),
+      numericInput('fft_overlap', 'FFT Overlap', value = 75, min = 1, max = 99, step = 1),
 
       #Oscillogram
       h4("Oscillogram Settings"),
@@ -172,6 +172,7 @@ ui_func <- function() {
                "Audio Frequency Range:",
                min   = 0,
                max   = 10,
+               step  = 0.2,
                value = c(0,10),
                ticks = FALSE
                ))
@@ -306,6 +307,10 @@ server <- function(input, output) {
     return(p)
   }
   
+  frange_check <- function(vec, freq_range){
+    return((vec[1] > freq_range[1]) | (vec[2] < freq_range[2]))
+  }
+  
   plot_collapse_button <- function(name, id, top_pad = 0){
     if(plots_open[[id]]){
       button_id    <- paste0("collapse_", id)
@@ -336,8 +341,6 @@ server <- function(input, output) {
         tc <- ranges_spec$x
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
     }
-    #TODO: Only play zoomed spectrogram frequencies 
-    #requires working on complex spectrogram before getting modulus
     
     #based on torchaudio::functional_gain
     audio_gain <- function (waveform, gain_db = 0){
@@ -410,22 +413,10 @@ server <- function(input, output) {
       df$time <- df$time + ranges_spec$x[1]
     
     df$freq_select <- 1
-    frange_check <- function(vec, freq_range){
-      return((vec[1] > freq_range[1]) | (vec[2] < freq_range[2]))
-    }
+    
     frange <- input$frequency_range
     if(frange_check(frange, range(df$frequency)))
       df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
-    
-    #if(!is.null(ranges_spec$x) || !is.null(ranges_osc$x)){
-    #  complex_spec <- spectro(tmp_audio,
-    #                          f        = tmp_audio@samp.rate, 
-    #                          wl       = params$window_width, 
-    #                          ovlp     = params$fft_overlap,
-    #                          complex  = TRUE,
-    #                          noisereduction = noisered)
-    #TODO: put zeros outside frequency range and reconstruct audio file from complex spec
-    #}
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
@@ -818,8 +809,34 @@ server <- function(input, output) {
   
   output$my_audio <- renderUI({
     file_name   <-  'www/tmp.wav'
-    if(!is.null(audioInput()))
-      writeWave(audioInput(), file_name)
+    tmp_audio <- audioInput()
+    if(!is.null(tmp_audio)){
+      frange <- input$frequency_range
+      if(!is.null(specData())){
+        if(frange_check(frange, range(specData()$frequency))){
+          complex_spec <- spectro(tmp_audio,
+                                  f        = tmp_audio@samp.rate, 
+                                  wl       = input$window_width, 
+                                  ovlp     = input$fft_overlap,
+                                  complex  = TRUE,
+                                  plot     = FALSE,
+                                  norm     = FALSE,
+                                  dB       = NULL)
+          
+          #Put zeros outside frequency range and reconstruct audio file from complex spec
+          out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
+          complex_spec$amp[out_freq,] <- 0
+          
+          audio_inv <- istft(complex_spec$amp,
+                             f    = tmp_audio@samp.rate,
+                             wl   = input$window_width, 
+                             ovlp = input$fft_overlap,
+                             out  = "Wave")
+          tmp_audio <- normalize(audio_inv, unit = "16")
+        }
+      }
+      writeWave(tmp_audio, file_name)
+    }
     
     audio_style <- HTML("
     filter: sepia(50%);
