@@ -5,6 +5,8 @@ library(shinyBS)
 library(shinyFiles)
 library(shinythemes)
 library(shinydashboard)
+library(shinyWidgets)
+library(imola)
 library(tuneR)
 library(seewave) # for spectrogram
 #library(plotly)
@@ -32,11 +34,7 @@ source('plot_helpers.R')
 #change file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
 
-classes <- c(read.csv("species_list.csv")[,1], "Noise", "Other")
-
 file_list <- list.files('www/')
-
-classes <- sort(classes)
 
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
@@ -225,27 +223,24 @@ ui_func <- function() {
     #Labelling
     fluidRow({
       div(h4("Labeling"),
-          radioButtons("label_points", "Label Selection:",
-                      choices = classes),
+          uiOutput("label_ui"),
           textInput("otherCategory", "Type in additional category"),
-          fixedRow(
+          fixedRow(style = "display:inline-block; text-align: center; vertical-align:center;",
            actionButton("addCategory", "Add category"),
+           actionButton("remCategory", "Remove category"),
            actionButton("resetCategory", "Reset categories")
           ),
+          br(),
           #TODO: Other info to label/record -
           ## type of sound e.g. alarm call, flight call, flock
           ## naming groups: Order, Family, Genus, Species, Subspecies
           ## altitude of recorder (check if in metadata)
-          actionButton(
-           "save_points", HTML("<b>Save Selection</b>")
-          ),
-          actionButton(
-           "remove_points", HTML("<b>Delete Selection</b>")
-          ),
-          actionButton(
-           "undo_delete_lab", HTML("<b>Undo Deletion</b>")
+          fluidRow(style = "display:inline-block; text-align: center; vertical-align:center;",
+           actionButton("save_points", HTML("<b>Save Selection</b>")),
+           actionButton("remove_points", HTML("<b>Delete Selection</b>")),
+           actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"))
           )
-          )
+      )
         })
     )
   ui <- dashboardPage(
@@ -287,6 +282,8 @@ server <- function(input, output) {
   length_ylabs <- reactiveValues(osc = 4, spec = 0)
   deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
   plots_open   <- reactiveValues(osc = TRUE, spec = TRUE)
+  categories   <- reactiveValues(base = c(read.csv("species_list.csv")[,1], c("Noise", "Other")),
+                                 xtra = NULL)
   
   length_b10 <- function(x){
     return(x %>% 
@@ -323,6 +320,36 @@ server <- function(input, output) {
     }
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
+  
+  class_label_cols <- reactive({
+    lab_cols <- c(sapply(categories$base, function(x) HTML(x, style="color:red")),
+                  categories$xtra)
+    unname(lab_cols)
+  })
+  
+  class_label <- reactive({
+    c(categories$base, categories$xtra)
+  })
+  
+  output$label_ui <- renderUI({
+    gridPanel(
+      radioGroupButtons(
+        inputId = "label_points", 
+        label   = "Class Label Selection:", 
+        individual = TRUE,
+        selected   = "",
+        choiceValues = class_label(), 
+        #checkIcon = list(yes = icon("check"),
+        #                 no  = icon("remove")),
+        status = "primary",
+        choiceNames = class_label(), 
+        #choices = class_label(),#,
+        justified = TRUE#, width = "300px"
+      ),
+      rows    = round(length(class_label())/6),
+      columns = 6
+    )
+  })
   
   audioInput <- reactive({
     if(.is_null(input$file1))     
@@ -363,23 +390,6 @@ server <- function(input, output) {
     else
       return(HTML(paste0('<b>', input$file1, '</b>')))
     })
-  
-  observe({
-    if(.is_null(input$file1))
-      return(NULL)
-    tmp_audio <- audioInput()
-    
-    spec <- spectro(tmp_audio,
-                    f        = tmp_audio@samp.rate, 
-                    wl       = input$window_width, 
-                    ovlp     = input$fft_overlap, 
-                    plot     = FALSE)
-    
-    updateSliderInput(inputId = "frequency_range", 
-                      value   = range(spec$freq),
-                      min     = min(spec$freq),
-                      max     = max(spec$freq))
-  })
   
   specData <- reactive({
     if(.is_null(input$file1))     
@@ -522,6 +532,23 @@ server <- function(input, output) {
       return(NULL)
     else 
       blank_plot(label = "Oscillogram")
+  })
+  
+  observe({
+    if(.is_null(input$file1))
+      return(NULL)
+    tmp_audio <- audioInput()
+    
+    spec <- spectro(tmp_audio,
+                    f        = tmp_audio@samp.rate, 
+                    wl       = input$window_width, 
+                    ovlp     = input$fft_overlap, 
+                    plot     = FALSE)
+    
+    updateSliderInput(inputId = "frequency_range", 
+                      value   = range(spec$freq),
+                      min     = min(spec$freq),
+                      max     = max(spec$freq))
   })
   
   output$hover_info <- renderUI({
@@ -672,14 +699,28 @@ server <- function(input, output) {
   })
   
   observeEvent(input$addCategory, {
-    if(input$label_points == "Other"){
-      updatedValues <- c(classes, input$otherCategory)
-      updateRadioButtons(inputId = "label_points", choices = updatedValues, selected = input$otherCategory)
+    if(gsub(" ", "", input$otherCategory) == "")
+      showNotification("Need category name to add", type = "error")
+    else if(input$otherCategory %in% class_label())
+      showNotification("Category already present", type = "error")
+    else
+      categories$xtra <- c(categories$xtra, input$otherCategory)
+  })
+  
+  observeEvent(input$remCategory, {
+    if(is.null(input$label_points))
+      showNotification("Need a category selected to remove it", type = "error")
+    else if(input$label_points %in% categories$base)
+      showNotification(HTML("Cannot remove main category!"), type = "error")
+    else if(input$label_points %in% categories$xtra){
+      categories$xtra <-  categories$xtra[-which(categories$xtra == input$label_points)]
+      showNotification(HTML(paste0("Label <b>", input$label_points, "</b> removed")), type = "warning")
     }
   })
   
   observeEvent(input$resetCategory, {
-    updateRadioButtons(inputId = "label_points", choices = classes)
+    categories$xtra <- NULL
+    updateRadioButtons(inputId = "label_points", choices = class_label())
   })
   
   observeEvent(input$save_points, {
