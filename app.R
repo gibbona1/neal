@@ -94,8 +94,8 @@ ui_func <- function() {
       uiOutput("spec_collapse"),
       #Fast Fourier Transform
       h5("FFT Settings"),
-      numericInput('window_width', 'Window Size (number of points)', value = 1024),
-      numericInput('fft_overlap', 'FFT Overlap', value = 75, min = 1, max = 99, step = 1),
+      numericInput('window_width', 'Window Size (number of points)', value = 256),
+      numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 1, max = 99, step = 1),
 
       #Oscillogram
       h4("Oscillogram Settings"),
@@ -169,9 +169,9 @@ ui_func <- function() {
                "frequency_range",
                "Audio Frequency Range:",
                min   = 0,
-               max   = 10,
+               max   = 0,
                step  = 0.2,
-               value = c(0,10),
+               value = c(0,0),
                ticks = FALSE
                ))
              }),
@@ -225,20 +225,20 @@ ui_func <- function() {
       div(h4("Labeling"),
           uiOutput("label_ui"),
           textInput("otherCategory", "Type in additional category"),
-          fixedRow(style = "display:inline-block; text-align: center; vertical-align:center;",
-           actionButton("addCategory", "Add category"),
-           actionButton("remCategory", "Remove category"),
-           actionButton("resetCategory", "Reset categories")
+          fixedRow(style = "display:inline-block; text-align: center; padding-left: 2%; width: 40%;",
+           actionButton("addCategory", "Add category", style = "width: 32%;"),
+           actionButton("remCategory", "Remove category", style = "width: 32%;"),
+           actionButton("resetCategory", "Reset categories", style = "width: 32%;")
           ),
           br(),
           #TODO: Other info to label/record -
           ## type of sound e.g. alarm call, flight call, flock
           ## naming groups: Order, Family, Genus, Species, Subspecies
           ## altitude of recorder (check if in metadata)
-          fluidRow(style = "display:inline-block; text-align: center; vertical-align:center;",
-           actionButton("save_points", HTML("<b>Save Selection</b>")),
-           actionButton("remove_points", HTML("<b>Delete Selection</b>")),
-           actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"))
+          fluidRow(style = "display:inline-block; text-align: center; padding-left: 2%; width: 40%;",
+           actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 32%;"),
+           actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 32%;"),
+           actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 32%;")
           )
       )
         })
@@ -279,11 +279,11 @@ server <- function(input, output) {
   
   ranges_spec  <- reactiveValues(x = NULL, y = NULL)
   ranges_osc   <- reactiveValues(x = NULL)
-  length_ylabs <- reactiveValues(osc = 4, spec = 0)
+  length_ylabs <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
-  plots_open   <- reactiveValues(osc = TRUE, spec = TRUE)
+  plots_open   <- reactiveValues(osc  = TRUE, spec = TRUE)
   categories   <- reactiveValues(base = c(read.csv("species_list.csv")[,1], c("Noise", "Other")),
-                                 xtra = NULL)
+                                 xtra = "abc")
   
   length_b10 <- function(x){
     return(x %>% 
@@ -332,22 +332,80 @@ server <- function(input, output) {
   })
   
   output$label_ui <- renderUI({
+    extra_cols   <- c('red','darkred')
+    my_gradients <- colorRampPalette(c('darkred','red'))(length(categories$xtra))
+    
+    get_jq_lines <- function(val, cols){
+      x <- paste0("var ", c("originalBorder", "originalColor", "originalBackground" ), " = [];", collapse= " ")
+      #x <- "var originalBorder = []; var originalColor = []; var originalBackground = [];"
+      button_val_id <- paste0("'input[type=radio][name=label_points][value=", val, "]'")
+      
+      css_line <- function(css_class, css_val = NULL, func = "css", sq = "'"){
+        x <- paste0("$(this).parent().", func, "(", sq, css_class, sq)
+        if(!is.null(css_val))
+          x <- paste0(x, ",'", css_val, "'")
+        x <- paste0(x, ")")
+        if(func == "css")
+          x <- paste0(x, ";")
+        return(x)
+      }
+        x <- paste0(x, 
+        "$(", button_val_id, ").parent().css({",
+          "'color':            'black',",
+          "'background-color': '", cols[1], "',",
+          "'border-color':     '", cols[2], "'});")
+        x <- paste0(x, "$(", button_val_id, ").hover(",
+        "function(){",
+            "originalBorder[", css_line(button_val_id, func = "index", sq=""), "]     = ", css_line('border-color'),
+            "originalBackground[", css_line(button_val_id, func = "index", sq=""), "] = ", css_line('background-color'),
+            "originalColor[", css_line(button_val_id, func = "index", sq=""), "]      = ", css_line('color'),
+            css_line('border-color', 'darkblue'),
+            css_line('background-color', 'blue'),
+            css_line('color', 'white'),
+          "},")
+        x <- paste0(x, 
+        "function(){",
+        css_line('border-color',     paste0("originalBorder[", css_line(button_val_id, func = "index", sq=""), "]")), 
+        css_line('background-color', paste0("originalBackground[", css_line(button_val_id, func = "index", sq=""), "]")), 
+        css_line('color',            paste0("originalColor[", css_line(button_val_id, func = "index", sq=""), "]")),
+          "});")
+        x <- gsub("'original", "original", x)
+        x <- gsub(")]')", ")])", x)
+      return(x)
+    }
+    btn_col_script <- NULL
+    if(!is.null(categories$xtra)){
+      for(k in 1:length(categories$xtra))
+        btn_col_script <- paste0(btn_col_script, get_jq_lines(categories$xtra[k], extra_cols))
+    }
+    #print(btn_col_script)
     gridPanel(
       radioGroupButtons(
         inputId = "label_points", 
         label   = "Class Label Selection:", 
         individual = TRUE,
-        selected   = "",
+        #selected   = "",
         choiceValues = class_label(), 
         #checkIcon = list(yes = icon("check"),
         #                 no  = icon("remove")),
         status = "primary",
         choiceNames = class_label(), 
         #choices = class_label(),#,
-        justified = TRUE#, width = "300px"
+        justified = TRUE#, 
+        #width = "90%"
       ),
-      rows    = round(length(class_label())/6),
-      columns = 6
+      #tags$script(btn_col_script),
+      #rows    = round(length(class_label())/6),
+      #columns = HTML("1fr 2fr"),
+      columns = HTML(paste(rep("100%", 5)))
+      #rows    = round(length(class_label())/6)
+      #template = "two-row",
+      #rows    = round(length(class_label())/6),
+      #columns = 6
+      #wrap = "wrap",
+      #gap  = HTML("5%"),
+      #grow = c(1)
+      #flex = HTML("1 0 41%")
     )
   })
   
@@ -381,6 +439,48 @@ server <- function(input, output) {
     tmp_audio@left[tmp_audio@left >  32767] <-  32767
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
+    #tmp_audio@left <- tmp_audio@left[1:150000]
+    frange <- input$frequency_range
+    if(!is.null(tmp_audio)){
+      tmp_spec <- spectro(tmp_audio,
+                      f        = tmp_audio@samp.rate, 
+                      wl       = input$window_width, 
+                      ovlp     = input$fft_overlap, 
+                      plot     = FALSE)
+      freq_slider_range <- range(pretty(tmp_spec$freq))
+      #
+      if(var(frange)==0){
+        updateSliderInput(inputId = "frequency_range", 
+                          value   = freq_slider_range,
+                          min     = freq_slider_range[1],
+                          max     = freq_slider_range[2])
+      } else {
+        updateSliderInput(inputId = "frequency_range", 
+                          min     = freq_slider_range[1],
+                          max     = freq_slider_range[2])
+      }
+      if(frange_check(frange, range(tmp_spec$freq))){
+        complex_spec <- spectro(tmp_audio,
+                                f        = tmp_audio@samp.rate, 
+                                wl       = input$window_width, 
+                                ovlp     = input$fft_overlap,
+                                complex  = TRUE,
+                                plot     = FALSE,
+                                norm     = FALSE,
+                                dB       = NULL)
+        #Put zeros outside frequency range and reconstruct audio file from complex spec
+        out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
+        complex_spec$amp[out_freq,] <- 0
+        audio_inv <- istft(complex_spec$amp,
+                           f    = tmp_audio@samp.rate,
+                           wl   = input$window_width, 
+                           ovlp = input$fft_overlap,
+                           out  = "Wave")
+        tmp_audio <- normalize(audio_inv, unit = "16")
+      }
+    }
+    file_name   <-  'www/tmp.wav'
+    writeWave(tmp_audio, file_name)
     return(tmp_audio)
   })
   
@@ -462,9 +562,8 @@ server <- function(input, output) {
   })
   
   output$specplot <- renderPlot({
-    if(.is_null(input$file1)){
+    if(.is_null(input$file1))
       return(plot_spectrogram(specData(), input, length_ylabs))
-    }     
     
     withProgress(message = 'Creating Spectrogram', value = 0.1, {
       p <- plot_spectrogram(specData(), input, length_ylabs)
@@ -532,23 +631,6 @@ server <- function(input, output) {
       return(NULL)
     else 
       blank_plot(label = "Oscillogram")
-  })
-  
-  observe({
-    if(.is_null(input$file1))
-      return(NULL)
-    tmp_audio <- audioInput()
-    
-    spec <- spectro(tmp_audio,
-                    f        = tmp_audio@samp.rate, 
-                    wl       = input$window_width, 
-                    ovlp     = input$fft_overlap, 
-                    plot     = FALSE)
-    
-    updateSliderInput(inputId = "frequency_range", 
-                      value   = range(spec$freq),
-                      min     = min(spec$freq),
-                      max     = max(spec$freq))
   })
   
   output$hover_info <- renderUI({
@@ -850,34 +932,6 @@ server <- function(input, output) {
   
   output$my_audio <- renderUI({
     file_name   <-  'www/tmp.wav'
-    tmp_audio <- audioInput()
-    if(!is.null(tmp_audio)){
-      frange <- input$frequency_range
-      if(!is.null(specData())){
-        if(frange_check(frange, range(specData()$frequency))){
-          complex_spec <- spectro(tmp_audio,
-                                  f        = tmp_audio@samp.rate, 
-                                  wl       = input$window_width, 
-                                  ovlp     = input$fft_overlap,
-                                  complex  = TRUE,
-                                  plot     = FALSE,
-                                  norm     = FALSE,
-                                  dB       = NULL)
-          
-          #Put zeros outside frequency range and reconstruct audio file from complex spec
-          out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
-          complex_spec$amp[out_freq,] <- 0
-          
-          audio_inv <- istft(complex_spec$amp,
-                             f    = tmp_audio@samp.rate,
-                             wl   = input$window_width, 
-                             ovlp = input$fft_overlap,
-                             out  = "Wave")
-          tmp_audio <- normalize(audio_inv, unit = "16")
-        }
-      }
-      writeWave(tmp_audio, file_name)
-    }
     
     audio_style <- HTML("
     filter: sepia(50%);
@@ -900,7 +954,6 @@ server <- function(input, output) {
     })
   
   output$audio_time <- renderPrint({
-    #browser()
     if(.is_null(input$file1))
       return("<NULL>")
     else {
