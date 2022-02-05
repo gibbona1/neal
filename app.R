@@ -36,6 +36,8 @@ options(shiny.maxRequestSize = 30*1024^2)
 
 file_list <- list.files('www/')
 
+species_list <- read.csv("species_list.csv")
+
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
 ui_func <- function() {
@@ -54,6 +56,10 @@ ui_func <- function() {
         choices = c("<NULL>", file_list),
         width   = '100%'
         ),
+      selectInput("species_list",
+                  "Species List:",
+                  choices = colnames(species_list),
+                  width   = '100%'),
       h4("Sound Settings"),
       selectInput(
         "noisereduction",
@@ -285,8 +291,6 @@ server <- function(input, output, session) {
   length_ylabs <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
   plots_open   <- reactiveValues(osc  = TRUE, spec = TRUE)
-  categories   <- reactiveValues(base = c(read.csv("species_list.csv")[,1], c("Noise", "Other")),
-                                 xtra = "abc")
   
   length_b10 <- function(x){
     return(x %>% 
@@ -324,21 +328,29 @@ server <- function(input, output, session) {
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
   
-  class_label_cols <- reactive({
-    lab_cols <- c(sapply(categories$base, function(x) HTML(x, style="color:red")),
-                  categories$xtra)
-    unname(lab_cols)
+  get_entries <- function(x) return(x[x!=""])
+  
+  categories   <- reactiveValues(
+    base = get_entries(species_list[,1]), 
+    misc = c("Noise", "Other"),
+    xtra = "abc"
+  )
+  
+  observeEvent(input$species_list, {
+    categories$base <- get_entries(species_list[,input$species_list])
   })
   
   class_label <- reactive({
-    c(categories$base, categories$xtra)
+    cats <- categories
+    c(cats$base, cats$misc, cats$xtra)
   })
   
   freq_range <- reactiveVal(c(0,0))
   
   output$label_ui <- renderUI({
     extra_cols   <- c('red','darkred')
-    my_gradients <- colorRampPalette(c('darkred','red'))(length(categories$xtra))
+    cextra <- categories$xtra
+    my_gradients <- colorRampPalette(c('darkred','red'))(length(cextra))
     
     get_jq_lines <- function(val, cols){
       x <- paste0("var ", c("originalBorder", "originalColor", "originalBackground" ), " = [];", collapse= " ")
@@ -379,32 +391,32 @@ server <- function(input, output, session) {
       return(x)
     }
     btn_col_script <- NULL
-    if(!is.null(categories$xtra)){
-      for(k in 1:length(categories$xtra))
-        btn_col_script <- paste0(btn_col_script, get_jq_lines(categories$xtra[k], extra_cols))
+    if(!is.null(cextra)){
+      for(k in 1:length(cextra))
+        btn_col_script <- paste0(btn_col_script, get_jq_lines(cextra[k], extra_cols))
     }
     #print(btn_col_script)
     div(
-    radioGroupButtons(
+      radioGroupButtons(
         inputId    = "label_points", 
         label      = "Class Label Selection:", 
         individual = TRUE,
         width      = '100%',
         status     = "primary",
-        choiceValues = class_label(), 
-        choiceNames  = class_label(),
+        choices    = class_label(), 
         #selected     = "",
       ),
       tags$style(paste0(".btn-group-container-sw {
-    display: grid;
-    grid-template-columns: ", 
-    paste(rep("1fr", input$label_columns), collapse=" "), 
-    ";}
-    .radiobtn {
-    width: 100%;}")),
+                          display: grid;
+                          grid-template-columns: ",
+                          paste(rep("1fr", input$label_columns), collapse=" "), 
+                        ";}
+                        .radiobtn {
+                          width: 100%;
+                        }")),
       #tags$script(btn_col_script),
-    )
-  })
+      )
+    })
   
   audioInput <- reactive({
     if(.is_null(input$file1))     
@@ -560,7 +572,6 @@ server <- function(input, output, session) {
   output$specplot <- renderImage({
     p <- plot_spectrogram(specData(), input, length_ylabs)
     
-    #p <- plot_spectrogram(specData(), input, length_ylabs)
     if(!.is_null(input$file1)){
       if(!is.null(ranges_spec$y))
         p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
@@ -569,20 +580,19 @@ server <- function(input, output, session) {
       #spec_name <- 'blank_spec.png'
     
     #file_nm   <- file.path(getwd(), "images", spec_name)
-    #browser()
     width  <- session$clientData$output_specplot_width
     height <- session$clientData$output_specplot_height
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
-    print(paste("width", width))
-    print(paste("height", height))
-    print(paste("pixelratio", pixelratio))
+    #print(paste("width", width))
+    #print(paste("height", height))
+    #print(paste("pixelratio", pixelratio))
     outfile <- tempfile(fileext='.png')
     # Generate the image file
     png(outfile, 
         height = height*pixelratio, 
         width  = width*pixelratio,
-        res    = 72*pixelratio)
+        res    = pixelratio)
     print(p)
     dev.off()
     
@@ -613,9 +623,9 @@ server <- function(input, output, session) {
     height <- session$clientData$output_oscplot_height
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
-    print(paste("width", width))
-    print(paste("height", height))
-    print(paste("pixelratio", pixelratio))
+    #print(paste("width", width))
+    #print(paste("height", height))
+    #print(paste("pixelratio", pixelratio))
     outfile <- tempfile(fileext='.png')
     # Generate the image file
     png(outfile, 
@@ -797,17 +807,17 @@ server <- function(input, output, session) {
   observeEvent(input$remCategory, {
     if(is.null(input$label_points))
       showNotification("Need a category selected to remove it", type = "error")
-    else if(input$label_points %in% categories$base)
-      showNotification(HTML("Cannot remove main category!"), type = "error")
+    else if(input$label_points %in% c(categories$base, categories$misc))
+      showNotification(HTML("Cannot remove main or misc category!"), type = "error")
     else if(input$label_points %in% categories$xtra){
-      categories$xtra <-  categories$xtra[-which(categories$xtra == input$label_points)]
+      categories$xtra <- categories$xtra[-which(categories$xtra == input$label_points)]
       showNotification(HTML(paste0("Label <b>", input$label_points, "</b> removed")), type = "warning")
     }
   })
   
   observeEvent(input$resetCategory, {
     categories$xtra <- NULL
-    updateRadioButtons(inputId = "label_points", choices = class_label())
+    showNotification(HTML(paste0("Extra labels reset")), type = "warning")
   })
   
   observeEvent(input$save_points, {
