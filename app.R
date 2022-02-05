@@ -590,7 +590,7 @@ server <- function(input, output, session) {
     png(outfile, 
         height = height*pixelratio, 
         width  = width*pixelratio,
-        res    = pixelratio)
+        res    = 72*pixelratio)
     print(p)
     dev.off()
     
