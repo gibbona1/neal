@@ -24,9 +24,8 @@ source('plot_helpers.R')
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
 #TODO: color/highlight plot as it plays e.g. blue over red in oscillogram (have time tracker)
-#TODO: Option for Action Buttons instead of radio buttons for labeling which can be pressed and unpressed if labels want to be removed
-#TODO: Reactive object of classes to add more than one species, option to save list
-#TODO: Colour buttons (action or radio) same as bounding boxes (ggplot override aes) (notification label colour too)
+#TODO: Save list of extra species, 
+#TODO: Colour border of label radio buttons same as bounding boxes (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
@@ -36,7 +35,7 @@ options(shiny.maxRequestSize = 30*1024^2)
 
 file_list <- list.files('www/')
 
-species_list <- read.csv("species_list.csv")
+species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
@@ -399,7 +398,7 @@ server <- function(input, output, session) {
     div(
       radioGroupButtons(
         inputId    = "label_points", 
-        label      = "Class Label Selection:", 
+        label      = paste("Class Label Selection:", input$species_list), 
         individual = TRUE,
         width      = '100%',
         status     = "primary",
@@ -578,7 +577,6 @@ server <- function(input, output, session) {
       #spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
     } #else
       #spec_name <- 'blank_spec.png'
-    
     #file_nm   <- file.path(getwd(), "images", spec_name)
     width  <- session$clientData$output_specplot_width
     height <- session$clientData$output_specplot_height
