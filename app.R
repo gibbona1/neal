@@ -103,6 +103,9 @@ ui_func <- function() {
       checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
       checkboxInput("osc_labs", "Show oscillogram labels"),
       uiOutput("osc_collapse"),
+      
+      #Other options
+      numericInput('label_columns', 'Number of Columns', value = 5, min = 1, max = 9, step = 1),
       #Options for sidebar
       collapsed = TRUE)}
     
@@ -392,11 +395,13 @@ server <- function(input, output, session) {
         choiceNames  = class_label(),
         #selected     = "",
       ),
-      tags$style(".btn-group-container-sw {
+      tags$style(paste0(".btn-group-container-sw {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;}
+    grid-template-columns: ", 
+    paste(rep("1fr", input$label_columns), collapse=" "), 
+    ";}
     .radiobtn {
-    width: 100%;}"),
+    width: 100%;}")),
       #tags$script(btn_col_script),
     )
   })
