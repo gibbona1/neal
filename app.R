@@ -121,7 +121,7 @@ ui_func <- function() {
     #Spectrogram Plot
     fluidRow({
       div(
-        imageOutput(
+        plotOutput(
           "specplot",
           height   = 250,
           click    = "specplot_click",
@@ -139,13 +139,16 @@ ui_func <- function() {
           "specplot_blank",
           height   = 25,
           ),
+        tags$head(
+            tags$style(type="text/css", "text {font-family: mono}")
+          ),
         uiOutput("hover_info")
         )
     }),
     #Oscillogram Plot
     fluidRow({
       div(
-        imageOutput(
+        plotOutput(
           "oscplot",
           height   = 110,
           click    = "oscplot_click",
@@ -165,6 +168,9 @@ ui_func <- function() {
           "oscplot_blank",
           height   = 25,
           ),
+        tags$head(
+          tags$style(type="text/css", "text {font-family: mono}")
+        ),
         uiOutput("hover_info_osc")
         )
       }),
@@ -437,6 +443,8 @@ server <- function(input, output, session) {
     
     #based on torchaudio::functional_gain
     audio_gain <- function (waveform, gain_db = 0){
+      if(gain_db == 0)
+        return(waveform)
       ratio <- 10^(gain_db/20)
       return(waveform * ratio)
     }
@@ -447,9 +455,10 @@ server <- function(input, output, session) {
     tmp_audio@left[tmp_audio@left >  32767] <-  32767
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
-    #tmp_audio@left <- tmp_audio@left[1:150000]
+    
     frange <- input$frequency_range
-    freq_range(frange)
+    
+    
     if(!is.null(tmp_audio)){
       tmp_spec <- spectro(tmp_audio,
                       f        = tmp_audio@samp.rate, 
@@ -457,17 +466,18 @@ server <- function(input, output, session) {
                       ovlp     = input$fft_overlap, 
                       plot     = FALSE)
       freq_slider_range <- range(pretty(tmp_spec$freq))
-      #
       if(var(frange)==0){
         updateSliderInput(inputId = "frequency_range", 
                           value   = freq_slider_range,
                           min     = freq_slider_range[1],
                           max     = freq_slider_range[2])
+        frange <- freq_slider_range
       } else {
         updateSliderInput(inputId = "frequency_range", 
                           min     = freq_slider_range[1],
                           max     = freq_slider_range[2])
       }
+      #browser()
       if(frange_check(frange, range(tmp_spec$freq))){
         complex_spec <- spectro(tmp_audio,
                                 f        = tmp_audio@samp.rate, 
@@ -489,6 +499,7 @@ server <- function(input, output, session) {
       }
     }
     file_name   <-  'www/tmp.wav'
+    freq_range(frange)
     writeWave(tmp_audio, file_name)
     return(tmp_audio)
   })
@@ -535,7 +546,7 @@ server <- function(input, output, session) {
     
     frange <- input$frequency_range
     if(frange_check(frange, range(df$frequency)))
-      df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
+      df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.6
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
@@ -568,16 +579,16 @@ server <- function(input, output, session) {
     return(df2)
   })
   
-  output$specplot <- renderImage({
+  output$specplot <- renderPlot({
     p <- plot_spectrogram(specData(), input, length_ylabs)
     
     if(!.is_null(input$file1)){
       if(!is.null(ranges_spec$y))
         p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
-      #spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
-    } #else
-      #spec_name <- 'blank_spec.png'
-    #file_nm   <- file.path(getwd(), "images", spec_name)
+      spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
+    } else
+      spec_name <- 'blank_spec.png'
+    file_nm   <- file.path(getwd(), "images", spec_name)
     width  <- session$clientData$output_specplot_width
     height <- session$clientData$output_specplot_height
     # For high-res displays, this will be greater than 1
@@ -585,20 +596,19 @@ server <- function(input, output, session) {
     #print(paste("width", width))
     #print(paste("height", height))
     #print(paste("pixelratio", pixelratio))
-    outfile <- tempfile(fileext='.png')
-    # Generate the image file
-    png(outfile, 
-        height = height*pixelratio, 
-        width  = width*pixelratio,
-        res    = 72*pixelratio)
-    print(p)
-    dev.off()
-    
-    # Return a list containing the filename
-    list(src    = outfile,
-         width  = width,
-         height = height)
-  }, deleteFile = TRUE)
+    observeEvent(input$savespec, {
+      ggsave(file_nm, 
+             height = height*pixelratio, 
+             width  = width*pixelratio,
+             #res    = 72*pixelratio,
+             units  = "px")
+      showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
+                       #TODO: clickable link to images folder
+                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                       type = "message")
+    })
+    return(p)
+  })
       
   output$specplot_blank <- renderPlot({
     if(plots_open$spec)
@@ -607,7 +617,7 @@ server <- function(input, output, session) {
       blank_plot(label = "Spectrogram")
     })
   
-  output$oscplot <- renderImage({
+  output$oscplot <- renderPlot({
     p <- plot_oscillogram(oscData(), input, length_ylabs)
     
     if(!.is_null(input$file1)){
@@ -615,8 +625,11 @@ server <- function(input, output, session) {
         p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
      else if(!is.null(ranges_osc$x))
         p <- p + coord_cartesian(xlim = ranges_osc$x, expand = TRUE)
-    }
-    
+     osc_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
+    } else 
+      osc_name <- 'blank_osc.png'
+    file_nm   <- file.path(getwd(), "images", osc_name)
+  
     width  <- session$clientData$output_oscplot_width
     height <- session$clientData$output_oscplot_height
     # For high-res displays, this will be greater than 1
@@ -624,19 +637,18 @@ server <- function(input, output, session) {
     #print(paste("width", width))
     #print(paste("height", height))
     #print(paste("pixelratio", pixelratio))
-    outfile <- tempfile(fileext='.png')
-    # Generate the image file
-    png(outfile, 
-        height = height*pixelratio, 
-        width  = width*pixelratio,
-        res    = 72*pixelratio)
-    print(p)
-    dev.off()
-    
-    # Return a list containing the filename
-    list(src    = outfile,
-         width  = width,
-         height = height)
+    observeEvent(input$saveosc, {
+      ggsave(file_nm, 
+             height = height*pixelratio, 
+             width  = width*pixelratio,
+             #res    = 72*pixelratio,
+             units  = "px")
+      showNotification(HTML(paste0("Oscillogram image <b>", osc_name, "</b> saved to <b>images</b>.")), 
+                       #TODO: clickable link to images folder
+                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                       type = "message")
+    })
+    return(p)
   }, deleteFile = TRUE)
   
   output$oscplot_blank <- renderPlot({
