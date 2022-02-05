@@ -23,7 +23,7 @@ source('plot_helpers.R')
 
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
-#TODO: color/highlight plot as it plays e.g. blue over red in oscillogram
+#TODO: color/highlight plot as it plays e.g. blue over red in oscillogram (have time tracker)
 #TODO: Option for Action Buttons instead of radio buttons for labeling which can be pressed and unpressed if labels want to be removed
 #TODO: Reactive object of classes to add more than one species, option to save list
 #TODO: Colour buttons (action or radio) same as bounding boxes (ggplot override aes) (notification label colour too)
@@ -113,7 +113,7 @@ ui_func <- function() {
     #Spectrogram Plot
     fluidRow({
       div(
-        plotOutput(
+        imageOutput(
           "specplot",
           height   = 250,
           click    = "specplot_click",
@@ -137,7 +137,7 @@ ui_func <- function() {
     #Oscillogram Plot
     fluidRow({
       div(
-        plotOutput(
+        imageOutput(
           "oscplot",
           height   = 110,
           click    = "oscplot_click",
@@ -221,11 +221,11 @@ ui_func <- function() {
       )
       }),
     #Labelling
-    fluidRow({
+    fluidPage({
       div(h4("Labeling"),
           uiOutput("label_ui"),
           textInput("otherCategory", "Type in additional category"),
-          fixedRow(style = "display:inline-block; text-align: center; padding-left: 2%; width: 40%;",
+          fixedRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
            actionButton("addCategory", "Add category", style = "width: 32%;"),
            actionButton("remCategory", "Remove category", style = "width: 32%;"),
            actionButton("resetCategory", "Reset categories", style = "width: 32%;")
@@ -235,7 +235,7 @@ ui_func <- function() {
           ## type of sound e.g. alarm call, flight call, flock
           ## naming groups: Order, Family, Genus, Species, Subspecies
           ## altitude of recorder (check if in metadata)
-          fluidRow(style = "display:inline-block; text-align: center; padding-left: 2%; width: 40%;",
+          fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
            actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 32%;"),
            actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 32%;"),
            actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 32%;")
@@ -251,7 +251,7 @@ ui_func <- function() {
   return(ui)
 }
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   volumes <- c(Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
   shinyDirChoose(
     input          = input,
@@ -331,6 +331,8 @@ server <- function(input, output) {
     c(categories$base, categories$xtra)
   })
   
+  freq_range <- reactiveVal(c(0,0))
+  
   output$label_ui <- renderUI({
     extra_cols   <- c('red','darkred')
     my_gradients <- colorRampPalette(c('darkred','red'))(length(categories$xtra))
@@ -379,33 +381,23 @@ server <- function(input, output) {
         btn_col_script <- paste0(btn_col_script, get_jq_lines(categories$xtra[k], extra_cols))
     }
     #print(btn_col_script)
-    gridPanel(
-      radioGroupButtons(
-        inputId = "label_points", 
-        label   = "Class Label Selection:", 
+    div(
+    radioGroupButtons(
+        inputId    = "label_points", 
+        label      = "Class Label Selection:", 
         individual = TRUE,
-        #selected   = "",
+        width      = '100%',
+        status     = "primary",
         choiceValues = class_label(), 
-        #checkIcon = list(yes = icon("check"),
-        #                 no  = icon("remove")),
-        status = "primary",
-        choiceNames = class_label(), 
-        #choices = class_label(),#,
-        justified = TRUE#, 
-        #width = "90%"
+        choiceNames  = class_label(),
+        #selected     = "",
       ),
+      tags$style(".btn-group-container-sw {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;}
+    .radiobtn {
+    width: 100%;}"),
       #tags$script(btn_col_script),
-      #rows    = round(length(class_label())/6),
-      #columns = HTML("1fr 2fr"),
-      columns = HTML(paste(rep("100%", 5)))
-      #rows    = round(length(class_label())/6)
-      #template = "two-row",
-      #rows    = round(length(class_label())/6),
-      #columns = 6
-      #wrap = "wrap",
-      #gap  = HTML("5%"),
-      #grow = c(1)
-      #flex = HTML("1 0 41%")
     )
   })
   
@@ -441,6 +433,7 @@ server <- function(input, output) {
     tmp_audio@left <- as.integer(tmp_audio@left)
     #tmp_audio@left <- tmp_audio@left[1:150000]
     frange <- input$frequency_range
+    freq_range(frange)
     if(!is.null(tmp_audio)){
       tmp_spec <- spectro(tmp_audio,
                       f        = tmp_audio@samp.rate, 
@@ -545,12 +538,10 @@ server <- function(input, output) {
     
     #spacing for "custom" y axis margin
     strlen_osc_y  <- length_b10(df2$amplitude)
-    
-    spec_freq <- specData()$frequency
-    if(!is.null(ranges_spec$y))
-      spec_freq <- spec_freq[spec_freq >= ranges_spec$y[1] & spec_freq <= ranges_spec$y[2]]
+    spec_freq <- freq_range()
+    if(!is.null(ranges_spec$y) & var(spec_freq)!=0)
+      spec_freq <- c(max(spec_freq[1], ranges_spec$y[1]), min(spec_freq[2], ranges_spec$y[2]))
     strlen_spec_y <- length_b10(pretty(spec_freq, 5))
-    
     if(strlen_spec_y + 3 <= strlen_osc_y){
       length_ylabs$osc  <- 0
       length_ylabs$spec <- strlen_osc_y - strlen_spec_y - 3
@@ -561,36 +552,41 @@ server <- function(input, output) {
     return(df2)
   })
   
-  output$specplot <- renderPlot({
-    if(.is_null(input$file1))
-      return(plot_spectrogram(specData(), input, length_ylabs))
+  output$specplot <- renderImage({
+    p <- plot_spectrogram(specData(), input, length_ylabs)
     
-    withProgress(message = 'Creating Spectrogram', value = 0.1, {
-      p <- plot_spectrogram(specData(), input, length_ylabs)
-      incProgress(0.5)
-      
+    #p <- plot_spectrogram(specData(), input, length_ylabs)
+    if(!.is_null(input$file1)){
       if(!is.null(ranges_spec$y))
         p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
-      observeEvent(input$savespec, {
-        saveplt <- p + 
-          theme_void() + 
-          theme(legend.position = 'none')
-        spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
-        file_nm   <- file.path(getwd(), "images", spec_name)
-        #ggsave(file_nm, plot = saveplt)
-        png(file_nm)
-        print(saveplt)
-        dev.off()
-        showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
-                         #TODO: clickable link to images folder
-                         #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
-                         type = "message")
-      })
-      incProgress(0.3)
-    })
-      return(p)
-  })
-  
+      #spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
+    } #else
+      #spec_name <- 'blank_spec.png'
+    
+    #file_nm   <- file.path(getwd(), "images", spec_name)
+    #browser()
+    width  <- session$clientData$output_specplot_width
+    height <- session$clientData$output_specplot_height
+    # For high-res displays, this will be greater than 1
+    pixelratio <- session$clientData$pixelratio
+    print(paste("width", width))
+    print(paste("height", height))
+    print(paste("pixelratio", pixelratio))
+    outfile <- tempfile(fileext='.png')
+    # Generate the image file
+    png(outfile, 
+        height = height*pixelratio, 
+        width  = width*pixelratio,
+        res    = 72*pixelratio)
+    print(p)
+    dev.off()
+    
+    # Return a list containing the filename
+    list(src    = outfile,
+         width  = width,
+         height = height)
+  }, deleteFile = TRUE)
+      
   output$specplot_blank <- renderPlot({
     if(plots_open$spec)
       return(NULL)
@@ -598,33 +594,37 @@ server <- function(input, output) {
       blank_plot(label = "Spectrogram")
     })
   
-  output$oscplot <- renderPlot({
-    if(.is_null(input$file1))
-      return(plot_oscillogram(NULL, input, length_ylabs))
-    
+  output$oscplot <- renderImage({
     p <- plot_oscillogram(oscData(), input, length_ylabs)
-    if(!is.null(ranges_spec$x))
-      p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
-    else if(!is.null(ranges_osc$x))
-      p <- p + coord_cartesian(xlim = ranges_osc$x, expand = TRUE)
-    observeEvent(input$saveosc, {
-      saveplt <- p + 
-        theme_void() + 
-        theme(legend.position = 'none',
-              plot.background = element_rect(fill = "black"))
-      spec_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
-      file_nm <- file.path(getwd(), "images", spec_name)
-      #ggsave(file_nm, plot = saveplt)
-      png(file_nm)
-      print(saveplt)
-      dev.off()
-      showNotification(HTML(paste0("Oscillogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
-                       #TODO: clickable link to images folder
-                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
-                       type = "message")
-    })
-    return(p)
-  })
+    
+    if(!.is_null(input$file1)){
+      if(!is.null(ranges_spec$x))
+        p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
+     else if(!is.null(ranges_osc$x))
+        p <- p + coord_cartesian(xlim = ranges_osc$x, expand = TRUE)
+    }
+    
+    width  <- session$clientData$output_oscplot_width
+    height <- session$clientData$output_oscplot_height
+    # For high-res displays, this will be greater than 1
+    pixelratio <- session$clientData$pixelratio
+    print(paste("width", width))
+    print(paste("height", height))
+    print(paste("pixelratio", pixelratio))
+    outfile <- tempfile(fileext='.png')
+    # Generate the image file
+    png(outfile, 
+        height = height*pixelratio, 
+        width  = width*pixelratio,
+        res    = 72*pixelratio)
+    print(p)
+    dev.off()
+    
+    # Return a list containing the filename
+    list(src    = outfile,
+         width  = width,
+         height = height)
+  }, deleteFile = TRUE)
   
   output$oscplot_blank <- renderPlot({
     if(plots_open$osc)
