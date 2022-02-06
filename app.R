@@ -24,13 +24,14 @@ source('plot_helpers.R')
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
 #TODO: color/highlight plot as it plays e.g. blue over red in oscillogram (have time tracker)
-#TODO: Save list of extra species, 
+#TODO: Save list of extra species as a column in species list (or append to current list) 
 #TODO: Colour border of label radio buttons same as bounding boxes (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
+#TODO: Unit tests (especially for plots)
 
-#change file size to 30MB
+#change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
 
 file_list <- list.files('www/')
@@ -115,147 +116,147 @@ ui_func <- function() {
       collapsed = TRUE)}
     
     body <- dashboardBody(
-    theme = "blue_gradient",
-    useShinyjs(),
-    htmlOutput("file1"),
-    #Spectrogram Plot
-    fluidRow({
-      div(
-        plotOutput(
-          "specplot",
-          height   = 250,
-          click    = "specplot_click",
-          dblclick = "specplot_dblclick",
-          hover    = hoverOpts(
-            id        = "specplot_hover",
-            delay     = 50,
-            delayType = "debounce"
+      theme = "blue_gradient",
+      useShinyjs(),
+      htmlOutput("file1"),
+      #Spectrogram Plot
+      fluidRow({
+        div(
+          plotOutput(
+            "specplot",
+            height   = 250,
+            click    = "specplot_click",
+            dblclick = "specplot_dblclick",
+            hover    = hoverOpts(
+              id        = "specplot_hover",
+              delay     = 50,
+              delayType = "debounce"
+              ),
+            brush    = brushOpts(
+              id         = "specplot_brush",
+              resetOnNew = TRUE)
             ),
-          brush    = brushOpts(
-            id         = "specplot_brush",
-            resetOnNew = TRUE)
-          ),
-        plotOutput(
-          "specplot_blank",
-          height   = 25,
-          ),
-        tags$head(
+          plotOutput(
+            "specplot_blank",
+            height   = 25,
+            ),
+          tags$head(
+              tags$style(type="text/css", "text {font-family: mono}")
+            ),
+          uiOutput("hover_info")
+          )
+      }),
+      #Oscillogram Plot
+      fluidRow({
+        div(
+          plotOutput(
+            "oscplot",
+            height   = 110,
+            click    = "oscplot_click",
+            dblclick = "oscplot_dblclick",
+            hover    = hoverOpts(
+              id        = "oscplot_hover",
+              delay     = 50,
+              delayType = "debounce"
+              ),
+            brush    = brushOpts(
+              id         = "oscplot_brush",
+              direction  = "x",
+              resetOnNew = TRUE
+              )
+            ),
+          plotOutput(
+            "oscplot_blank",
+            height   = 25,
+            ),
+          tags$head(
             tags$style(type="text/css", "text {font-family: mono}")
           ),
-        uiOutput("hover_info")
-        )
-    }),
-    #Oscillogram Plot
-    fluidRow({
-      div(
-        plotOutput(
-          "oscplot",
-          height   = 110,
-          click    = "oscplot_click",
-          dblclick = "oscplot_dblclick",
-          hover    = hoverOpts(
-            id        = "oscplot_hover",
-            delay     = 50,
-            delayType = "debounce"
-            ),
-          brush    = brushOpts(
-            id         = "oscplot_brush",
-            direction  = "x",
-            resetOnNew = TRUE
-            )
-          ),
-        plotOutput(
-          "oscplot_blank",
-          height   = 25,
-          ),
-        tags$head(
-          tags$style(type="text/css", "text {font-family: mono}")
-        ),
-        uiOutput("hover_info_osc")
-        )
-      }),
-    #One row of audio settings
-    fluidRow({
-      div(
-      column(4,{
-        div(
-             sliderInput(
-               "frequency_range",
-               "Audio Frequency Range:",
-               min   = 0,
-               max   = 0,
-               step  = 0.2,
-               value = c(0,0),
-               ticks = FALSE
-               ))
-             }),
-      column(4,{
-             div(
-               HTML("<b>Play audio:<b/>"),
-               #style = "color: black;",
-               uiOutput('my_audio'),
-               tags$script('
-               var id = setInterval(audio_pos, 100);
-               function audio_pos() {
-                var audio = document.getElementById("my_audio_player");
-                var curtime = audio.currentTime;
-                console.log(audio);
-                Shiny.onInputChange("get_time", curtime);
-               };'),
-               #actionButton("get_time", "Get Time", onclick = js),
-               verbatimTextOutput("audio_time")
-               )
-        }),
-      column(2,{
-               selectInput(
-                 "playbackrate",
-                 "Playback Speed:",
-                 choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
-                 selected = "1x",
-                 width    = '100%'
-               )
-               }),
-      column(2,{
-          fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-            div(
-              tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; font-size:90%'),  "Previous File"),
-              disabled(tipify(
-                actionButton("prev_section", "", icon = icon("chevron-left"), style='padding:1%; font-size:90%'),  "previous section"
-              )),
-              disabled(tipify(
-                actionButton("next_section", "", icon = icon("chevron-right"), style='padding:1%; font-size:90%'), "next section"
-              )),
-              tipify(actionButton("next_file", "", icon = icon("arrow-right"), style='padding:1%; font-size:90%'), "Next File")
-            ),
-            fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-              actionButton("plt_reset", "Reset Plot")
-              )
-            )
-          })
-      )
-      }),
-    #Labelling
-    fluidPage({
-      div(h4("Labeling"),
-          uiOutput("label_ui"),
-          textInput("otherCategory", "Type in additional category"),
-          fixedRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
-           actionButton("addCategory", "Add category", style = "width: 32%;"),
-           actionButton("remCategory", "Remove category", style = "width: 32%;"),
-           actionButton("resetCategory", "Reset categories", style = "width: 32%;")
-          ),
-          br(),
-          #TODO: Other info to label/record -
-          ## type of sound e.g. alarm call, flight call, flock
-          ## naming groups: Order, Family, Genus, Species, Subspecies
-          ## altitude of recorder (check if in metadata)
-          fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
-           actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 32%;"),
-           actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 32%;"),
-           actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 32%;")
+          uiOutput("hover_info_osc")
           )
-      )
-        })
+        }),
+      #One row of audio settings
+      fluidRow({
+        div(
+        column(4,{
+          div(
+               sliderInput(
+                 "frequency_range",
+                 "Audio Frequency Range:",
+                 min   = 0,
+                 max   = 0,
+                 step  = 0.2,
+                 value = c(0,0),
+                 ticks = FALSE
+                 ))
+               }),
+        column(4,{
+               div(
+                 HTML("<b>Play audio:<b/>"),
+                 #style = "color: black;",
+                 uiOutput('my_audio'),
+                 tags$script('
+                 var id = setInterval(audio_pos, 100);
+                 function audio_pos() {
+                  var audio = document.getElementById("my_audio_player");
+                  var curtime = audio.currentTime;
+                  console.log(audio);
+                  Shiny.onInputChange("get_time", curtime);
+                 };'),
+                 #actionButton("get_time", "Get Time", onclick = js),
+                 verbatimTextOutput("audio_time")
+                 )
+          }),
+        column(2,{
+                 selectInput(
+                   "playbackrate",
+                   "Playback Speed:",
+                   choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
+                   selected = "1x",
+                   width    = '100%'
+                 )
+                 }),
+        column(2,{
+            fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
+              div(
+                tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; font-size:90%'),  "Previous File"),
+                disabled(tipify(
+                  actionButton("prev_section", "", icon = icon("chevron-left"), style='padding:1%; font-size:90%'),  "previous section"
+                )),
+                disabled(tipify(
+                  actionButton("next_section", "", icon = icon("chevron-right"), style='padding:1%; font-size:90%'), "next section"
+                )),
+                tipify(actionButton("next_file", "", icon = icon("arrow-right"), style='padding:1%; font-size:90%'), "Next File")
+              ),
+              fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
+                actionButton("plt_reset", "Reset Plot")
+                )
+              )
+            })
+        )
+        }),
+      #Labelling
+      fluidPage({
+        div(h4("Labeling"),
+            uiOutput("label_ui"),
+            textInput("otherCategory", "Type in additional category"),
+            fixedRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
+             actionButton("addCategory", "Add category", style = "width: 32%;"),
+             actionButton("remCategory", "Remove category", style = "width: 32%;"),
+             actionButton("resetCategory", "Reset categories", style = "width: 32%;")
+            ),
+            br(),
+            #TODO: Other info to label/record -
+            ## type of sound e.g. alarm call, flight call, flock
+            ## naming groups: Order, Family, Genus, Species, Subspecies
+            ## altitude of recorder (check if in metadata)
+            fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
+             actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 32%;"),
+             actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 32%;"),
+             actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 32%;")
+            )
+        )
+          })
     )
   ui <- dashboardPage(
     dashboardHeader(title = "Audio Labeler App"),
@@ -333,7 +334,7 @@ server <- function(input, output, session) {
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
   
-  get_entries <- function(x) return(x[x!=""])
+  get_entries <- function(x) return(x[x != ""])
   
   categories   <- reactiveValues(
     base = get_entries(species_list[,1]), 
@@ -456,52 +457,57 @@ server <- function(input, output, session) {
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
     
+    return(tmp_audio)
+  })
+  
+  cleanInput <- reactive({
+    tmp_audio <- audioInput()
+    if(is.null(tmp_audio))
+      return(NULL)
+    
     frange <- input$frequency_range
     
-    
-    if(!is.null(tmp_audio)){
-      tmp_spec <- spectro(tmp_audio,
-                      f        = tmp_audio@samp.rate, 
-                      wl       = input$window_width, 
-                      ovlp     = input$fft_overlap, 
-                      plot     = FALSE)
-      freq_slider_range <- range(pretty(tmp_spec$freq))
-      if(var(frange)==0){
-        updateSliderInput(inputId = "frequency_range", 
-                          value   = freq_slider_range,
-                          min     = freq_slider_range[1],
-                          max     = freq_slider_range[2])
-        frange <- freq_slider_range
-      } else {
-        updateSliderInput(inputId = "frequency_range", 
-                          min     = freq_slider_range[1],
-                          max     = freq_slider_range[2])
-      }
-      #browser()
-      if(frange_check(frange, range(tmp_spec$freq))){
-        complex_spec <- spectro(tmp_audio,
-                                f        = tmp_audio@samp.rate, 
-                                wl       = input$window_width, 
-                                ovlp     = input$fft_overlap,
-                                complex  = TRUE,
-                                plot     = FALSE,
-                                norm     = FALSE,
-                                dB       = NULL)
-        #Put zeros outside frequency range and reconstruct audio file from complex spec
-        out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
-        complex_spec$amp[out_freq,] <- 0
-        audio_inv <- istft(complex_spec$amp,
-                           f    = tmp_audio@samp.rate,
-                           wl   = input$window_width, 
-                           ovlp = input$fft_overlap,
-                           out  = "Wave")
-        tmp_audio <- normalize(audio_inv, unit = "16")
-      }
+    tmp_spec <- spectro(tmp_audio,
+                        f        = tmp_audio@samp.rate, 
+                        wl       = input$window_width, 
+                        ovlp     = input$fft_overlap, 
+                        plot     = FALSE)
+    freq_slider_range <- range(pretty(tmp_spec$freq))
+    if(var(frange)==0){
+      updateSliderInput(inputId = "frequency_range", 
+                        value   = freq_slider_range,
+                        min     = freq_slider_range[1],
+                        max     = freq_slider_range[2])
+      frange <- freq_slider_range
+    } else {
+      updateSliderInput(inputId = "frequency_range", 
+                        min     = freq_slider_range[1],
+                        max     = freq_slider_range[2])
     }
-    file_name   <-  'www/tmp.wav'
+    
+    if(frange_check(frange, range(tmp_spec$freq))){
+      complex_spec <- spectro(tmp_audio,
+                              f        = tmp_audio@samp.rate, 
+                              wl       = input$window_width, 
+                              ovlp     = input$fft_overlap,
+                              complex  = TRUE,
+                              plot     = FALSE,
+                              norm     = FALSE,
+                              dB       = NULL)
+      #Put zeros outside frequency range and reconstruct audio file from complex spec
+      out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
+      complex_spec$amp[out_freq,] <- 0
+      audio_inv <- istft(complex_spec$amp,
+                         f    = tmp_audio@samp.rate,
+                         wl   = input$window_width, 
+                         ovlp = input$fft_overlap,
+                         out  = "Wave")
+      tmp_audio <- normalize(audio_inv, unit = "16")
+    } else 
+      return(NULL)
+    file_name <- 'www/tmp_clean.wav'
     freq_range(frange)
     writeWave(tmp_audio, file_name)
-    return(tmp_audio)
   })
   
   output$file1 <- renderUI({
@@ -539,14 +545,14 @@ server <- function(input, output, session) {
                        amplitude = as.vector(spec$amp))
     if(!is.null(ranges_osc$x))
       df$time <- df$time + ranges_osc$x[1]
-    if(!is.null(ranges_spec$x))
+    else if(!is.null(ranges_spec$x))
       df$time <- df$time + ranges_spec$x[1]
     
     df$freq_select <- 1
     
     frange <- input$frequency_range
-    if(frange_check(frange, range(df$frequency)))
-      df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.6
+    if(var(frange) != 0 & frange_check(frange, range(df$frequency)))
+      df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
@@ -555,7 +561,10 @@ server <- function(input, output, session) {
   oscData <- reactive({
     if(.is_null(input$file1))     
       return(NULL)
-    tmp_audio <- audioInput()
+    if(is.null(cleanInput()))
+      tmp_audio <- audioInput()
+    else
+      tmp_audio <- cleanInput()
     df2 <- data.frame(time      = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
                       amplitude = tmp_audio@left - mean(tmp_audio@left))
     if(!is.null(ranges_osc$x))
@@ -614,7 +623,7 @@ server <- function(input, output, session) {
     if(plots_open$spec)
       return(NULL)
     else 
-      blank_plot(label = "Spectrogram")
+      blank_plot(label = "Spectrogram (hidden)")
     })
   
   output$oscplot <- renderPlot({
@@ -649,13 +658,13 @@ server <- function(input, output, session) {
                        type = "message")
     })
     return(p)
-  }, deleteFile = TRUE)
+  })
   
   output$oscplot_blank <- renderPlot({
     if(plots_open$osc)
       return(NULL)
     else 
-      blank_plot(label = "Oscillogram")
+      blank_plot(label = "Oscillogram (hidden)")
   })
   
   output$hover_info <- renderUI({
@@ -956,7 +965,10 @@ server <- function(input, output, session) {
   })
   
   output$my_audio <- renderUI({
-    file_name   <-  'www/tmp.wav'
+    if(!is.null(cleanInput()))
+      file_name <- 'www/tmp_clean.wav'
+    else
+      file_name <- 'www/tmp.wav'
     
     audio_style <- HTML("
     filter: sepia(50%);

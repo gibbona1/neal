@@ -1,5 +1,4 @@
 library(ggplot2)
-library(gridExtra)
 
 #theming based on: https://rug.mnhn.fr/seewave/spec.html
 

@@ -4,4 +4,5 @@ profiling/*
 .RData
 .Ruserdata
 www/tmp.wav
+www/tmp_clean.wav
 tmp_spec.csv
