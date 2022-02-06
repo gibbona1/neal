@@ -247,9 +247,16 @@ ui_func <- function() {
              actionButton("resetCategory", "Reset categories", style = "width: 32%;")
             ),
             br(),
+            fluidRow(style = "display:inline-block; text-align: left; padding-left: 1%; width: 42%;",
+                     selectInput(
+                       inputId    = "call_type", 
+                       label      = "Call Type:", 
+                       width      = '100%',
+                       choices    = c("<NULL>", "alarm call", "flight call", "flock"), 
+                       selected   = "<NULL>")
+            ),
+            br(),
             #TODO: Other info to label/record -
-            ## type of sound e.g. alarm call, flight call, flock
-            ## naming groups: Order, Family, Genus, Species, Subspecies
             ## altitude of recorder (check if in metadata)
             fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
              actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 32%;"),
@@ -695,7 +702,8 @@ server <- function(input, output, session) {
       species_in_hover <- ''
     else{
       lab_df <- lab_df[1,]
-      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label)
+      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
+                                 "<br/><b> Call type: </b>", lab_df$call_type)
     }
     
     # create style property for tooltip
@@ -754,7 +762,8 @@ server <- function(input, output, session) {
       species_in_hover <- ''
     else{
       lab_df <- lab_df[1,]
-      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label)
+      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
+                                 "<br/><b> Call type: </b>", lab_df$call_type)
     }
     
     # create style property for tooltip
@@ -872,6 +881,7 @@ server <- function(input, output, session) {
                            start_freq  = min(res$frequency),
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
+                           call_type   = input$call_type,
                            labeler     = Sys.info()[["user"]])
       
       file_name <- "tmp_labels.csv"

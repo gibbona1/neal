@@ -61,21 +61,24 @@ plot_oscillogram <- function(df, input, length_ylabs){
     geom_hline(yintercept = 0, colour = "white", linetype = "dotted") +
     oscillo_theme_dark
   
-  lab_df <- read.csv("tmp_labels.csv")
-  lab_df <- lab_df[lab_df$file_name == input$file1,]
-  if(nrow(lab_df)==0)
-    return(osc_plot)
-  if(input$osc_labs){
-    pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
-    osc_plot <- osc_plot +
-      geom_rect(data = lab_df, 
-              aes(xmin = start_time / pb_rate,
-                  xmax = end_time   / pb_rate,
-                  ymin = -Inf, 
-                  ymax = Inf),
-      colour = "red",
-      fill   = "lightgrey",
-      alpha  = 0.15)
+  lab_file <- "tmp_labels.csv"
+  if(file.exists(lab_file)){
+    lab_df <- read.csv(lab_file)
+    lab_df <- lab_df[lab_df$file_name == input$file1,]
+    if(nrow(lab_df)==0)
+      return(osc_plot)
+    if(input$osc_labs){
+      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
+      osc_plot <- osc_plot +
+        geom_rect(data = lab_df, 
+                aes(xmin = start_time / pb_rate,
+                    xmax = end_time   / pb_rate,
+                    ymin = -Inf, 
+                    ymax = Inf),
+        colour = "red",
+        fill   = "lightgrey",
+        alpha  = 0.15)
+    }
   }
   return(osc_plot)
 }
@@ -116,22 +119,24 @@ plot_spectrogram <- function(df, input, length_ylabs){
                                        y_breaks, "kHz")
                        ) +
     hot_theme_grid
-    
-  lab_df <- read.csv("tmp_labels.csv")
-  lab_df <- lab_df[lab_df$file_name == input$file1,]
-  if(nrow(lab_df)==0)
-    return(spec_plot)
-  if(input$spec_labs){
-    pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
-    spec_plot <- spec_plot +
-      geom_rect(data = lab_df, 
-                mapping = aes(xmin = start_time / pb_rate,
-                              xmax = end_time   / pb_rate,
-                              ymin = start_freq * pb_rate, 
-                              ymax = end_freq   * pb_rate),
-                colour = "green",
-                fill   = "lightgrey",
-                alpha  = 0.15)
+  lab_file <- "tmp_labels.csv"
+  if(file.exists(lab_file)){
+    lab_df <- read.csv(lab_file)
+    lab_df <- lab_df[lab_df$file_name == input$file1,]
+    if(nrow(lab_df)==0)
+      return(spec_plot)
+    if(input$spec_labs){
+      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
+      spec_plot <- spec_plot +
+        geom_rect(data = lab_df, 
+                  mapping = aes(xmin = start_time / pb_rate,
+                                xmax = end_time   / pb_rate,
+                                ymin = start_freq * pb_rate, 
+                                ymax = end_freq   * pb_rate),
+                  colour = "green",
+                  fill   = "lightgrey",
+                  alpha  = 0.15)
+    }
   }
   return(spec_plot)
 }
