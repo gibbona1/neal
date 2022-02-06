@@ -23,13 +23,14 @@ source('plot_helpers.R')
 
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
-#TODO: color/highlight plot as it plays e.g. blue over red in oscillogram (have time tracker)
+#TODO: Color/highlight plot as it plays e.g. blue over red in oscillogram (have time tracker)
 #TODO: Save list of extra species as a column in species list (or append to current list) 
 #TODO: Colour border of label radio buttons same as bounding boxes (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
 #TODO: Unit tests (especially for plots)
+#TODO  Check soundgen pitch app https://github.com/tatters/soundgen
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -115,10 +116,10 @@ ui_func <- function() {
       #Options for sidebar
       collapsed = TRUE)}
     
-    body <- dashboardBody(
+    body <- {dashboardBody(
       theme = "blue_gradient",
       useShinyjs(),
-      tags$head(tags$style(HTML(".content { padding-top: 0;}"))),
+      tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
       htmlOutput("file1"),
       #Spectrogram Plot
       fluidRow({
@@ -130,7 +131,7 @@ ui_func <- function() {
             dblclick = "specplot_dblclick",
             hover    = hoverOpts(
               id        = "specplot_hover",
-              delay     = 50,
+              delay     = 10,
               delayType = "debounce"
               ),
             brush    = brushOpts(
@@ -141,9 +142,27 @@ ui_func <- function() {
             "specplot_blank",
             height   = 25,
             ),
-          tags$head(
-              tags$style(type="text/css", "text {font-family: mono}")
-            ),
+          tags$head(tags$style('
+          #hover_info {
+            position: absolute;
+            width: 300px;
+            z-index: 100;
+           }
+        ')),
+        tags$script('
+          $(document).ready(function(){
+            // id of the plot
+            $("#specplot").mousemove(function(e){ 
+      
+              // ID of uiOutput
+              $("#hover_info").show();         
+              $("#hover_info").css({             
+                top: (e.pageY + 5) + "px",             
+                left: (e.pageX + 5) + "px"         
+              });     
+            });     
+          });
+        '),
           uiOutput("hover_info")
           )
       }),
@@ -170,9 +189,27 @@ ui_func <- function() {
             "oscplot_blank",
             height   = 25,
             ),
-          tags$head(
-            tags$style(type="text/css", "text {font-family: mono}")
-          ),
+          tags$head(tags$style('
+          #hover_info_osc {
+            position: absolute;
+            width: 300px;
+            z-index: 100;
+           }
+        ')),
+        tags$script('
+          $(document).ready(function(){
+            // id of the plot
+            $("#oscplot").mousemove(function(e){ 
+      
+              // ID of uiOutput
+              $("#hover_info_osc").show();         
+              $("#hover_info_osc").css({             
+                top: (e.pageY - 15) + "px",             
+                left: (e.pageX + 5) + "px"
+              });     
+            });     
+          });
+        '),
           uiOutput("hover_info_osc")
           )
         }),
@@ -265,7 +302,7 @@ ui_func <- function() {
             )
         )
           })
-    )
+    )}
   ui <- dashboardPage(
     dashboardHeader(title = "Audio Labeler App"),
     sidebar,
@@ -684,11 +721,6 @@ server <- function(input, output, session) {
       return(NULL)
     point <- round(point, 3)
     
-    # calculate point position INSIDE the image as percent of total dimensions
-    # from left (horizontal) and from top (vertical)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
-    
     in_label_box <- function(df, point){
       pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
       return(point$time      >= df$start_time / pb_rate & 
@@ -710,9 +742,8 @@ server <- function(input, output, session) {
     # background color is set so tooltip is a almost transparent
     # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
     style <- paste0("position:absolute; z-index:100; ",
-                    "background-color: rgba(120, 120, 120, 0.15); ",
-                    "color: rgb(245, 245, 245); padding: 1%;",
-                    "left:", 100*left_pct+2, "%; top:", 100*top_pct+2, "%;")
+                    "background-color: rgba(120, 120, 120, 0.25); ",
+                    "color: rgb(245, 245, 245); padding: 1%;")
     
     # actual tooltip created as wellPanel
     wellPanel(
@@ -745,11 +776,6 @@ server <- function(input, output, session) {
       return(NULL)
     point <- round(point, 3)
     
-    # calculate point position INSIDE the image as percent of total dimensions
-    # from left (horizontal) and from top (vertical)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct  <- (hover$domain$top - hover$y)  / (hover$domain$top - hover$domain$bottom)
-    
     in_label_box <- function(df, point){
       pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
       return(point$time      >= df$start_time / pb_rate & 
@@ -770,9 +796,8 @@ server <- function(input, output, session) {
     # background color is set so tooltip is a almost transparent
     # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
     style <- paste0("position:absolute; z-index:100; ",
-                    "background-color: rgba(120, 120, 120, 0.15); ",
-                    "color: rgb(245, 245, 245); padding: 1%;",
-                    "left:", 100*left_pct+2, "%; top:", 100*top_pct+2, "%;")
+                    "background-color: rgba(120, 120, 120, 0.25); ",
+                    "color: rgb(245, 245, 245); padding: 1%;")
     
     # actual tooltip created as wellPanel
     wellPanel(
