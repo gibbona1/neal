@@ -118,6 +118,7 @@ ui_func <- function() {
     body <- dashboardBody(
       theme = "blue_gradient",
       useShinyjs(),
+      tags$head(tags$style(HTML(".content { padding-top: 0;}"))),
       htmlOutput("file1"),
       #Spectrogram Plot
       fluidRow({
