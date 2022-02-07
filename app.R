@@ -222,9 +222,9 @@ ui_func <- function() {
                  "frequency_range",
                  "Audio Frequency Range:",
                  min   = 0,
-                 max   = 0,
+                 max   = 32,
                  step  = 0.2,
-                 value = c(0,0),
+                 value = c(0,512),
                  ticks = FALSE
                  ))
                }),
@@ -396,8 +396,6 @@ server <- function(input, output, session) {
     c(cats$base, cats$misc, cats$xtra)
   })
   
-  freq_range <- reactiveVal(c(0,0))
-  
   output$label_ui <- renderUI({
     extra_cols   <- c('red','darkred')
     cextra <- categories$xtra
@@ -472,7 +470,6 @@ server <- function(input, output, session) {
   audioInput <- reactive({
     if(.is_null(input$file1))     
       return(NULL) 
-    
     tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
     
     tmp_audio@samp.rate <- tmp_audio@samp.rate * as.numeric(gsub("x", "", input$playbackrate))
@@ -517,18 +514,6 @@ server <- function(input, output, session) {
                         wl       = input$window_width, 
                         ovlp     = input$fft_overlap, 
                         plot     = FALSE)
-    freq_slider_range <- range(pretty(tmp_spec$freq))
-    if(var(frange)==0){
-      updateSliderInput(inputId = "frequency_range", 
-                        value   = freq_slider_range,
-                        min     = freq_slider_range[1],
-                        max     = freq_slider_range[2])
-      frange <- freq_slider_range
-    } else {
-      updateSliderInput(inputId = "frequency_range", 
-                        min     = freq_slider_range[1],
-                        max     = freq_slider_range[2])
-    }
     
     if(frange_check(frange, range(tmp_spec$freq))){
       complex_spec <- spectro(tmp_audio,
@@ -551,8 +536,8 @@ server <- function(input, output, session) {
     } else 
       return(NULL)
     file_name <- 'www/tmp_clean.wav'
-    freq_range(frange)
     writeWave(tmp_audio, file_name)
+    return(tmp_audio)
   })
   
   output$file1 <- renderUI({
@@ -596,7 +581,7 @@ server <- function(input, output, session) {
     df$freq_select <- 1
     
     frange <- input$frequency_range
-    if(var(frange) != 0 & frange_check(frange, range(df$frequency)))
+    if(frange_check(frange, range(df$frequency)))
       df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
@@ -619,8 +604,8 @@ server <- function(input, output, session) {
     
     #spacing for "custom" y axis margin
     strlen_osc_y  <- length_b10(df2$amplitude)
-    spec_freq <- freq_range()
-    if(!is.null(ranges_spec$y) & var(spec_freq)!=0)
+    spec_freq <- input$frequency_range
+    if(!is.null(ranges_spec$y))
       spec_freq <- c(max(spec_freq[1], ranges_spec$y[1]), min(spec_freq[2], ranges_spec$y[2]))
     strlen_spec_y <- length_b10(pretty(spec_freq, 5))
     if(strlen_spec_y + 3 <= strlen_osc_y){
@@ -647,14 +632,10 @@ server <- function(input, output, session) {
     height <- session$clientData$output_specplot_height
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
-    #print(paste("width", width))
-    #print(paste("height", height))
-    #print(paste("pixelratio", pixelratio))
     observeEvent(input$savespec, {
       ggsave(file_nm, 
              height = height*pixelratio, 
              width  = width*pixelratio,
-             #res    = 72*pixelratio,
              units  = "px")
       showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
                        #TODO: clickable link to images folder
@@ -688,14 +669,10 @@ server <- function(input, output, session) {
     height <- session$clientData$output_oscplot_height
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
-    #print(paste("width", width))
-    #print(paste("height", height))
-    #print(paste("pixelratio", pixelratio))
     observeEvent(input$saveosc, {
       ggsave(file_nm, 
              height = height*pixelratio, 
              width  = width*pixelratio,
-             #res    = 72*pixelratio,
              units  = "px")
       showNotification(HTML(paste0("Oscillogram image <b>", osc_name, "</b> saved to <b>images</b>.")), 
                        #TODO: clickable link to images folder
@@ -862,7 +839,7 @@ server <- function(input, output, session) {
     if(is.null(input$label_points))
       showNotification("Need a category selected to remove it", type = "error")
     else if(input$label_points %in% c(categories$base, categories$misc))
-      showNotification(HTML("Cannot remove main or misc category!"), type = "error")
+      showNotification("Cannot remove main or misc category!", type = "error")
     else if(input$label_points %in% categories$xtra){
       categories$xtra <- categories$xtra[-which(categories$xtra == input$label_points)]
       showNotification(HTML(paste0("Label <b>", input$label_points, "</b> removed")), type = "warning")
@@ -871,7 +848,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$resetCategory, {
     categories$xtra <- NULL
-    showNotification(HTML(paste0("Extra labels reset")), type = "warning")
+    showNotification("Extra labels reset to null", type = "warning")
   })
   
   observeEvent(input$save_points, {
@@ -1058,7 +1035,6 @@ server <- function(input, output, session) {
   observeEvent(input$prev_file, {
     if(.is_null(input$file1))
       updateSelectInput(inputId  = "file1",
-                        choices  = file_list,
                         selected = file_list[length(file_list)])
     else {
       idx <- which(input$file1 == file_list) - 1
@@ -1068,7 +1044,6 @@ server <- function(input, output, session) {
       ranges_spec$y <- NULL
       ranges_osc$x  <- NULL
       updateSelectInput(inputId  = "file1",
-                        choices  = file_list,
                         selected = file_list[idx])
     }
   })
@@ -1077,7 +1052,6 @@ server <- function(input, output, session) {
   observeEvent(input$next_file, {
     if(.is_null(input$file1))
       updateSelectInput(inputId  = "file1",
-                        choices  = file_list,
                         selected = file_list[1])
     else {
       idx <- which(input$file1 == file_list) + 1
@@ -1087,7 +1061,6 @@ server <- function(input, output, session) {
       ranges_spec$y <- NULL
       ranges_osc$x  <- NULL
       updateSelectInput(inputId  = "file1",
-                        choices  = file_list,
                         selected = file_list[idx])
     }
   })
