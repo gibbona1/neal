@@ -1069,3 +1069,15 @@ server <- function(input, output, session) {
 #profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
 
 shinyApp(ui_func(), server)
+
+
+#library(reactlog)
+
+# tell shiny to log all reactivity
+#reactlog_enable()
+
+# run a shiny app
+#shinyApp(ui_func(), server)
+
+# once app has closed, display reactlog from shiny
+#shiny::reactlogShow()
