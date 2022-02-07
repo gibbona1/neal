@@ -80,6 +80,8 @@ ui_func <- function() {
       #Spectrogram
       h4("Spectrogram Settings"),
       
+      selectInput("freq_min", "minimum frequency in filter", choices = c(0, 2^(3:7)), selected = 0),
+      selectInput("freq_max", "maximum frequency in filter", choices = 2^(4:9), selected = 32),
       selectInput(
         "palette_selected",
         "Spectrogram colour palette:",
@@ -217,16 +219,7 @@ ui_func <- function() {
       fluidRow({
         div(
         column(4,{
-          div(
-               sliderInput(
-                 "frequency_range",
-                 "Audio Frequency Range:",
-                 min   = 0,
-                 max   = 32,
-                 step  = 0.2,
-                 value = c(0,512),
-                 ticks = FALSE
-                 ))
+          uiOutput("freq_ui")
                }),
         column(4,{
                div(
@@ -466,6 +459,20 @@ server <- function(input, output, session) {
       #tags$script(btn_col_script),
       )
     })
+  
+  output$freq_ui <- renderUI({
+    freq_range <- as.numeric(c(input$freq_min, input$freq_max))
+    div(
+      sliderInput(
+        "frequency_range",
+        "Audio Frequency Range:",
+        min   = freq_range[1],
+        max   = freq_range[2],
+        step  = 0.2,
+        value = freq_range,
+        ticks = FALSE
+      ))
+  })
   
   audioInput <- reactive({
     if(.is_null(input$file1))     
