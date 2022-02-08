@@ -506,6 +506,7 @@ server <- function(input, output, session) {
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
     
+    writeWave(tmp_audio, 'www/tmp.wav')
     return(tmp_audio)
   })
   
@@ -542,8 +543,7 @@ server <- function(input, output, session) {
       tmp_audio <- normalize(audio_inv, unit = "16")
     } else 
       return(NULL)
-    file_name <- 'www/tmp_clean.wav'
-    writeWave(tmp_audio, file_name)
+    writeWave(tmp_audio, 'www/tmp_clean.wav')
     return(tmp_audio)
   })
   
@@ -640,7 +640,7 @@ server <- function(input, output, session) {
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
     observeEvent(input$savespec, {
-      ggsave(file_nm, 
+      ggsave(file_nm, p,
              height = height*pixelratio, 
              width  = width*pixelratio,
              units  = "px")
@@ -677,7 +677,7 @@ server <- function(input, output, session) {
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
     observeEvent(input$saveosc, {
-      ggsave(file_nm, 
+      ggsave(file_nm, p,
              height = height*pixelratio, 
              width  = width*pixelratio,
              units  = "px")
