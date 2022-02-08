@@ -30,7 +30,9 @@ source('plot_helpers.R')
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
 #TODO: Unit tests (especially for plots)
-#TODO  Check soundgen pitch app https://github.com/tatters/soundgen
+#TODO: Check soundgen pitch app https://github.com/tatters/soundgen
+#TODO: Example sound files in right sidebar (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
+#TODO: Call type should take (possibly) multiple inputs via selectize
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -282,7 +284,7 @@ ui_func <- function() {
                        inputId    = "call_type", 
                        label      = "Call Type:", 
                        width      = '100%',
-                       choices    = c("<NULL>", "alarm call", "flight call", "flock"), 
+                       choices    = c("<NULL>", "song", "alarm call", "flight call", "flock"), 
                        selected   = "<NULL>")
             ),
             br(),
@@ -634,12 +636,12 @@ server <- function(input, output, session) {
       spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
     } else
       spec_name <- 'blank_spec.png'
-    file_nm   <- file.path(getwd(), "images", spec_name)
-    width  <- session$clientData$output_specplot_width
-    height <- session$clientData$output_specplot_height
-    # For high-res displays, this will be greater than 1
-    pixelratio <- session$clientData$pixelratio
     observeEvent(input$savespec, {
+      file_nm <- file.path(getwd(), "images", spec_name)
+      width   <- session$clientData$output_specplot_width
+      height  <- session$clientData$output_specplot_height
+      # For high-res displays, this will be greater than 1
+      pixelratio <- session$clientData$pixelratio
       ggsave(file_nm, p,
              height = height*pixelratio, 
              width  = width*pixelratio,

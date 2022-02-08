@@ -13,7 +13,7 @@ oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", l
                             plot.background    = element_rect(fill = "black"),
                             plot.margin        = unit(c(0.2, 0.9, 0.1, 0), "lines"),
                             axis.title         = element_blank(),
-                            axis.text.x        = element_text(size = 16, color = "grey"),
+                            axis.text.x        = element_text(size = 16, color = "grey", family = "mono"),
                             axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
                             axis.ticks         = element_line(color = "grey"))
 #TODO: minor ticks on x axis
