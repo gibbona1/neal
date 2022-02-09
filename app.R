@@ -32,7 +32,6 @@ source('plot_helpers.R')
 #TODO: Unit tests (especially for plots)
 #TODO: Check soundgen pitch app https://github.com/tatters/soundgen
 #TODO: Example sound files in right sidebar (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
-#TODO: Call type should take (possibly) multiple inputs via selectize
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -269,33 +268,37 @@ ui_func <- function() {
         }),
       #Labelling
       fluidPage({
-        div(h4("Labeling"),
-            uiOutput("label_ui"),
-            textInput("otherCategory", "Type in additional category"),
-            fixedRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
-             actionButton("addCategory", "Add category", style = "width: 32%;"),
-             actionButton("remCategory", "Remove category", style = "width: 32%;"),
-             actionButton("resetCategory", "Reset categories", style = "width: 32%;")
-            ),
-            br(),
-            fluidRow(style = "display:inline-block; text-align: left; padding-left: 1%; width: 42%;",
+        div(uiOutput("label_ui"),
+            column(6, 
+              textInput("otherCategory", "Type in additional category:", width = "100%"),
+              #br(),
+              fixedRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 100%;",
+                actionButton("addCategory", HTML("<b>Add category</b>"), style = "width: 60%;"),
+                actionButton("remCategory", HTML("<b>Remove category</b>"), style = "width: 60%;"),
+                actionButton("resetCategory", HTML("<b>Reset categories</b>"), style = "width: 60%;")
+                )
+              ),
+            column(6,
+            fluidRow(style = "display:inline-block; text-align: left; padding-left: 1%; width: 100%;",
                      selectInput(
                        inputId    = "call_type", 
                        label      = "Call Type:", 
                        width      = '100%',
+                       multiple   = TRUE,
                        choices    = c("<NULL>", "song", "alarm call", "flight call", "flock"), 
                        selected   = "<NULL>")
-            ),
-            br(),
+                     ),
+            #br(),
             #TODO: Other info to label/record -
             ## altitude of recorder (check if in metadata)
-            fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 42%;",
-             actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 32%;"),
-             actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 32%;"),
-             actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 32%;")
+            fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 100%;",
+              actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 60%;"),
+              actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 60%;"),
+              actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 60%;")
+              )
             )
-        )
-          })
+          )
+        })
     )}
   ui <- dashboardPage(
     dashboardHeader(title = "Audio Labeler App"),
@@ -884,6 +887,10 @@ server <- function(input, output, session) {
       return(iou)
     }
     if(!is.null(input$specplot_brush)) {
+      if(is.null(input$call_type))
+        call_type <- "<NULL>"
+      else
+        call_type <- paste(input$call_type, collapse='; ')
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
                            start_time  = min(res$time),
@@ -891,7 +898,7 @@ server <- function(input, output, session) {
                            start_freq  = min(res$frequency),
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
-                           call_type   = input$call_type,
+                           call_type   = call_type,
                            labeler     = Sys.info()[["user"]])
       
       file_name <- "tmp_labels.csv"
