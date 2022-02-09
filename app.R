@@ -45,78 +45,77 @@ species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 
 ui_func <- function() {
     sidebar <- {dashboardSidebar(
-      h3("Configuration"),
-      #File/Folder selection
-      div(
-      shinyDirButton('folder',
-                     label    = 'Folder select',
-                     title    = 'Please select a folder')
+      #tags$style(HTML(".sidebar-menu{padding: 0px;}")),
+      menuItem("config_menu", tabName = "Configuration", icon = icon("bars"),
+        #File/Folder selection
+        shinyDirButton('folder',
+                       label    = 'Folder select',
+                       title    = 'Please select a folder'),
+        verbatimTextOutput("folder", placeholder = TRUE),
+        selectInput(
+          "file1",
+          "Select File:",
+          choices = c("<NULL>", file_list),
+          width   = '100%'
+          ),
+        selectInput("species_list",
+                    "Species List:",
+                    choices = colnames(species_list),
+                    width   = '100%')
       ),
-      verbatimTextOutput("folder", placeholder = TRUE),
-      selectInput(
-        "file1",
-        "Select File:",
-        choices = c("<NULL>", file_list),
-        width   = '100%'
+      menuItem("sound_menu", tabName = "Sound Settings", icon = icon("music"),
+        selectInput(
+          "noisereduction",
+          "Spectrogram Noise reduction:",
+          choices  = c("None", "Rows", "Columns"),
+          selected = "None",
+          width    = '100%'
         ),
-      selectInput("species_list",
-                  "Species List:",
-                  choices = colnames(species_list),
-                  width   = '100%'),
-      h4("Sound Settings"),
-      selectInput(
-        "noisereduction",
-        "Spectrogram Noise reduction:",
-        choices  = c("None", "Rows", "Columns"),
-        selected = "None",
-        width    = '100%'
+        sliderInput(
+                 "db_gain",
+                 "dB Gain:",
+                 min   = -96,
+                 max   = 96,
+                 value = 0,
+                 ticks = FALSE
+               )
       ),
-      sliderInput(
-               "db_gain",
-               "dB Gain:",
-               min   = -96,
-               max   = 96,
-               value = 0,
-               ticks = FALSE
-             ),
-      #Spectrogram
-      h4("Spectrogram Settings"),
-      
-      selectInput("freq_min", "minimum frequency in filter", choices = c(0, 2^(3:7)), selected = 0),
-      selectInput("freq_max", "maximum frequency in filter", choices = 2^(4:9), selected = 32),
-      selectInput(
-        "palette_selected",
-        "Spectrogram colour palette:",
-        choices = palette_list,
-        width   = '100%'
+      menuItem("spec_menu", tabName = "Spectrogram Settings", icon = icon("chart-area"),
+        selectInput("freq_min", "minimum frequency in filter", choices = c(0, 2^(3:7)), selected = 0),
+        selectInput("freq_max", "maximum frequency in filter", choices = 2^(4:9), selected = 32),
+        selectInput(
+          "palette_selected",
+          "Spectrogram colour palette:",
+          choices = palette_list,
+          width   = '100%'
+        ),
+        sliderInput(
+                 "db_contrast",
+                 "Contrast:",
+                 min   = 0,
+                 max   = 96,
+                 value = 0,
+                 ticks = FALSE
+               ),
+        checkboxInput("palette_invert", "Invert color palette"),
+        actionButton("savespec", "Save Spectrogram"),
+        checkboxInput("include_hover", "Include spectrogram hover tooltip", value = FALSE),
+        checkboxInput("spec_labs", "Show spectrogram labels"),
+        uiOutput("spec_collapse")
       ),
-      sliderInput(
-               "db_contrast",
-               "Contrast:",
-               min   = 0,
-               max   = 96,
-               value = 0,
-               ticks = FALSE
-             ),
-      checkboxInput("palette_invert", "Invert color palette"),
-      actionButton("savespec", "Save Spectrogram"),
-      checkboxInput("include_hover", "Include spectrogram hover tooltip", value = FALSE),
-      checkboxInput("spec_labs", "Show spectrogram labels"),
-      uiOutput("spec_collapse"),
-      #Fast Fourier Transform
-      h5("FFT Settings"),
-      numericInput('window_width', 'Window Size (number of points)', value = 256),
-      numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 1, max = 99, step = 1),
-
-      #Oscillogram
-      h4("Oscillogram Settings"),
-      actionButton("saveosc", "Save Oscilloogram"),
-      checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
-      checkboxInput("osc_labs", "Show oscillogram labels"),
-      uiOutput("osc_collapse"),
-      
-      #Other options
-      numericInput('label_columns', 'Number of Columns', value = 5, min = 1, max = 9, step = 1),
+      menuItem("fft_menu", tabName = "FFT Settings", icon = icon("barcode"),
+        numericInput('window_width', 'Window Size (number of points)', value = 256),
+        numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 1, max = 99, step = 1)
+      ),
+      menuItem("osc_menu", tabName = "Oscillogram Settings", icon = icon('wave-pulse'),
+        actionButton("saveosc", "Save Oscilloogram"),
+        checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
+        checkboxInput("osc_labs", "Show oscillogram labels"),
+        uiOutput("osc_collapse")
+      ),
+      menuItem("other_menu", tabName = "Other Settings", icon = icon("gear"),
+        numericInput('label_columns', 'Number of Columns', value = 5, min = 1, max = 9, step = 1)
+      ),
       #Options for sidebar
       collapsed = TRUE)}
     
