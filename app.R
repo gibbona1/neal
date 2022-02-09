@@ -44,8 +44,8 @@ species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 
 ui_func <- function() {
     sidebar <- {dashboardSidebar(
-      #tags$style(HTML(".sidebar-menu{padding: 0px;}")),
-      menuItem("config_menu", tabName = "Configuration", icon = icon("bars"),
+      sidebarMenu(
+      menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
         #File/Folder selection
         shinyDirButton('folder',
                        label    = 'Folder select',
@@ -62,7 +62,7 @@ ui_func <- function() {
                     choices = colnames(species_list),
                     width   = '100%')
       ),
-      menuItem("sound_menu", tabName = "Sound Settings", icon = icon("music"),
+      menuItem("Sound Settings", tabName = "sound_menu", icon = icon("music"),
         selectInput(
           "noisereduction",
           "Spectrogram Noise reduction:",
@@ -79,7 +79,7 @@ ui_func <- function() {
                  ticks = FALSE
                )
       ),
-      menuItem("spec_menu", tabName = "Spectrogram Settings", icon = icon("chart-area"),
+      menuItem("Spectrogram Settings", tabName = "spec_menu", icon = icon("chart-area"),
         selectInput("freq_min", "minimum frequency in filter", choices = c(0, 2^(3:7)), selected = 0),
         selectInput("freq_max", "maximum frequency in filter", choices = 2^(4:9), selected = 32),
         selectInput(
@@ -102,18 +102,19 @@ ui_func <- function() {
         checkboxInput("spec_labs", "Show spectrogram labels"),
         uiOutput("spec_collapse")
       ),
-      menuItem("fft_menu", tabName = "FFT Settings", icon = icon("barcode"),
+      menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
         numericInput('window_width', 'Window Size (number of points)', value = 256),
         numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 1, max = 99, step = 1)
       ),
-      menuItem("osc_menu", tabName = "Oscillogram Settings", icon = icon('wave-pulse'),
+      menuItem("Oscillogram Settings", tabName = "osc_menu", icon = icon('chart-line'),
         actionButton("saveosc", "Save Oscilloogram"),
         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
         checkboxInput("osc_labs", "Show oscillogram labels"),
         uiOutput("osc_collapse")
       ),
-      menuItem("other_menu", tabName = "Other Settings", icon = icon("gear"),
+      menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', value = 5, min = 1, max = 9, step = 1)
+      )
       ),
       #Options for sidebar
       collapsed = TRUE)}
