@@ -127,20 +127,24 @@ ui_func <- function() {
       #Spectrogram Plot
       fluidRow({
         div(
-          plotOutput(
-            "specplot",
-            height   = 250,
-            click    = "specplot_click",
-            dblclick = "specplot_dblclick",
-            hover    = hoverOpts(
-              id        = "specplot_hover",
-              delay     = 10,
-              delayType = "debounce"
-              ),
-            brush    = brushOpts(
-              id         = "specplot_brush",
-              resetOnNew = TRUE)
-            ),
+          plotlyOutput(
+            'specplot_plotly',
+            height = 250
+          ),
+          #plotOutput(
+          #  "specplot",
+          #  height   = 250,
+          #  click    = "specplot_click",
+          #  dblclick = "specplot_dblclick",
+            #hover    = hoverOpts(
+            #  id        = "specplot_hover",
+            #  delay     = 10,
+            #  delayType = "debounce"
+            #  ),
+            #brush    = brushOpts(
+            #  id         = "specplot_brush",
+            #  resetOnNew = TRUE)
+            #),
           plotOutput(
             "specplot_blank",
             height   = 25,
@@ -172,22 +176,26 @@ ui_func <- function() {
       #Oscillogram Plot
       fluidRow({
         div(
-          plotOutput(
-            "oscplot",
-            height   = 110,
-            click    = "oscplot_click",
-            dblclick = "oscplot_dblclick",
-            hover    = hoverOpts(
-              id        = "oscplot_hover",
-              delay     = 50,
-              delayType = "debounce"
-              ),
-            brush    = brushOpts(
-              id         = "oscplot_brush",
-              direction  = "x",
-              resetOnNew = TRUE
-              )
-            ),
+          plotlyOutput(
+            'oscplot_plotly',
+            height = 110
+          ),
+          #plotOutput(
+          #  "oscplot",
+          #  height   = 110,
+          #  click    = "oscplot_click",
+          #  dblclick = "oscplot_dblclick",
+          #  hover    = hoverOpts(
+          #    id        = "oscplot_hover",
+          #    delay     = 50,
+          #    delayType = "debounce"
+          #    ),
+          #  brush    = brushOpts(
+          #    id         = "oscplot_brush",
+          #    direction  = "x",
+          #    resetOnNew = TRUE
+          #    )
+          #  ),
           plotOutput(
             "oscplot_blank",
             height   = 25,
@@ -560,11 +568,12 @@ server <- function(input, output, session) {
     })
   
   specData <- reactive({
-    if(.is_null(input$file1))     
-      return(data.frame(time        = 1,
-                        frequency   = 1:10,
-                        amplitude   = rep(-96,10),
-                        freq_select = 1))
+    if(.is_null(input$file1))   
+      return(NULL)
+      #return(data.frame(time        = 1,
+      #                  frequency   = 1:10,
+      #                  amplitude   = rep(-96,10),
+      #                  freq_select = 1))
     tmp_audio <- audioInput()
     
     noisered <- switch(input$noisereduction,
@@ -597,7 +606,7 @@ server <- function(input, output, session) {
       df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
-    return(df)
+    return(spec)
   })
   
   oscData <- reactive({
@@ -656,6 +665,12 @@ server <- function(input, output, session) {
     })
     return(p)
   })
+  
+  output$specplot_plotly <- renderPlotly({
+    p <- plotly_spectrogram(specData())
+    #browser()
+    return(p)
+  })
       
   output$specplot_blank <- renderPlot({
     if(plots_open$spec)
@@ -691,6 +706,12 @@ server <- function(input, output, session) {
                        #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
                        type = "message")
     })
+    return(p)
+  })
+  
+  output$oscplot_plotly <- renderPlotly({
+    p <- plotly_oscillogram(oscData())
+    #browser()
     return(p)
   })
   

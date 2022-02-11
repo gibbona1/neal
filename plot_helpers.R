@@ -140,3 +140,64 @@ plot_spectrogram <- function(df, input, length_ylabs){
   }
   return(spec_plot)
 }
+
+plotly_spectrogram <- function(spec){
+  if(is.null(spec)){
+    y_breaks <- pretty(1:10, 5)
+    p <- plotly_empty(type = "heatmap")
+  } else {
+    y_breaks <- pretty(spec$freq, 5)
+    p <- plot_ly() %>% 
+    add_trace(
+      type = 'heatmap', 
+      x    = spec$time, 
+      y    = spec$freq, 
+      z    = spec$amp, 
+      colorscale = 'Viridis')
+  }
+  #browser()
+  p <- p %>% 
+    layout(showlegend = FALSE,
+           #showscale  = FALSE,
+           paper_bgcolor = '#111111',
+           plot_bgcolor  = '#111111',
+           yaxis = list(
+             color    = '#ffffff',
+             ticktext = as.list(paste0(y_breaks, "kHz")), 
+             tickvals = as.list(y_breaks),
+             tickmode = "array"
+           ),
+           xaxis = list(showticklabels=FALSE,
+                        ticks = "",
+                        color = '#ffffff')
+           ) %>%
+    hide_colorbar()
+  return(p)
+}
+
+plotly_oscillogram <- function(osc){
+  if(is.null(osc))
+    p <- plotly_empty(type = "scatter")
+  else 
+    p <- plot_ly() %>% add_trace(
+      x    = osc$time, 
+      y    = osc$amplitude,
+      type = 'scatter', 
+      mode = 'lines',
+      line = list(color = 'red')
+    )
+  p <- p %>% layout(showlegend = FALSE,
+           #showscale  = FALSE,
+           paper_bgcolor = '#111111',
+           plot_bgcolor  = '#111111',
+           yaxis = list(
+             color    = '#ffffff',
+             ticktext = as.list(c(-2000,0,2000)), 
+             tickvals = as.list(c(-2000,0,2000)),
+             tickmode = "array"
+           ),
+           xaxis = list(color = '#ffffff',
+                        title = "Time (s)")
+    )
+  return(p)
+}
