@@ -45,10 +45,10 @@ plot_oscillogram <- function(df, input, length_ylabs){
   osc_plot <- ggplot(df)
   if(!is.null(df)){
     osc_plot <- osc_plot + 
-      stat_summary_bin(
-        aes(x = time, y = amplitude), colour = NA, fill = "red",
-        geom="bar", fun=mean, bins=500)
-      #geom_line(aes(x = time, y = amplitude), colour = "red")
+      #stat_summary_bin(
+      #  aes(x = time, y = amplitude), colour = NA, fill = "red",
+      #  geom="bar", fun=mean, bins=500)
+      geom_line(aes(x = time, y = amplitude), colour = "red")
     y_breaks <- pretty(df$amplitude, 3)
   } else {
     y_breaks <- -1:1

@@ -268,9 +268,11 @@ ui_func <- function() {
                  sliderInput("label_confidence", "Label Confidence:", width = "100%",
                              min   = 0,
                              max   = 1,
-                             step  = 0.1,
+                             step  = 0.05,
                              value = 1,
-                             ticks = FALSE)
+                             ticks = FALSE),
+                 div(div(style='float:left;', 'low'), 
+                     div(style='float:right;', 'high')),
           )
         )
       })
