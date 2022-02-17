@@ -561,7 +561,7 @@ server <- function(input, output, session) {
   
   specData <- reactive({
     if(.is_null(input$file1))     
-      return(data.frame(time        = 1,
+      return(data.frame(time        = 0,
                         frequency   = 1:10,
                         amplitude   = rep(-96,10),
                         freq_select = 1))
@@ -631,7 +631,22 @@ server <- function(input, output, session) {
   })
   
   output$specplot <- renderPlot({
-    p <- plot_spectrogram(specData(), input, length_ylabs)
+    p <- plot_spectrogram(specData(), input, length_ylabs, ranges_spec)
+    
+    #if(!is.null(input$file1))
+    #  spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
+    #else
+    #  spec_name_raw <- 'blank_spec_raw.png'
+    #file_nm <- file.path(getwd(), "images", spec_name_raw)
+    #
+    #width   <- session$clientData$output_specplot_width
+    #height  <- session$clientData$output_specplot_height
+    # For high-res displays, this will be greater than 1
+    #pixelratio <- session$clientData$pixelratio
+    #ggsave(file_nm, p+theme_void()+theme(legend.position = "none"),
+    #       height = height*pixelratio, 
+    #       width  = width*pixelratio,
+    #       units  = "px")
     
     if(!.is_null(input$file1)){
       if(!is.null(ranges_spec$y))

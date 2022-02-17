@@ -1,4 +1,6 @@
 library(ggplot2)
+library(png)
+library(grid)
 
 #theming based on: https://rug.mnhn.fr/seewave/spec.html
 
@@ -43,7 +45,10 @@ plot_oscillogram <- function(df, input, length_ylabs){
   osc_plot <- ggplot(df)
   if(!is.null(df)){
     osc_plot <- osc_plot + 
-      geom_line(aes(x = time, y = amplitude), colour = "red")
+      stat_summary_bin(
+        aes(x = time, y = amplitude), colour = NA, fill = "red",
+        geom="bar", fun=mean, bins=500)
+      #geom_line(aes(x = time, y = amplitude), colour = "red")
     y_breaks <- pretty(df$amplitude, 3)
   } else {
     y_breaks <- -1:1
@@ -83,7 +88,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input, length_ylabs){
+plot_spectrogram <- function(df, input, length_ylabs, ranges_spec){
   palette_cols <- function(pal_name, n=6){
     if(pal_name == "viridisplus")
       return(virpluscols)
@@ -99,11 +104,31 @@ plot_spectrogram <- function(df, input, length_ylabs){
   
   y_breaks <- pretty(df$frequency, 5)
   
-  spec_plot <- ggplot(df) + 
-    geom_raster(aes(x    = time,
-                    y    = frequency, 
-                    fill = amplitude),
-                alpha       = df$freq_select,
+  if(!is.null(ranges_spec$y))
+    y_breaks <- pretty(ranges_spec$y, 5)
+  
+  spec_plot <- ggplot(df,
+                      aes(x    = time,
+                          y    = frequency, 
+                          fill = amplitude))
+  
+  if(!is.null(input$file1) & input$file1 != '<NULL>'){
+    spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
+    file_nm <- file.path(getwd(), "images", spec_name_raw)
+    
+    #img_path <- 'images/SMU05115_20211104_064902_start_39_16_spec.png'
+    #img <- readPNG(file_nm)
+    #g <- rasterGrob(img, interpolate=TRUE,
+    #                x=unit(0, "npc"),
+    #                y=unit(0, "npc"), #
+    #                hjust=0,
+    #                width=unit(1,"npc"), 
+    #                height=unit(1,"npc"))
+    #spec_plot <- spec_plot + annotation_custom(g)
+  }
+  
+  spec_plot <- spec_plot + 
+    geom_raster(alpha       = df$freq_select,
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
