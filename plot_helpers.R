@@ -31,9 +31,8 @@ hot_theme_grid <- theme(panel.grid.major.y = element_line(color = "black", linet
                         plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
                         axis.title         = element_blank(),
                         axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
-                        axis.text.x        = element_blank(),
-                        axis.ticks         = element_line(color = "grey"),
-                        axis.ticks.x       = element_blank())
+                        axis.text.x        = element_text(size = 14, color = "grey", family = "mono"),
+                        axis.ticks         = element_line(color = "grey"))
 
 virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
 

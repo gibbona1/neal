@@ -130,7 +130,7 @@ ui_func <- function() {
         div(
           plotOutput(
             "specplot",
-            height   = 250,
+            height   = 300,
             click    = "specplot_click",
             dblclick = "specplot_dblclick",
             hover    = hoverOpts(
