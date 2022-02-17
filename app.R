@@ -32,6 +32,7 @@ source('plot_helpers.R')
 #TODO: Unit tests (especially for plots)
 #TODO: Check soundgen pitch app https://github.com/tatters/soundgen
 #TODO: Example sound files in right sidebar (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
+#TODO: Mel scale
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -183,18 +184,17 @@ ui_func <- function() {
         column(4,{
                div(
                  HTML("<b>Play audio:<b/>"),
-                 #style = "color: black;",
-                 uiOutput('my_audio'),
-                 tags$script('
-                 var id = setInterval(audio_pos, 100);
-                 function audio_pos() {
-                  var audio = document.getElementById("my_audio_player");
-                  var curtime = audio.currentTime;
-                  console.log(audio);
-                  Shiny.onInputChange("get_time", curtime);
-                 };'),
+                 uiOutput('my_audio')#,
+                 #tags$script('
+                 #var id = setInterval(audio_pos, 100);
+                 #function audio_pos() {
+                 #var audio = document.getElementById("my_audio_player");
+                 #var curtime = audio.currentTime;
+                 #console.log(audio);
+                 #Shiny.onInputChange("get_time", curtime);
+                 #};'),
                  #actionButton("get_time", "Get Time", onclick = js),
-                 verbatimTextOutput("audio_time")
+                 #verbatimTextOutput("audio_time")
                  )
           }),
         column(2,{
@@ -313,6 +313,8 @@ server <- function(input, output, session) {
   
   ranges_spec  <- reactiveValues(x = NULL, y = NULL)
   ranges_osc   <- reactiveValues(x = NULL)
+  dblclick_ranges_spec  <- reactiveValues(x = NULL, y = NULL)
+  dblclick_ranges_osc   <- reactiveValues(x = NULL)
   length_ylabs <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
   plots_open   <- reactiveValues(osc  = TRUE, spec = TRUE)
@@ -354,6 +356,11 @@ server <- function(input, output, session) {
   }
   
   get_entries <- function(x) return(x[x != ""])
+  
+  reset_ranges <- function(x_list){
+    for(nm in names(x_list))
+      x_list[[nm]] <- NULL
+  }
   
   categories   <- reactiveValues(
     base = get_entries(species_list[,1]), 
@@ -463,14 +470,6 @@ server <- function(input, output, session) {
     tmp_audio@samp.rate <- tmp_audio@samp.rate * as.numeric(gsub("x", "", input$playbackrate))
     
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
-    if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)){
-      #time crop
-      if(!is.null(ranges_osc$x))
-        tc <- ranges_osc$x
-      if(!is.null(ranges_spec$x))
-        tc <- ranges_spec$x
-      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
-    }
     
     #based on torchaudio::functional_gain
     audio_gain <- function (waveform, gain_db = 0){
@@ -496,15 +495,28 @@ server <- function(input, output, session) {
     if(is.null(tmp_audio))
       return(NULL)
     
-    frange <- input$frequency_range
-    
+    if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)){
+      #time crop
+      if(!is.null(ranges_osc$x))
+        tc <- ranges_osc$x
+      if(!is.null(ranges_spec$x))
+        tc <- ranges_spec$x
+      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
+    }
+
+    if(!is.null(ranges_spec$y))
+      frange <- ranges_spec$y
+    else
+      frange <- input$frequency_range
+    #browser()
     tmp_spec <- spectro(tmp_audio,
                         f        = tmp_audio@samp.rate, 
                         wl       = input$window_width, 
                         ovlp     = input$fft_overlap, 
                         plot     = FALSE)
-    
+    #browser()
     if(frange_check(frange, range(tmp_spec$freq))){
+      #browser()
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate, 
                               wl       = input$window_width, 
@@ -513,14 +525,18 @@ server <- function(input, output, session) {
                               plot     = FALSE,
                               norm     = FALSE,
                               dB       = NULL)
+      #browser()
       #Put zeros outside frequency range and reconstruct audio file from complex spec
+      #browser()
       out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
       complex_spec$amp[out_freq,] <- 0
+      #browser()
       audio_inv <- istft(complex_spec$amp,
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width, 
                          ovlp = input$fft_overlap,
                          out  = "Wave")
+      #browser()
       tmp_audio <- normalize(audio_inv, unit = "16")
     } else 
       return(NULL)
@@ -561,10 +577,10 @@ server <- function(input, output, session) {
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
-    if(!is.null(ranges_osc$x))
-      df$time <- df$time + ranges_osc$x[1]
-    else if(!is.null(ranges_spec$x))
-      df$time <- df$time + ranges_spec$x[1]
+    if(!is.null(dblclick_ranges_osc$x))
+      df$time <- df$time + dblclick_ranges_osc$x[1]
+    else if(!is.null(dblclick_ranges_spec$x))
+      df$time <- df$time + dblclick_ranges_spec$x[1]
     
     df$freq_select <- 1
     
@@ -585,10 +601,10 @@ server <- function(input, output, session) {
       tmp_audio <- cleanInput()
     df2 <- data.frame(time      = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
                       amplitude = tmp_audio@left - mean(tmp_audio@left))
-    if(!is.null(ranges_osc$x))
-      df2$time <- df2$time + ranges_osc$x[1]
-    else if(!is.null(ranges_spec$x))
-      df2$time <- df2$time + ranges_spec$x[1]
+    if(!is.null(dblclick_ranges_osc$x))
+      df2$time <- df2$time + dblclick_ranges_osc$x[1]
+    else if(!is.null(dblclick_ranges_spec$x))
+      df2$time <- df2$time + dblclick_ranges_spec$x[1]
     
     #spacing for "custom" y axis margin
     strlen_osc_y  <- length_b10(df2$amplitude)
@@ -607,7 +623,7 @@ server <- function(input, output, session) {
   })
   
   output$specplot <- renderPlot({
-    p <- plot_spectrogram(specData(), input, length_ylabs, ranges_spec)
+    p <- plot_spectrogram(specData(), input, length_ylabs, dblclick_ranges_spec)
     
     #if(!is.null(input$file1))
     #  spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
@@ -623,10 +639,11 @@ server <- function(input, output, session) {
     #       height = height*pixelratio, 
     #       width  = width*pixelratio,
     #       units  = "px")
-    
     if(!.is_null(input$file1)){
-      if(!is.null(ranges_spec$y))
-        p <- p + coord_cartesian(ylim = ranges_spec$y, expand = FALSE)
+      if(!is.null(dblclick_ranges_spec$y))
+        p <- p + coord_cartesian(ylim = dblclick_ranges_spec$y,
+                                 xlim = dblclick_ranges_spec$x,
+                                 expand = TRUE, default=TRUE)
       spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
     } else
       spec_name <- 'blank_spec.png'
@@ -709,10 +726,10 @@ server <- function(input, output, session) {
     p <- plot_oscillogram(oscData(), input, length_ylabs)
     
     if(!.is_null(input$file1)){
-      if(!is.null(ranges_spec$x))
-        p <- p + coord_cartesian(xlim = ranges_spec$x, expand = TRUE)
-     else if(!is.null(ranges_osc$x))
-        p <- p + coord_cartesian(xlim = ranges_osc$x, expand = TRUE)
+      if(!is.null(dblclick_ranges_spec$x))
+        p <- p + coord_cartesian(xlim = dblclick_ranges_spec$x, expand = FALSE, default=TRUE)
+     else if(!is.null(dblclick_ranges_osc$x))
+        p <- p + coord_cartesian(xlim = dblclick_ranges_osc$x, expand = FALSE, default=TRUE)
      osc_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
     } else 
       osc_name <- 'blank_osc.png'
@@ -850,18 +867,33 @@ server <- function(input, output, session) {
     plots_open$osc <- TRUE
   })
   
-  observeEvent(input$specplot_dblclick, {
+  observeEvent(input$specplot_brush, {
     # When a double-click happens, check if there's a brush on the plot.
     # If so, zoom to the brush bounds; if not, reset the zoom.
     brush <- input$specplot_brush
     if (!is.null(brush)) {
       ranges_spec$x <- c(brush$xmin, brush$xmax)
       ranges_spec$y <- c(brush$ymin, brush$ymax)
-      showNotification("Double click either plot to reset zoom", type = "default") 
+      showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
     } else {
       ranges_spec$x <- NULL
       ranges_spec$y <- NULL
     }
+  })
+  
+  observeEvent(input$specplot_dblclick, {
+    # When a double-click happens, check if there's a brush on the plot.
+    # If so, zoom to the brush bounds; if not, reset the zoom.
+    #dblclick_ranges_spec <- ranges_spec
+    brush <- input$specplot_brush
+    if (!is.null(brush)) {
+      dblclick_ranges_spec$x <- c(brush$xmin, brush$xmax)
+      dblclick_ranges_spec$y <- c(brush$ymin, brush$ymax)
+      #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
+    } else {
+      reset_ranges(ranges_spec)
+    }
+    showNotification("Double click either plot to reset zoom", type = "default") 
   })
   
   observeEvent(input$oscplot_dblclick, {
@@ -870,13 +902,14 @@ server <- function(input, output, session) {
       ranges_osc$x <- c(brush$xmin, brush$xmax)
       showNotification("Double click either plot to reset zoom", type = "default") 
     } else
-      ranges_osc$x <- NULL
+      reset_ranges(ranges_osc)
   })
   
   observeEvent(input$plt_reset, {
-    ranges_spec$x <- NULL
-    ranges_spec$y <- NULL
-    ranges_osc$x  <- NULL
+    reset_ranges(ranges_spec)
+    reset_ranges(ranges_osc)
+    reset_ranges(dblclick_ranges_spec)
+    reset_ranges(dblclick_ranges_osc)
   })
   
   observeEvent(input$addCategory, {
@@ -1037,15 +1070,15 @@ server <- function(input, output, session) {
   })
   
   output$my_audio <- renderUI({
-    if(!is.null(cleanInput()))
+    audio_style <- "width: 100%;"
+    if(!is.null(cleanInput())){
       file_name <- 'www/tmp_clean.wav'
-    else
+      audio_style <- paste(audio_style, "filter: sepia(50%);")
+    } else {
       file_name <- 'www/tmp.wav'
+    }
     
-    audio_style <- HTML("
-    filter: sepia(50%);
-    background-color: red;
-    color: green;")
+    audio_style <- HTML(audio_style)
     if(.is_null(input$file1))     
       return(tags$audio(id       = 'my_audio_player',
                         src      = "", 
@@ -1099,9 +1132,10 @@ server <- function(input, output, session) {
       idx <- which(input$file1 == file_list) - 1
       if(idx == 0)
         idx <- length(file_list)
-      ranges_spec$x <- NULL
-      ranges_spec$y <- NULL
-      ranges_osc$x  <- NULL
+      reset_ranges(ranges_spec)
+      reset_ranges(ranges_osc)
+      reset_ranges(dblclick_ranges_spec)
+      reset_ranges(dblclick_ranges_osc)
       updateSelectInput(inputId  = "file1",
                         selected = file_list[idx])
     }
@@ -1116,9 +1150,11 @@ server <- function(input, output, session) {
       idx <- which(input$file1 == file_list) + 1
       if(idx > length(file_list))
         idx <- 1
-      ranges_spec$x <- NULL
-      ranges_spec$y <- NULL
-      ranges_osc$x  <- NULL
+      reset_ranges(ranges_spec)
+      reset_ranges(ranges_osc)
+      reset_ranges(dblclick_ranges_spec)
+      reset_ranges(dblclick_ranges_osc)
+      
       updateSelectInput(inputId  = "file1",
                         selected = file_list[idx])
     }
