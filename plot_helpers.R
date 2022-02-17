@@ -107,10 +107,7 @@ plot_spectrogram <- function(df, input, length_ylabs, ranges_spec){
   if(!is.null(ranges_spec$y))
     y_breaks <- pretty(ranges_spec$y, 5)
   
-  spec_plot <- ggplot(df,
-                      aes(x    = time,
-                          y    = frequency, 
-                          fill = amplitude))
+  spec_plot <- ggplot(df)
   
   if(!is.null(input$file1) & input$file1 != '<NULL>'){
     spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
@@ -128,7 +125,10 @@ plot_spectrogram <- function(df, input, length_ylabs, ranges_spec){
   }
   
   spec_plot <- spec_plot + 
-    geom_raster(alpha       = df$freq_select,
+    geom_raster(aes(x    = time,
+                    y    = frequency, 
+                    fill = amplitude),
+                alpha       = df$freq_select,
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
