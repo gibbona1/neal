@@ -257,7 +257,23 @@ ui_func <- function() {
               )
             )
           )
-        })
+        }),
+      #more
+      fluidRow({
+        div(
+          column(6, 
+                 textInput("notes", "Additional Notes:", width = "100%")
+          ),
+          column(6, 
+                 sliderInput("label_confidence", "Label Confidence:", width = "100%",
+                             min   = 0,
+                             max   = 1,
+                             step  = 0.1,
+                             value = 1,
+                             ticks = FALSE)
+          )
+        )
+      })
     )}
   ui <- dashboardPage(
     dashboardHeader(title = "Audio Labeler App"),
@@ -923,6 +939,8 @@ server <- function(input, output, session) {
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
                            call_type   = call_type,
+                           confidence  = input$label_confidence,
+                           notes       = input$notes,
                            labeler     = Sys.info()[["user"]])
       
       file_name <- "tmp_labels.csv"
