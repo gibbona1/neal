@@ -183,7 +183,7 @@ ui_func <- function() {
                }),
         column(4,{
                div(
-                 HTML("<b>Play audio:<b/>"),
+                 uiOutput('audio_title'),
                  uiOutput('my_audio')#,
                  #tags$script('
                  #var id = setInterval(audio_pos, 100);
@@ -502,21 +502,29 @@ server <- function(input, output, session) {
       if(!is.null(ranges_spec$x))
         tc <- ranges_spec$x
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
+    } else if(!is.null(dblclick_ranges_osc$x) | !is.null(dblclick_ranges_spec$x)){
+      #time crop
+      if(!is.null(dblclick_ranges_osc$x))
+        tc <- dblclick_ranges_osc$x
+      if(!is.null(dblclick_ranges_spec$x))
+        tc <- dblclick_ranges_spec$x
+      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
     }
 
     if(!is.null(ranges_spec$y))
       frange <- ranges_spec$y
+    else if(!is.null(dblclick_ranges_spec$y))
+      frange <- dblclick_ranges_spec$y
     else
       frange <- input$frequency_range
-    #browser()
+    
     tmp_spec <- spectro(tmp_audio,
                         f        = tmp_audio@samp.rate, 
                         wl       = input$window_width, 
                         ovlp     = input$fft_overlap, 
                         plot     = FALSE)
-    #browser()
+    
     if(frange_check(frange, range(tmp_spec$freq))){
-      #browser()
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate, 
                               wl       = input$window_width, 
@@ -525,18 +533,14 @@ server <- function(input, output, session) {
                               plot     = FALSE,
                               norm     = FALSE,
                               dB       = NULL)
-      #browser()
       #Put zeros outside frequency range and reconstruct audio file from complex spec
-      #browser()
       out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
       complex_spec$amp[out_freq,] <- 0
-      #browser()
       audio_inv <- istft(complex_spec$amp,
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width, 
                          ovlp = input$fft_overlap,
                          out  = "Wave")
-      #browser()
       tmp_audio <- normalize(audio_inv, unit = "16")
     } else 
       return(NULL)
@@ -874,11 +878,14 @@ server <- function(input, output, session) {
     if (!is.null(brush)) {
       ranges_spec$x <- c(brush$xmin, brush$xmax)
       ranges_spec$y <- c(brush$ymin, brush$ymax)
-      showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
+      #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
     } else {
-      ranges_spec$x <- NULL
-      ranges_spec$y <- NULL
+      reset_ranges(ranges_spec)
     }
+  })
+  
+  observeEvent(input$specplot_click, {
+    reset_ranges(ranges_spec)
   })
   
   observeEvent(input$specplot_dblclick, {
@@ -891,6 +898,7 @@ server <- function(input, output, session) {
       dblclick_ranges_spec$y <- c(brush$ymin, brush$ymax)
       #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
     } else {
+      reset_ranges(dblclick_ranges_spec)
       reset_ranges(ranges_spec)
     }
     showNotification("Double click either plot to reset zoom", type = "default") 
@@ -1094,6 +1102,13 @@ server <- function(input, output, session) {
                #TODO: HTML styling (background colour, no download button, playback speed,...)
                style    = audio_style)
     })
+  
+  output$audio_title <- renderUI({
+    base <- "<b>Play audio:<b/>"
+    if(!is.null(cleanInput()))
+      base <- paste(base, '<span style="color: red;">(selected)</span>')
+    HTML(base)
+  })
   
   output$audio_time <- renderPrint({
     if(.is_null(input$file1))
