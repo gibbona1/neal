@@ -110,6 +110,7 @@ ui_func <- function() {
         actionButton("saveosc", "Save Oscilloogram"),
         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
         checkboxInput("osc_labs", "Show oscillogram labels"),
+        checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
         uiOutput("osc_collapse")
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
@@ -171,50 +172,7 @@ ui_func <- function() {
       }),
       #Oscillogram Plot
       fluidRow({
-        div(
-          plotOutput(
-            "oscplot",
-            height   = 110,
-            click    = "oscplot_click",
-            dblclick = "oscplot_dblclick",
-            hover    = hoverOpts(
-              id        = "oscplot_hover",
-              delay     = 50,
-              delayType = "debounce"
-              ),
-            brush    = brushOpts(
-              id         = "oscplot_brush",
-              direction  = "x",
-              resetOnNew = TRUE
-              )
-            ),
-          plotOutput(
-            "oscplot_blank",
-            height   = 25,
-            ),
-          tags$head(tags$style('
-          #hover_info_osc {
-            position: absolute;
-            width: 300px;
-            z-index: 100;
-           }
-        ')),
-        tags$script('
-          $(document).ready(function(){
-            // id of the plot
-            $("#oscplot").mousemove(function(e){ 
-      
-              // ID of uiOutput
-              $("#hover_info_osc").show();         
-              $("#hover_info_osc").css({             
-                top: (e.pageY - 15) + "px",             
-                left: (e.pageX + 5) + "px"
-              });     
-            });     
-          });
-        '),
-          uiOutput("hover_info_osc")
-          )
+        uiOutput("oscplot_ui")
         }),
       #One row of audio settings
       fluidRow({
@@ -678,6 +636,56 @@ server <- function(input, output, session) {
     else 
       blank_plot(label = "Spectrogram (hidden)")
     })
+  
+  output$oscplot_ui <- renderUI({
+    if(input$include_osc)
+      div(
+        plotOutput(
+          "oscplot",
+          height   = 110,
+          click    = "oscplot_click",
+          dblclick = "oscplot_dblclick",
+          hover    = hoverOpts(
+            id        = "oscplot_hover",
+            delay     = 50,
+            delayType = "debounce"
+          ),
+          brush    = brushOpts(
+            id         = "oscplot_brush",
+            direction  = "x",
+            resetOnNew = TRUE
+          )
+        ),
+        plotOutput(
+          "oscplot_blank",
+          height   = 25,
+        ),
+        tags$head(tags$style('
+          #hover_info_osc {
+            position: absolute;
+            width: 300px;
+            z-index: 100;
+           }
+        ')),
+        tags$script('
+          $(document).ready(function(){
+            // id of the plot
+            $("#oscplot").mousemove(function(e){ 
+      
+              // ID of uiOutput
+              $("#hover_info_osc").show();         
+              $("#hover_info_osc").css({             
+                top: (e.pageY - 15) + "px",             
+                left: (e.pageX + 5) + "px"
+              });     
+            });     
+          });
+        '),
+        uiOutput("hover_info_osc")
+      )
+    else
+      return(NULL)
+  })
   
   output$oscplot <- renderPlot({
     p <- plot_oscillogram(oscData(), input, length_ylabs)
