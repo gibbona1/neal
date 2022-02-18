@@ -137,6 +137,7 @@ ui_func <- function() {
     body <- {dashboardBody(
       theme = "blue_gradient",
       useShinyjs(),
+      tags$style(".content-wrapper{margin-left: 0px;}"),
       tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
       htmlOutput("file1"),
       #Spectrogram Plot
