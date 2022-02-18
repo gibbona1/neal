@@ -44,6 +44,19 @@ species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
 ui_func <- function() {
+    header <- {dashboardHeader(
+      title = "Audio Labeler App",
+      dropdownMenu(
+        type = "notifications", 
+        icon = icon("question-circle"),
+        badgeStatus = NULL,
+        headerText  = "Links:",
+        
+        notificationItem("GitHub", icon = icon("github"),
+                         href = "https://github.com/gibbona1/audio_labeler")
+      )
+      )}
+    
     sidebar <- {dashboardSidebar(
       sidebarMenu(
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
@@ -278,7 +291,7 @@ ui_func <- function() {
       })
     )}
   ui <- dashboardPage(
-    dashboardHeader(title = "Audio Labeler App"),
+    header,
     sidebar,
     body
   )
