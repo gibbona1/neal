@@ -646,7 +646,7 @@ server <- function(input, output, session) {
     return(df2)
   })
   
-  output$specplot <- renderPlot({
+  specPlot <- reactive({
     p <- plot_spectrogram(specData(), input, length_ylabs, dblclick_ranges_spec)
     
     #if(!is.null(input$file1))
@@ -663,30 +663,37 @@ server <- function(input, output, session) {
     #       height = height*pixelratio, 
     #       width  = width*pixelratio,
     #       units  = "px")
-    if(!.is_null(input$file1)){
-      if(!is.null(dblclick_ranges_spec$y))
-        p <- p + coord_cartesian(ylim = dblclick_ranges_spec$y,
-                                 xlim = dblclick_ranges_spec$x,
-                                 expand = FALSE, default=TRUE)
-      spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
-    } else
-      spec_name <- 'blank_spec.png'
-    observeEvent(input$savespec, {
-      file_nm <- file.path(getwd(), "images", spec_name)
-      width   <- session$clientData$output_specplot_width
-      height  <- session$clientData$output_specplot_height
-      # For high-res displays, this will be greater than 1
-      pixelratio <- session$clientData$pixelratio
-      ggsave(file_nm, p,
-             height = height*pixelratio, 
-             width  = width*pixelratio,
-             units  = "px")
-      showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
-                       #TODO: clickable link to images folder
-                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
-                       type = "message")
-    })
+    
+    if(!is.null(dblclick_ranges_spec$y))
+      p <- p + coord_cartesian(ylim = dblclick_ranges_spec$y,
+                               xlim = dblclick_ranges_spec$x,
+                               expand = FALSE, default=TRUE)
+    
     return(p)
+  })
+  
+  output$specplot <- renderPlot({
+    return(specPlot())
+  })
+  
+  observeEvent(input$savespec, {
+    if(!.is_null(input$file1))
+      spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
+    else
+      spec_name <- 'blank_spec.png'
+    file_nm <- file.path(getwd(), "images", spec_name)
+    width   <- session$clientData$output_specplot_width
+    height  <- session$clientData$output_specplot_height
+    # For high-res displays, this will be greater than 1
+    pixelratio <- session$clientData$pixelratio
+    ggsave(file_nm, p,
+           height = height*pixelratio, 
+           width  = width*pixelratio,
+           units  = "px")
+    showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
+                     #TODO: clickable link to images folder
+                     #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                     type = "message")
   })
       
   output$specplot_blank <- renderPlot({
@@ -915,19 +922,19 @@ server <- function(input, output, session) {
     if (!is.null(brush)) {
       dblclick_ranges_spec$x <- c(brush$xmin, brush$xmax)
       dblclick_ranges_spec$y <- c(brush$ymin, brush$ymax)
+      showNotification("Double click plot to reset zoom", type = "default") 
       #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
     } else {
       reset_ranges(dblclick_ranges_spec)
       reset_ranges(ranges_spec)
     }
-    showNotification("Double click either plot to reset zoom", type = "default") 
   })
   
   observeEvent(input$oscplot_dblclick, {
     brush <- input$oscplot_brush
     if (!is.null(brush)){
       ranges_osc$x <- c(brush$xmin, brush$xmax)
-      showNotification("Double click either plot to reset zoom", type = "default") 
+      showNotification("Double click plot to reset zoom", type = "default") 
     } else
       reset_ranges(ranges_osc)
   })
