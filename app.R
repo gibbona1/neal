@@ -175,18 +175,23 @@ ui_func <- function() {
           $(document).ready(function(){
             // id of the plot
             $("#specplot").mousemove(function(e){ 
-              var hover    = $("#hover_info");
-              var winwidth = $( window ).width();
+              var hover     = $("#hover_info");
+              var winwidth  = $( window ).width();
+              var winheight = $( window ).height();
+              hover.attr("style", "");
               //stop hover info going off edge of screen
-              if(e.pageX + hover.width() <= $( window ).width()) {
-                //hover.css({"right": (e.pageX - 5) + "px"});
+              if(e.pageX + hover.width()/2 <= $( window ).width()) {
                 hover.css({"left": (e.pageX + 5) + "px"});
               } 
               else {
                 hover.css({"right": (winwidth - hover.width()/2 - e.pageX - 5) + "px"});
-                //hover.css({"left": (e.pageX + 5) + "px"});
               }
-              //hover.css({"top": (e.pageY + 5) + "px"});
+              if(e.pageY + hover.height()/2 <= $(this).height()) {
+                hover.css({"top": (e.pageY + 5) + "px"});
+              } 
+              else {
+                hover.css({"bottom": (winheight + hover.width()/2 + $(this).height() - e.pageY - 5) + "px"});
+              }
               hover.show();
             });     
           });
