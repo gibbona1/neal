@@ -235,21 +235,28 @@ ui_func <- function() {
                  )
                  }),
         column(2,{
-            fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-              div(
-                tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; font-size:90%'),  "Previous File"),
-                disabled(tipify(
-                  actionButton("prev_section", "", icon = icon("chevron-left"), style='padding:1%; font-size:90%'),  "previous section"
-                )),
-                disabled(tipify(
-                  actionButton("next_section", "", icon = icon("chevron-right"), style='padding:1%; font-size:90%'), "next section"
-                )),
-                tipify(actionButton("next_file", "", icon = icon("arrow-right"), style='padding:1%; font-size:90%'), "Next File")
-              ),
-              fixedRow(style = "display:inline-block;width:100%;text-align: center;  vertical-align:center; horizontal-align:center",
-                actionButton("plt_reset", "Reset Plot")
+            fixedRow(style = "display:inline-block;width:100%;height:50%;text-align: center;  vertical-align:center; horizontal-align:center",
+                div(column(3, style = "padding:0px;",
+                  tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; width:100%'),  "Previous File"),
+                ), 
+                column(3, style = "padding:0px;",
+                disabled(
+                  tipify(actionButton("prev_section", "", icon = icon("chevron-left"), style='padding:1%; width:100%'),  "previous section")
+                  )
+                ), 
+                column(3, style = "padding:0px;",
+                disabled(
+                  tipify(actionButton("next_section", "", icon = icon("chevron-right"), style='padding:1%; width:100%'), "next section")
+                  )
+                ), 
+                column(3, style = "padding:0px;",
+                  tipify(actionButton("next_file", "", icon = icon("arrow-right"), style='padding:1%; width:100%'), "Next File")
                 )
-              )
+                ),
+          fluidRow(style = "display:inline-block;width:100%;height:50%;text-align: center;  vertical-align:center; horizontal-align:center",
+                   actionButton("plt_reset", "Reset Plot", style = "width:100%;")
+                   )
+            )
             })
         )
         }),
@@ -292,7 +299,7 @@ ui_func <- function() {
           column(6, 
                  textInput("notes", "Additional Notes:", width = "100%")
           ),
-          column(6, 
+          column(4, offset = 2,
                  sliderInput("label_confidence", "Label Confidence:", width = "100%",
                              min   = 0,
                              max   = 1,
@@ -472,6 +479,7 @@ server <- function(input, output, session) {
                         .radiobtn {
                           width: 100%;
                         }")),
+      #might need to be wrapped in HTML
       #tags$script(btn_col_script),
       )
     })
