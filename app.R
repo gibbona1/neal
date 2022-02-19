@@ -113,7 +113,7 @@ ui_func <- function() {
                ),
         checkboxInput("palette_invert", "Invert color palette"),
         actionButton("savespec", "Save Spectrogram"),
-        checkboxInput("include_hover", "Include spectrogram hover tooltip", value = FALSE),
+        checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
         checkboxInput("spec_labs", "Show spectrogram labels"),
         uiOutput("spec_collapse")
       ),
@@ -171,20 +171,26 @@ ui_func <- function() {
             z-index: 100;
            }
         ')),
-        tags$script('
+        tags$script(HTML('
           $(document).ready(function(){
             // id of the plot
             $("#specplot").mousemove(function(e){ 
-      
-              // ID of uiOutput
-              $("#hover_info").show();         
-              $("#hover_info").css({             
-                top: (e.pageY + 5) + "px",             
-                left: (e.pageX + 5) + "px"         
-              });     
+              var hover    = $("#hover_info");
+              var winwidth = $( window ).width();
+              //stop hover info going off edge of screen
+              if(e.pageX + hover.width() <= $( window ).width()) {
+                //hover.css({"right": (e.pageX - 5) + "px"});
+                hover.css({"left": (e.pageX + 5) + "px"});
+              } 
+              else {
+                hover.css({"right": (winwidth - hover.width()/2 - e.pageX - 5) + "px"});
+                //hover.css({"left": (e.pageX + 5) + "px"});
+              }
+              //hover.css({"top": (e.pageY + 5) + "px"});
+              hover.show();
             });     
           });
-        '),
+        ')),
           uiOutput("hover_info")
           )
       }),
