@@ -33,6 +33,7 @@ source('plot_helpers.R')
 #TODO: Check soundgen pitch app https://github.com/tatters/soundgen
 #TODO: Example sound files in right sidebar (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
+#TODO: gridExtra blank plot with correct axes, paste in spectrogram as image (not raster)
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -52,7 +53,7 @@ ui_func <- function() {
         badgeStatus = NULL,
         headerText  = "Links:",
         
-        notificationItem("GitHub", icon = icon("github"),
+        notificationItem("GitHub", icon = icon("github"), status = "info",
                          href = "https://github.com/gibbona1/audio_labeler")
       )
       )}
@@ -118,7 +119,7 @@ ui_func <- function() {
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
         numericInput('window_width', 'Window Size (number of points)', value = 256),
-        numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 1, max = 99, step = 1)
+        numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 0, max = 99, step = 1)
       ),
       menuItem("Oscillogram Settings", tabName = "osc_menu", icon = icon('chart-line'),
         actionButton("saveosc", "Save Oscilloogram"),
@@ -157,10 +158,10 @@ ui_func <- function() {
               id         = "specplot_brush",
               resetOnNew = TRUE)
             ),
-          plotOutput(
-            "specplot_blank",
-            height   = 25,
-            ),
+          #plotOutput(
+          #  "specplot_blank",
+          #  height   = 25,
+          #  ),
           tags$head(tags$style('
           #hover_info {
             position: absolute;
@@ -584,8 +585,8 @@ server <- function(input, output, session) {
     
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
-                    wl       = input$window_width, 
-                    ovlp     = input$fft_overlap, 
+                    wl       = 1024,#input$window_width, 
+                    ovlp     = 15,#input$fft_overlap, 
                     plot     = FALSE,
                     noisereduction = noisered)
     
@@ -595,10 +596,10 @@ server <- function(input, output, session) {
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
-    if(!is.null(dblclick_ranges_osc$x))
-      df$time <- df$time + dblclick_ranges_osc$x[1]
-    else if(!is.null(dblclick_ranges_spec$x))
-      df$time <- df$time + dblclick_ranges_spec$x[1]
+    #if(!is.null(dblclick_ranges_osc$x))
+    #  df$time <- df$time + dblclick_ranges_osc$x[1]
+    #else if(!is.null(dblclick_ranges_spec$x))
+    #  df$time <- df$time + dblclick_ranges_spec$x[1]
     
     df$freq_select <- 1
     
@@ -617,8 +618,11 @@ server <- function(input, output, session) {
       tmp_audio <- audioInput()
     else
       tmp_audio <- cleanInput()
-    df2 <- data.frame(time      = seq(0, length(tmp_audio@left)/tmp_audio@samp.rate, length.out = length(tmp_audio)),
-                      amplitude = tmp_audio@left - mean(tmp_audio@left))
+    
+    time_seq <- function(x)
+      return(seq(0, length(x@left)/x@samp.rate, length.out = length(x)))
+    df2 <- data.frame(time      = time_seq(tmp_audio),
+                      amplitude = tmp_audio@left)
     if(!is.null(dblclick_ranges_osc$x))
       df2$time <- df2$time + dblclick_ranges_osc$x[1]
     else if(!is.null(dblclick_ranges_spec$x))
@@ -661,7 +665,7 @@ server <- function(input, output, session) {
       if(!is.null(dblclick_ranges_spec$y))
         p <- p + coord_cartesian(ylim = dblclick_ranges_spec$y,
                                  xlim = dblclick_ranges_spec$x,
-                                 expand = TRUE, default=TRUE)
+                                 expand = FALSE, default=TRUE)
       spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
     } else
       spec_name <- 'blank_spec.png'
@@ -751,13 +755,12 @@ server <- function(input, output, session) {
      osc_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
     } else 
       osc_name <- 'blank_osc.png'
-    file_nm   <- file.path(getwd(), "images", osc_name)
-  
-    width  <- session$clientData$output_oscplot_width
-    height <- session$clientData$output_oscplot_height
-    # For high-res displays, this will be greater than 1
-    pixelratio <- session$clientData$pixelratio
     observeEvent(input$saveosc, {
+      file_nm <- file.path(getwd(), "images", osc_name)
+      width   <- session$clientData$output_oscplot_width
+      height  <- session$clientData$output_oscplot_height
+      # For high-res displays, this will be greater than 1
+      pixelratio <- session$clientData$pixelratio
       ggsave(file_nm, p,
              height = height*pixelratio, 
              width  = width*pixelratio,
