@@ -119,7 +119,9 @@ ui_func <- function() {
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
         numericInput('window_width', 'Window Size (number of points)', value = 256),
-        numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 0, max = 99, step = 1)
+        numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 0, max = 99, step = 1),
+        numericInput('window_width_disp', 'Window Size (number of points) for display', value = 1024),
+        numericInput('fft_overlap_disp', 'FFT Overlap (%) for display', value = 15, min = 0, max = 99, step = 1)
       ),
       menuItem("Oscillogram Settings", tabName = "osc_menu", icon = icon('chart-line'),
         actionButton("saveosc", "Save Oscilloogram"),
@@ -585,8 +587,8 @@ server <- function(input, output, session) {
     
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
-                    wl       = 1024,#input$window_width, 
-                    ovlp     = 15,#input$fft_overlap, 
+                    wl       = input$window_width_disp, 
+                    ovlp     = input$fft_overlap_disp, 
                     plot     = FALSE,
                     noisereduction = noisered)
     
