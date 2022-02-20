@@ -167,7 +167,8 @@ ui_func <- function() {
           tags$head(tags$style('
           #hover_info {
             position: absolute;
-            width: 300px;
+            width: 200px;
+            height: 30px;
             z-index: 100;
            }
         ')),
@@ -178,19 +179,34 @@ ui_func <- function() {
               var hover     = $("#hover_info");
               var winwidth  = $( window ).width();
               var winheight = $( window ).height();
+              
+              var body = document.body,
+                  html = document.documentElement;
+
+              var height = Math.max( body.scrollHeight, 
+                                     body.offsetHeight,
+                                     html.clientHeight, 
+                                     html.scrollHeight, 
+                                     html.offsetHeight );
+                                     
               hover.attr("style", "");
               //stop hover info going off edge of screen
-              if(e.pageX + hover.width()/2 <= $( window ).width()) {
+              if(e.pageX + hover.width() <= $( window ).width()) {
                 hover.css({"left": (e.pageX + 5) + "px"});
               } 
               else {
-                hover.css({"right": (winwidth - hover.width()/2 - e.pageX - 5) + "px"});
+                hover.css({"right": (winwidth 
+                                     - hover.width()/4
+                                     - e.pageX - 5) + "px"});
               }
-              if(e.pageY + hover.height()/2 <= $(this).height()) {
+              if(e.pageY + hover.height() <= $(this).height()) {
                 hover.css({"top": (e.pageY + 5) + "px"});
               } 
               else {
-                hover.css({"bottom": (winheight + hover.width()/2 + $(this).height() - e.pageY - 5) + "px"});
+                hover.css({"bottom": (height 
+                                      + $(this).offset().top
+                                      - hover.height()
+                                      - e.pageY - 5) + "px"});
               }
               hover.show();
             });     
