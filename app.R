@@ -47,6 +47,9 @@ file_list <- file_list[!stringr::str_starts(file_list, "tmp")]
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 call_types   <- c("song", "alarm call", "flight call", "flock")
 
+playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
+names(playback_vals) <- paste0(playback_vals, "x")
+
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
 
 btn_row_style  <- "display: inline-block;
@@ -274,8 +277,8 @@ ui_func <- function() {
                  selectInput(
                    "playbackrate",
                    "Playback Speed:",
-                   choices  = paste0(c(0.1, 0.25, 0.5, 1, 2, 5, 10), "x"),
-                   selected = "1x",
+                   choices  = playback_vals,
+                   selected = 1,
                    width    = '100%'
                  )
                  }),
@@ -1307,14 +1310,14 @@ server <- function(input, output, session) {
                         autoplay = NA,
                         style    = audio_style
       ))
-    pb <- as.numeric(gsub("x", "", input$playbackrate))
+    pb <- input$playbackrate
     div(
       tags$audio(id       = 'my_audio_player',
-               src      = markdown:::.b64EncodeFile(file_name), 
-               type     = "audio/wav", 
-               controls = "controls",#HTML('controlsList: nodownload'),
-               #TODO: HTML styling (background colour, no download button,...)
-               style    = audio_style),
+                 src      = markdown:::.b64EncodeFile(file_name), 
+                 type     = "audio/wav", 
+                 controls = "controls",#HTML('controlsList: nodownload'),
+                 #TODO: HTML styling (background colour, no download button,...)
+                 style    = audio_style),
       tags$script(paste0('var audio = document.getElementById("my_audio_player");
                 audio.playbackRate = ', pb, ';'))
     )
