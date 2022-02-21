@@ -87,7 +87,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input, length_ylabs, dblclick_ranges_spec){
+plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec){
   palette_cols <- function(pal_name, n=6){
     if(pal_name == "viridisplus")
       return(virpluscols)
@@ -103,8 +103,8 @@ plot_spectrogram <- function(df, input, length_ylabs, dblclick_ranges_spec){
   
   y_breaks <- pretty(df$frequency, 5)
   
-  if(!is.null(dblclick_ranges_spec$y))
-    y_breaks <- pretty(dblclick_ranges_spec$y, 5)
+  if(!is.null(dc_ranges_spec$y))
+    y_breaks <- pretty(dc_ranges_spec$y, 5)
   
   spec_plot <- ggplot(df)
   

@@ -31,7 +31,8 @@ source('plot_helpers.R')
 #TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
 #TODO: Unit tests (especially for plots)
 #TODO: Check soundgen pitch app https://github.com/tatters/soundgen
-#TODO: Example sound files in right sidebar (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
+#TODO: Example sound files in right sidebar 
+# (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
 #TODO: gridExtra blank plot with correct axes, paste in spectrogram as image (not raster)
 #TODO: segment audio longer than 15 seconds so we have (1/5), put in filename printout
@@ -40,6 +41,7 @@ source('plot_helpers.R')
 options(shiny.maxRequestSize = 30*1024^2)
 
 file_list <- list.files('www/')
+file_list <- file_list[!stringr::str_starts(file_list, "tmp")]
 
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 
@@ -355,21 +357,20 @@ server <- function(input, output, session) {
   
   output$files <- renderPrint(list.files(global$datapath))
   
-  observeEvent(ignoreNULL  = TRUE, eventExpr = {input$folder},
-               handlerExpr = {
+  observeEvent(eventExpr = {input$folder}, handlerExpr = {
                  if (!"path" %in% names(dir())) return()
                  home <- normalizePath("~")
                  global$datapath <-
                    file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
                })
   
-  ranges_spec  <- reactiveValues(x = NULL, y = NULL)
-  ranges_osc   <- reactiveValues(x = NULL)
-  dblclick_ranges_spec <- reactiveValues(x = NULL, y = NULL)
-  dblclick_ranges_osc  <- reactiveValues(x = NULL)
-  length_ylabs <- reactiveValues(osc  = 4,    spec = 0)
-  deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
-  plots_open   <- reactiveValues(osc  = TRUE, spec = TRUE)
+  ranges_spec    <- reactiveValues(x = NULL, y = NULL)
+  ranges_osc     <- reactiveValues(x = NULL)
+  dc_ranges_spec <- reactiveValues(x = NULL, y = NULL)
+  dc_ranges_osc  <- reactiveValues(x = NULL)
+  length_ylabs   <- reactiveValues(osc  = 4,    spec = 0)
+  deleted_lab    <- reactiveValues(rows = NULL, data = NULL)
+  plots_open     <- reactiveValues(osc  = TRUE, spec = TRUE)
   
   length_b10 <- function(x){
     return(x %>% 
@@ -593,19 +594,19 @@ server <- function(input, output, session) {
       if(!is.null(ranges_spec$x))
         tc <- ranges_spec$x
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
-    } else if(!is.null(dblclick_ranges_osc$x) | !is.null(dblclick_ranges_spec$x)){
+    } else if(!is.null(dc_ranges_osc$x) | !is.null(dc_ranges_spec$x)){
       #time crop
-      if(!is.null(dblclick_ranges_osc$x))
-        tc <- dblclick_ranges_osc$x
-      if(!is.null(dblclick_ranges_spec$x))
-        tc <- dblclick_ranges_spec$x
+      if(!is.null(dc_ranges_osc$x))
+        tc <- dc_ranges_osc$x
+      if(!is.null(dc_ranges_spec$x))
+        tc <- dc_ranges_spec$x
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
     }
 
     if(!is.null(ranges_spec$y))
       frange <- ranges_spec$y
-    else if(!is.null(dblclick_ranges_spec$y))
-      frange <- dblclick_ranges_spec$y
+    else if(!is.null(dc_ranges_spec$y))
+      frange <- dc_ranges_spec$y
     else
       frange <- input$frequency_range
     
@@ -672,10 +673,10 @@ server <- function(input, output, session) {
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
-    #if(!is.null(dblclick_ranges_osc$x))
-    #  df$time <- df$time + dblclick_ranges_osc$x[1]
-    #else if(!is.null(dblclick_ranges_spec$x))
-    #  df$time <- df$time + dblclick_ranges_spec$x[1]
+    #if(!is.null(dc_ranges_osc$x))
+    #  df$time <- df$time + dc_ranges_osc$x[1]
+    #else if(!is.null(dc_ranges_spec$x))
+    #  df$time <- df$time + dc_ranges_spec$x[1]
     
     df$freq_select <- 1
     
@@ -699,10 +700,10 @@ server <- function(input, output, session) {
       return(seq(0, length(x@left)/x@samp.rate, length.out = length(x)))
     df2 <- data.frame(time      = time_seq(tmp_audio),
                       amplitude = tmp_audio@left)
-    if(!is.null(dblclick_ranges_osc$x))
-      df2$time <- df2$time + dblclick_ranges_osc$x[1]
-    else if(!is.null(dblclick_ranges_spec$x))
-      df2$time <- df2$time + dblclick_ranges_spec$x[1]
+    if(!is.null(dc_ranges_osc$x))
+      df2$time <- df2$time + dc_ranges_osc$x[1]
+    else if(!is.null(dc_ranges_spec$x))
+      df2$time <- df2$time + dc_ranges_spec$x[1]
     
     #spacing for "custom" y axis margin
     strlen_osc_y  <- length_b10(df2$amplitude)
@@ -721,7 +722,7 @@ server <- function(input, output, session) {
   })
   
   specPlot <- reactive({
-    p <- plot_spectrogram(specData(), input, length_ylabs, dblclick_ranges_spec)
+    p <- plot_spectrogram(specData(), input, length_ylabs, dc_ranges_spec)
     
     #if(!is.null(input$file1))
     #  spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
@@ -738,9 +739,9 @@ server <- function(input, output, session) {
     #       width  = width*pixelratio,
     #       units  = "px")
     
-    if(!is.null(dblclick_ranges_spec$y))
-      p <- p + coord_cartesian(ylim = dblclick_ranges_spec$y,
-                               xlim = dblclick_ranges_spec$x,
+    if(!is.null(dc_ranges_spec$y))
+      p <- p + coord_cartesian(ylim = dc_ranges_spec$y,
+                               xlim = dc_ranges_spec$x,
                                expand = FALSE, default=TRUE)
     
     return(p)
@@ -849,10 +850,10 @@ server <- function(input, output, session) {
     p <- plot_oscillogram(oscData(), input, length_ylabs)
     
     if(!.is_null(input$file1)){
-      if(!is.null(dblclick_ranges_spec$x))
-        p <- p + coord_cartesian(xlim = dblclick_ranges_spec$x, expand = FALSE, default=TRUE)
-     else if(!is.null(dblclick_ranges_osc$x))
-        p <- p + coord_cartesian(xlim = dblclick_ranges_osc$x, expand = FALSE, default=TRUE)
+      if(!is.null(dc_ranges_spec$x))
+        p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE, default=TRUE)
+      else if(!is.null(dc_ranges_osc$x))
+        p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE, default=TRUE)
      osc_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
     } else 
       osc_name <- 'blank_osc.png'
@@ -900,7 +901,9 @@ server <- function(input, output, session) {
     lab_df <- labelsData()
     lab_df <- lab_df[in_label_box(lab_df, point),]
     
-    if(is.null(lab_df) | nrow(lab_df) == 0)
+    if(is.null(lab_df))
+      species_in_hover <- ''
+    else if(nrow(lab_df) == 0)
       species_in_hover <- ''
     else{
       lab_df <- lab_df[1,]
@@ -1008,15 +1011,15 @@ server <- function(input, output, session) {
   observeEvent(input$specplot_dblclick, {
     # When a double-click happens, check if there's a brush on the plot.
     # If so, zoom to the brush bounds; if not, reset the zoom.
-    #dblclick_ranges_spec <- ranges_spec
+    #dc_ranges_spec <- ranges_spec
     brush <- input$specplot_brush
     if (!is.null(brush)) {
-      dblclick_ranges_spec$x <- c(brush$xmin, brush$xmax)
-      dblclick_ranges_spec$y <- c(brush$ymin, brush$ymax)
+      dc_ranges_spec$x <- c(brush$xmin, brush$xmax)
+      dc_ranges_spec$y <- c(brush$ymin, brush$ymax)
       showNotification("Double click plot to reset zoom", type = "default") 
       #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
     } else {
-      reset_ranges(dblclick_ranges_spec)
+      reset_ranges(dc_ranges_spec)
       reset_ranges(ranges_spec)
     }
   })
@@ -1033,8 +1036,8 @@ server <- function(input, output, session) {
   observeEvent(input$plt_reset, {
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
-    reset_ranges(dblclick_ranges_spec)
-    reset_ranges(dblclick_ranges_osc)
+    reset_ranges(dc_ranges_spec)
+    reset_ranges(dc_ranges_osc)
   })
   
   observeEvent(input$addCategory, {
@@ -1138,11 +1141,11 @@ server <- function(input, output, session) {
     rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
     if(!is.null(del_df)){
-      insertRow <- function(existingDF, newrow, idx) {
-        if(idx <= nrow(existingDF))
-          existingDF[seq(idx+1,nrow(existingDF)+1),] <- existingDF[seq(idx,nrow(existingDF)),]
-        existingDF[idx,] <- newrow
-        return(existingDF)
+      insertRow <- function(old_df, newrow, idx) {
+        if(idx <= nrow(old_df))
+          old_df[seq(idx+1,nrow(old_df)+1),] <- old_df[seq(idx,nrow(old_df)),]
+        old_df[idx,] <- newrow
+        return(old_df)
       }
       for(row in 1:length(rownums))
         full_df <- insertRow(full_df, del_df[row,], rownums[row])
@@ -1225,14 +1228,16 @@ server <- function(input, output, session) {
     else {
       idx <- which(input$file1 == file_list) - 1
       if(idx == 0)
-        idx <- length(file_list)
-      reset_ranges(ranges_spec)
-      reset_ranges(ranges_osc)
-      reset_ranges(dblclick_ranges_spec)
-      reset_ranges(dblclick_ranges_osc)
-      updateSelectInput(inputId  = "file1",
-                        selected = file_list[idx])
+        showNotification("Cannot go to previous file, at beginning of folder", type = "error")
+        #idx <- length(file_list)
+      else
+        updateSelectInput(inputId  = "file1",
+                          selected = file_list[idx])
     }
+    reset_ranges(ranges_spec)
+    reset_ranges(ranges_osc)
+    reset_ranges(dc_ranges_spec)
+    reset_ranges(dc_ranges_osc)
   })
   
   # move to next file (resetting zoom)
@@ -1243,15 +1248,16 @@ server <- function(input, output, session) {
     else {
       idx <- which(input$file1 == file_list) + 1
       if(idx > length(file_list))
-        idx <- 1
-      reset_ranges(ranges_spec)
-      reset_ranges(ranges_osc)
-      reset_ranges(dblclick_ranges_spec)
-      reset_ranges(dblclick_ranges_osc)
-      
-      updateSelectInput(inputId  = "file1",
-                        selected = file_list[idx])
+        showNotification("Cannot go to next file, at end of folder", type = "error")
+        #idx <- 1
+      else
+        updateSelectInput(inputId  = "file1",
+                          selected = file_list[idx])
     }
+    reset_ranges(ranges_spec)
+    reset_ranges(ranges_osc)
+    reset_ranges(dc_ranges_spec)
+    reset_ranges(dc_ranges_osc)
   })
 }
 
