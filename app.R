@@ -23,19 +23,20 @@ source('plot_helpers.R')
 
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
-#TODO: Color/highlight plot as it plays e.g. blue over red in oscillogram (have time tracker)
-#TODO: Save list of extra species as a column in species list (or append to current list) 
-#TODO: Colour border of label radio buttons same as bounding boxes (ggplot override aes) (notification label colour too)
+#TODO: Save list of added species as col in species csv (or append to a column) 
+#TODO: Colour border of label buttons same as bounding boxes 
+# (ggplot override aes) (notification label colour too)
 #TODO: Label hover click option instead
 #TODO: Show details of saved labels in list in a sidebar
-#TODO: On clicking label in sidebar, highlights or zooms to the label (option to play it)
+#TODO: On clicking label in sidebar, highlights the label (option to play it)
 #TODO: Unit tests (especially for plots)
 #TODO: Check soundgen pitch app https://github.com/tatters/soundgen
 #TODO: Example sound files in right sidebar 
-# (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
+# (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/
+#countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
-#TODO: gridExtra blank plot with correct axes, paste in spectrogram as image (not raster)
-#TODO: segment audio longer than 15 seconds so we have (1/5), put in filename printout
+#TODO: gridExtra blank plot with correct axes, paste spec as image (not raster)
+#TODO: If audio longer than 15 seconds segment, put index in printout e.g. (1/5)
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -44,8 +45,21 @@ file_list <- list.files('www/')
 file_list <- file_list[!stringr::str_starts(file_list, "tmp")]
 
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
+call_types   <- c("song", "alarm call", "flight call", "flock")
 
 .is_null <- function(x) return(is.null(x) | x == "<NULL>")
+
+btn_row_style  <- "display: inline-block;
+                   width: 100%;
+                   height: 100%;
+                   text-align: center; 
+                   vertical-align: center; 
+                   horizontal-align: center"
+btn_sel_style  <- "display:inline-block; 
+                   text-align: left; 
+                   padding-left: 1%; 
+                   width: 100%;"
+file_btn_style <- 'padding:1%; width:100%'
 
 ui_func <- function() {
     header <- {dashboardHeader(
@@ -97,9 +111,13 @@ ui_func <- function() {
                  ticks = FALSE
                )
       ),
-      menuItem("Spectrogram Settings", tabName = "spec_menu", icon = icon("chart-area"),
-        selectInput("freq_min", "minimum frequency in filter", choices = c(0, 2^(3:7)), selected = 0),
-        selectInput("freq_max", "maximum frequency in filter", choices = 2^(4:9), selected = 32),
+      menuItem("Spectrogram Settings", 
+               tabName = "spec_menu", 
+               icon    = icon("chart-area"),
+        selectInput("freq_min", "minimum frequency in filter", 
+                    choices = c(0, 2^(3:7)), selected = 0),
+        selectInput("freq_max", "maximum frequency in filter", 
+                    choices = 2^(4:9), selected = 32),
         selectInput(
           "palette_selected",
           "Spectrogram colour palette:",
@@ -116,25 +134,33 @@ ui_func <- function() {
                ),
         checkboxInput("palette_invert", "Invert color palette"),
         actionButton("savespec", "Save Spectrogram"),
-        checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
+        checkboxInput("include_hover", "Include spectrogram hover tooltip", 
+                      value = TRUE),
         checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
         uiOutput("spec_collapse")
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
-        numericInput('window_width', 'Window Size (number of points)', value = 256),
-        numericInput('fft_overlap', 'FFT Overlap (%)', value = 75, min = 0, max = 99, step = 1),
-        numericInput('window_width_disp', 'Window Size (number of points) for display', value = 1024),
-        numericInput('fft_overlap_disp', 'FFT Overlap (%) for display', value = 15, min = 0, max = 99, step = 1)
+        numericInput('window_width', 'Window Size (number of points)', 
+                     value = 256),
+        numericInput('fft_overlap', 'FFT Overlap (%)', 
+                     value = 75, min = 0, max = 99, step = 1),
+        numericInput('window_width_disp', 'Window Size for display spectrogram', 
+                     value = 1024),
+        numericInput('fft_overlap_disp', 'FFT Overlap for display spectrogram', 
+                     value = 15, min = 0, max = 99, step = 1)
       ),
-      menuItem("Oscillogram Settings", tabName = "osc_menu", icon = icon('chart-line'),
+      menuItem("Oscillogram Settings", 
+               tabName = "osc_menu", icon = icon('chart-line'),
         actionButton("saveosc", "Save Oscilloogram"),
-        checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", value = FALSE),
+        checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", 
+                      value = FALSE),
         checkboxInput("osc_labs", "Show oscillogram labels"),
         checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
         uiOutput("osc_collapse")
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
-        numericInput('label_columns', 'Number of Columns', value = 5, min = 1, max = 9, step = 1)
+        numericInput('label_columns', 'Number of Columns', 
+                     value = 5, min = 1, max = 9, step = 1)
       )
       ),
       #Options for sidebar
@@ -254,26 +280,39 @@ ui_func <- function() {
                  )
                  }),
         column(2,{
-            fixedRow(style = "display:inline-block;width:100%;height:50%;text-align: center;  vertical-align:center; horizontal-align:center",
+            fixedRow(style = btn_row_style,
                 div(column(3, style = "padding:0px;",
-                  tipify(actionButton("prev_file", "", icon = icon("arrow-left"), style='padding:1%; width:100%'),  "Previous File"),
+                  tipify(actionButton("prev_file", "", 
+                                      icon  = icon("arrow-left"), 
+                                      style = file_btn_style),  
+                         "Previous File"),
                 ), 
                 column(3, style = "padding:0px;",
                 disabled(
-                  tipify(actionButton("prev_section", "", icon = icon("chevron-left"), style='padding:1%; width:100%'),  "previous section")
+                  tipify(actionButton("prev_section", "", 
+                                      icon  = icon("chevron-left"), 
+                                      style = file_btn_style),  
+                         "previous section")
                   )
                 ), 
                 column(3, style = "padding:0px;",
                 disabled(
-                  tipify(actionButton("next_section", "", icon = icon("chevron-right"), style='padding:1%; width:100%'), "next section")
+                  tipify(actionButton("next_section", "", 
+                                      icon  = icon("chevron-right"), 
+                                      style = file_btn_style), 
+                         "next section")
                   )
                 ), 
                 column(3, style = "padding:0px;",
-                  tipify(actionButton("next_file", "", icon = icon("arrow-right"), style='padding:1%; width:100%'), "Next File")
+                  tipify(actionButton("next_file", "", 
+                                      icon  = icon("arrow-right"), 
+                                      style = file_btn_style), 
+                         "Next File")
                 )
                 ),
-          fluidRow(style = "display:inline-block;width:100%;height:50%;text-align: center;  vertical-align:center; horizontal-align:center",
-                   actionButton("plt_reset", "Reset Plot", style = "width:100%;")
+          fluidRow(style = btn_row_style,
+                   actionButton("plt_reset", "Reset Plot", 
+                                style = file_btn_style)
                    )
             )
             })
@@ -283,31 +322,46 @@ ui_func <- function() {
       fluidPage({
         div(uiOutput("label_ui"),
             column(6, 
-              textInput("otherCategory", "Type in additional category:", width = "100%"),
+              fluidRow(style = btn_sel_style,
+              textInput("otherCategory", "Type in additional category:", 
+                        width = "100%")
+              ),
               #br(),
-              fixedRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 100%;",
-                actionButton("addCategory", HTML("<b>Add category</b>"), style = "width: 60%;"),
-                actionButton("remCategory", HTML("<b>Remove category</b>"), style = "width: 60%;"),
-                actionButton("resetCategory", HTML("<b>Reset categories</b>"), style = "width: 60%;")
+              fixedRow(style = btn_row_style,
+                actionButton("addCategory", 
+                             HTML("<b>Add category</b>"), 
+                             style = "width: 60%;"),
+                actionButton("remCategory", 
+                             HTML("<b>Remove category</b>"), 
+                             style = "width: 60%;"),
+                actionButton("resetCategory", 
+                             HTML("<b>Reset categories</b>"), 
+                             style = "width: 60%;")
                 )
               ),
             column(6,
-            fluidRow(style = "display:inline-block; text-align: left; padding-left: 1%; width: 100%;",
+            fluidRow(style = btn_sel_style,
                      selectInput(
                        inputId    = "call_type", 
                        label      = "Call Type:", 
                        width      = '100%',
                        multiple   = TRUE,
-                       choices    = c("<NULL>", "song", "alarm call", "flight call", "flock"), 
+                       choices    = c("<NULL>", call_types), 
                        selected   = "<NULL>")
                      ),
             #br(),
             #TODO: Other info to label/record -
             ## altitude of recorder (check if in metadata)
-            fluidRow(style = "display:inline-block; text-align: center; padding-left: 1%; width: 100%;",
-              actionButton("save_points", HTML("<b>Save Selection</b>"), style = "width: 60%;"),
-              actionButton("remove_points", HTML("<b>Delete Selection</b>"), style = "width: 60%;"),
-              actionButton("undo_delete_lab", HTML("<b>Undo Deletion</b>"), style = "width: 60%;")
+            fluidRow(style = btn_row_style,
+              actionButton("save_points", 
+                           HTML("<b>Save Selection</b>"), 
+                           style = "width: 60%;"),
+              actionButton("remove_points", 
+                           HTML("<b>Delete Selection</b>"), 
+                           style = "width: 60%;"),
+              actionButton("undo_delete_lab", 
+                           HTML("<b>Undo Deletion</b>"), 
+                           style = "width: 60%;")
               )
             )
           )
@@ -319,7 +373,8 @@ ui_func <- function() {
                  textInput("notes", "Additional Notes:", width = "100%")
           ),
           column(4, offset = 2,
-                 sliderInput("label_confidence", "Label Confidence:", width = "100%",
+                 sliderInput("label_confidence", "Label Confidence:", 
+                             width = "100%",
                              min   = 0,
                              max   = 1,
                              step  = 0.05,
@@ -340,7 +395,9 @@ ui_func <- function() {
 }
 
 server <- function(input, output, session) {
-  volumes <- c(Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+  volumes <- c(Home = fs::path_home(), 
+               "R Installation" = R.home(), 
+               getVolumes()())
   shinyDirChoose(
     input          = input,
     id             = 'folder',
@@ -361,7 +418,8 @@ server <- function(input, output, session) {
                  if (!"path" %in% names(dir())) return()
                  home <- normalizePath("~")
                  global$datapath <-
-                   file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
+                   file.path(home, paste(unlist(dir()$path[-1]), 
+                                         collapse = .Platform$file.sep))
                })
   
   ranges_spec    <- reactiveValues(x = NULL, y = NULL)
@@ -386,7 +444,7 @@ server <- function(input, output, session) {
       geom_text(aes(x = 0, y = 0), label = label, colour = "white") +
       theme_void() + 
       theme(
-        plot.background = element_rect(fill = rgb(0.1529412, 0.1686275, 0.1882353)),
+        plot.background = element_rect(fill = rgb(0.15, 0.17, 0.19)),
         legend.position = "none")
     return(p)
   }
@@ -455,6 +513,17 @@ server <- function(input, output, session) {
   
   labelsData <- reactiveVal(NULL)
   
+  write_labs <- function(lab_df, 
+                         fname     = labs_filename(), 
+                         append    = TRUE, 
+                         col.names = FALSE){
+    write.table(lab_df, fname, 
+                append    = append,  
+                col.names = col.names, 
+                sep       = ",", 
+                row.names = FALSE)
+  }
+  
   observeEvent(input$file1, {
     lab_file <- labs_filename()
     if(file.exists(lab_file)){
@@ -474,9 +543,12 @@ server <- function(input, output, session) {
     my_gradients <- colorRampPalette(c('darkred','red'))(length(cextra))
     
     get_jq_lines <- function(val, cols){
-      x <- paste0("var ", c("originalBorder", "originalColor", "originalBackground" ), " = [];", collapse= " ")
-      #x <- "var originalBorder = []; var originalColor = []; var originalBackground = [];"
-      button_val_id <- paste0("'input[type=radio][name=label_points][value=", val, "]'")
+      x <- paste0("var ", 
+                  c("originalBorder", "originalColor", "originalBackground" ), 
+                  " = [];",  
+                  collapse= " ")
+      button_val_id <- paste0("'input[type=radio][name=label_points][value=", 
+                              val, "]'")
       
       css_line <- function(css_class, css_val = NULL, func = "css", sq = "'"){
         x <- paste0("$(this).parent().", func, "(", sq, css_class, sq)
@@ -494,29 +566,47 @@ server <- function(input, output, session) {
           "'border-color':     '", cols[2], "'});")
         x <- paste0(x, "$(", button_val_id, ").hover(",
         "function(){",
-            "originalBorder[", css_line(button_val_id, func = "index", sq=""), "]     = ", css_line('border-color'),
-            "originalBackground[", css_line(button_val_id, func = "index", sq=""), "] = ", css_line('background-color'),
-            "originalColor[", css_line(button_val_id, func = "index", sq=""), "]      = ", css_line('color'),
+            "originalBorder[", 
+              css_line(button_val_id, func = "index", sq=""), 
+              "]     = ", 
+              css_line('border-color'),
+            "originalBackground[", 
+              css_line(button_val_id, func = "index", sq=""), 
+              "] = ", 
+              css_line('background-color'),
+            "originalColor[", 
+              css_line(button_val_id, func = "index", sq=""), 
+              "]      = ", 
+              css_line('color'),
             css_line('border-color', 'darkblue'),
             css_line('background-color', 'blue'),
             css_line('color', 'white'),
           "},")
         x <- paste0(x, 
         "function(){",
-        css_line('border-color',     paste0("originalBorder[", css_line(button_val_id, func = "index", sq=""), "]")), 
-        css_line('background-color', paste0("originalBackground[", css_line(button_val_id, func = "index", sq=""), "]")), 
-        css_line('color',            paste0("originalColor[", css_line(button_val_id, func = "index", sq=""), "]")),
+        css_line('border-color',     
+                 paste0("originalBorder[", 
+                        css_line(button_val_id, func = "index", sq=""), 
+                        "]")), 
+        css_line('background-color', 
+                 paste0("originalBackground[", 
+                        css_line(button_val_id, func = "index", sq=""), 
+                        "]")), 
+        css_line('color',            
+                 paste0("originalColor[", 
+                        css_line(button_val_id, func = "index", sq=""), 
+                        "]")),
           "});")
         x <- gsub("'original", "original", x)
         x <- gsub(")]')", ")])", x)
       return(x)
     }
-    btn_col_script <- NULL
+    btn_col_js <- NULL
     if(!is.null(cextra)){
       for(k in 1:length(cextra))
-        btn_col_script <- paste0(btn_col_script, get_jq_lines(cextra[k], extra_cols))
+        btn_col_js <- paste0(btn_col_js, get_jq_lines(cextra[k], extra_cols))
     }
-    #print(btn_col_script)
+    #print(btn_col_js)
     div(
       radioGroupButtons(
         inputId    = "label_points", 
@@ -536,7 +626,7 @@ server <- function(input, output, session) {
                           width: 100%;
                         }")),
       #might need to be wrapped in HTML
-      #tags$script(btn_col_script),
+      #tags$script(btn_col_js),
       )
     })
   
@@ -559,7 +649,8 @@ server <- function(input, output, session) {
       return(NULL) 
     tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
     
-    tmp_audio@samp.rate <- tmp_audio@samp.rate * as.numeric(gsub("x", "", input$playbackrate))
+    pb <- as.numeric(gsub("x", "", input$playbackrate))
+    tmp_audio@samp.rate <- tmp_audio@samp.rate * pb
     
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     
@@ -593,14 +684,16 @@ server <- function(input, output, session) {
         tc <- ranges_osc$x
       if(!is.null(ranges_spec$x))
         tc <- ranges_spec$x
-      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
+      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], 
+                               xunit = "time")
     } else if(!is.null(dc_ranges_osc$x) | !is.null(dc_ranges_spec$x)){
       #time crop
       if(!is.null(dc_ranges_osc$x))
         tc <- dc_ranges_osc$x
       if(!is.null(dc_ranges_spec$x))
         tc <- dc_ranges_spec$x
-      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], xunit = "time")
+      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], 
+                               xunit = "time")
     }
 
     if(!is.null(ranges_spec$y))
@@ -625,7 +718,7 @@ server <- function(input, output, session) {
                               plot     = FALSE,
                               norm     = FALSE,
                               dB       = NULL)
-      #Put zeros outside frequency range and reconstruct audio file from complex spec
+      #Put zeros outside frequency range, rebuild audio file using complex_spec
       out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
       complex_spec$amp[out_freq,] <- 0
       audio_inv <- istft(complex_spec$amp,
@@ -709,7 +802,8 @@ server <- function(input, output, session) {
     strlen_osc_y  <- length_b10(df2$amplitude)
     spec_freq <- input$frequency_range
     if(!is.null(ranges_spec$y))
-      spec_freq <- c(max(spec_freq[1], ranges_spec$y[1]), min(spec_freq[2], ranges_spec$y[2]))
+      spec_freq <- c(max(spec_freq[1], ranges_spec$y[1]), 
+                     min(spec_freq[2], ranges_spec$y[2]))
     strlen_spec_y <- length_b10(pretty(spec_freq, 5))
     if(strlen_spec_y + 3 <= strlen_osc_y){
       length_ylabs$osc  <- 0
@@ -742,7 +836,7 @@ server <- function(input, output, session) {
     if(!is.null(dc_ranges_spec$y))
       p <- p + coord_cartesian(ylim = dc_ranges_spec$y,
                                xlim = dc_ranges_spec$x,
-                               expand = FALSE, default=TRUE)
+                               expand = FALSE)
     
     return(p)
   })
@@ -783,9 +877,12 @@ server <- function(input, output, session) {
            height = height*pixelratio, 
            width  = width*pixelratio,
            units  = "px")
-    showNotification(HTML(paste0("Spectrogram image <b>", spec_name, "</b> saved to <b>images</b>.")), 
+    showNotification(HTML(paste0("Spectrogram image <b>", 
+                                 spec_name, 
+                                 "</b> saved to <b>images</b>.")), 
                      #TODO: clickable link to images folder
-                     #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                     #action = a(href = file.path("file://", getwd(), "images"), 
+                     #          "Go to folder", target = "_blank"),
                      type = "message")
   })
       
@@ -851,9 +948,9 @@ server <- function(input, output, session) {
     
     if(!.is_null(input$file1)){
       if(!is.null(dc_ranges_spec$x))
-        p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE, default=TRUE)
+        p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE)
       else if(!is.null(dc_ranges_osc$x))
-        p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE, default=TRUE)
+        p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE)
      osc_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
     } else 
       osc_name <- 'blank_osc.png'
@@ -867,9 +964,12 @@ server <- function(input, output, session) {
              height = height*pixelratio, 
              width  = width*pixelratio,
              units  = "px")
-      showNotification(HTML(paste0("Oscillogram image <b>", osc_name, "</b> saved to <b>images</b>.")), 
+      showNotification(HTML(paste0("Oscillogram image <b>", 
+                                   osc_name, 
+                                   "</b> saved to <b>images</b>.")), 
                        #TODO: clickable link to images folder
-                       #action = a(href = file.path("file://", getwd(), "images"), "Go to folder", target = "_blank"),
+                       #action = a(href = file.path("file://", getwd(), "images"), 
+                       #          "Go to folder", target = "_blank"),
                        type = "message")
     })
     return(p)
@@ -886,7 +986,12 @@ server <- function(input, output, session) {
     if(.is_null(input$file1) | !input$include_hover)
       return(NULL)
     hover <- input$specplot_hover
-    point <- nearPoints(specData(), hover, threshold = 5, maxpoints = 1, addDist = TRUE, xvar="time", yvar="frequency")
+    point <- nearPoints(specData(), hover, 
+                        threshold = 5, 
+                        maxpoints = 1, 
+                        addDist   = TRUE, 
+                        xvar      = "time", 
+                        yvar      = "frequency")
     if(nrow(point) == 0) 
       return(NULL)
     point <- round(point, 3)
@@ -913,7 +1018,7 @@ server <- function(input, output, session) {
     
     # create style property for tooltip
     # background color is set so tooltip is a almost transparent
-    # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
+    # z-index is the stack index and is set to 100 so the tooltip will be on top
     style <- paste0("position:absolute; z-index:100; ",
                     "background-color: rgba(120, 120, 120, 0.25); ",
                     "color: rgb(245, 245, 245); padding: 1%;")
@@ -944,7 +1049,11 @@ server <- function(input, output, session) {
     if(.is_null(input$file1) | !input$include_hover_osc)
       return(NULL)
     hover <- input$oscplot_hover
-    point <- nearPoints(oscData(), hover, threshold = 5, maxpoints = 1, addDist = TRUE, xvar="time")
+    point <- nearPoints(oscData(), hover, 
+                        threshold = 5, 
+                        maxpoints = 1, 
+                        addDist   = TRUE, 
+                        xvar      = "time")
     if(nrow(point) == 0) 
       return(NULL)
     point <- round(point, 3)
@@ -965,7 +1074,7 @@ server <- function(input, output, session) {
     
     # create style property for tooltip
     # background color is set so tooltip is a almost transparent
-    # z-index is the stack index and is set to 100 so we are sure are tooltip will be on top
+    # z-index is the stack index and is set to 100 so the tooltip will be on top
     style <- paste0("position:absolute; z-index:100; ",
                     "background-color: rgba(120, 120, 120, 0.25); ",
                     "color: rgb(245, 245, 245); padding: 1%;")
@@ -998,7 +1107,8 @@ server <- function(input, output, session) {
     if (!is.null(brush)) {
       ranges_spec$x <- c(brush$xmin, brush$xmax)
       ranges_spec$y <- c(brush$ymin, brush$ymax)
-      #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
+      #showNotification("Click play to hear selected times/frequencies", 
+      #                  type = "warning") 
     } else {
       reset_ranges(ranges_spec)
     }
@@ -1017,7 +1127,8 @@ server <- function(input, output, session) {
       dc_ranges_spec$x <- c(brush$xmin, brush$xmax)
       dc_ranges_spec$y <- c(brush$ymin, brush$ymax)
       showNotification("Double click plot to reset zoom", type = "default") 
-      #showNotification("Now click play to hear highlighted times/frequencies", type = "warning") 
+      #showNotification("Click play to hear selected times/frequencies", 
+      #                  type = "warning") 
     } else {
       reset_ranges(dc_ranges_spec)
       reset_ranges(ranges_spec)
@@ -1055,8 +1166,12 @@ server <- function(input, output, session) {
     else if(input$label_points %in% c(categories$base, categories$misc))
       showNotification("Cannot remove main or misc category!", type = "error")
     else if(input$label_points %in% categories$xtra){
-      categories$xtra <- categories$xtra[-which(categories$xtra == input$label_points)]
-      showNotification(HTML(paste0("Label <b>", input$label_points, "</b> removed")), type = "warning")
+      lab_rem_idx <- which(categories$xtra == input$label_points)
+      categories$xtra <- categories$xtra[-lab_rem_idx]
+      showNotification(HTML(paste0("Label <b>", 
+                                   input$label_points, 
+                                   "</b> removed")), 
+                       type = "warning")
     }
   })
   
@@ -1088,13 +1203,16 @@ server <- function(input, output, session) {
       
       full_df <- labelsData()
       if(!is.null(full_df)){
-        write.table(lab_df, labs_filename(), append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
+        write_labs(lab_df)
         labelsData(rbind(full_df, lab_df))
       } else {
-        write.table(lab_df, labs_filename(), append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+        write_labs(lab_df, append = FALSE, col.names = TRUE)
         labelsData(lab_df)
       }
-      showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
+      showNotification(HTML(paste0("Label <b>", 
+                                   input$label_points, 
+                                   "</b> successfully saved!")), 
+                       type = "message")
     } else {
       showNotification("Label not saved, nothing selected!", type = "error")
     }
@@ -1128,8 +1246,9 @@ server <- function(input, output, session) {
         deleted_lab$data <- full_df[full_df_rm,]
         full_df <- full_df[-full_df_rm,]
         labelsData(full_df)
-        write.table(full_df, labs_filename(), append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
-        showNotification("Label removed, click Undo to bring back", type = "message")
+        write_labs(lab_df, append = FALSE, col.names = TRUE)
+        showNotification("Label removed, click Undo to bring back", 
+                         type = "message")
       }
     } else {
       showNotification("Label not removed, nothing selected!", type = "error")
@@ -1151,7 +1270,7 @@ server <- function(input, output, session) {
         full_df <- insertRow(full_df, del_df[row,], rownums[row])
       deleted_lab$rows <- NULL
       deleted_lab$data <- NULL
-      write.table(full_df, labs_filename(), append = FALSE, col.names = TRUE, sep=",", row.names = FALSE)
+      write_labs(lab_df, append = FALSE, col.names = TRUE)
       labelsData(full_df)
       showNotification("Label recovered", type = "message")
     } else {
@@ -1181,7 +1300,7 @@ server <- function(input, output, session) {
                src      = markdown:::.b64EncodeFile(file_name), 
                type     = "audio/wav", 
                controls = "controls",#HTML('controlsList: nodownload'),
-               #TODO: HTML styling (background colour, no download button, playback speed,...)
+               #TODO: HTML styling (background colour, no download button,...)
                style    = audio_style)
     })
   
@@ -1228,7 +1347,8 @@ server <- function(input, output, session) {
     else {
       idx <- which(input$file1 == file_list) - 1
       if(idx == 0)
-        showNotification("Cannot go to previous file, at beginning of folder", type = "error")
+        showNotification("Cannot go to previous file, at beginning of folder", 
+                         type = "error")
         #idx <- length(file_list)
       else
         updateSelectInput(inputId  = "file1",
@@ -1248,7 +1368,8 @@ server <- function(input, output, session) {
     else {
       idx <- which(input$file1 == file_list) + 1
       if(idx > length(file_list))
-        showNotification("Cannot go to next file, at end of folder", type = "error")
+        showNotification("Cannot go to next file, at end of folder", 
+                         type = "error")
         #idx <- 1
       else
         updateSelectInput(inputId  = "file1",
