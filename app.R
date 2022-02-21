@@ -858,7 +858,27 @@ server <- function(input, output, session) {
                                   ymax = end_freq   * pb_rate),
                     colour = "green",
                     fill   = "lightgrey",
-                    alpha  = 0.15)
+                    alpha  = 0.15) +
+          geom_label(data = lab_df,
+                     aes(x     = start_time / pb_rate,
+                         y     = end_freq   * pb_rate,
+                         label = class_label),
+                     label.r = unit(0, units="lines"),
+                     label.size = 0.5,
+                     hjust  = 0,
+                     vjust  = 0,
+                     fill   = "green",
+                     colour = "green") +
+          geom_label(data = lab_df,
+                    aes(x     = start_time / pb_rate,
+                        y     = end_freq   * pb_rate,
+                        label = class_label),
+                    label.r = unit(0, units="lines"),
+                    label.size = 0,
+                    hjust  = 0,
+                    vjust  = 0,
+                    alpha  = 0,
+                    colour = "black")
       }
     return(spec_plot)
   })
