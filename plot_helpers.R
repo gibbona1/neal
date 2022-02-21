@@ -144,24 +144,5 @@ plot_spectrogram <- function(df, input, length_ylabs, dblclick_ranges_spec){
                                        y_breaks, "kHz")
                        ) +
     hot_theme_grid
-  lab_file <- "tmp_labels.csv"
-  if(file.exists(lab_file)){
-    lab_df <- read.csv(lab_file)
-    lab_df <- lab_df[lab_df$file_name == input$file1,]
-    if(nrow(lab_df)==0)
-      return(spec_plot)
-    if(input$spec_labs){
-      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
-      spec_plot <- spec_plot +
-        geom_rect(data = lab_df, 
-                  mapping = aes(xmin = start_time / pb_rate,
-                                xmax = end_time   / pb_rate,
-                                ymin = start_freq * pb_rate, 
-                                ymax = end_freq   * pb_rate),
-                  colour = "green",
-                  fill   = "lightgrey",
-                  alpha  = 0.15)
-    }
-  }
   return(spec_plot)
 }

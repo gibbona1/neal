@@ -34,6 +34,7 @@ source('plot_helpers.R')
 #TODO: Example sound files in right sidebar (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
 #TODO: gridExtra blank plot with correct axes, paste in spectrogram as image (not raster)
+#TODO: segment audio longer than 15 seconds so we have (1/5), put in filename printout
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -114,7 +115,7 @@ ui_func <- function() {
         checkboxInput("palette_invert", "Invert color palette"),
         actionButton("savespec", "Save Spectrogram"),
         checkboxInput("include_hover", "Include spectrogram hover tooltip", value = TRUE),
-        checkboxInput("spec_labs", "Show spectrogram labels"),
+        checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
         uiOutput("spec_collapse")
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
@@ -364,8 +365,8 @@ server <- function(input, output, session) {
   
   ranges_spec  <- reactiveValues(x = NULL, y = NULL)
   ranges_osc   <- reactiveValues(x = NULL)
-  dblclick_ranges_spec  <- reactiveValues(x = NULL, y = NULL)
-  dblclick_ranges_osc   <- reactiveValues(x = NULL)
+  dblclick_ranges_spec <- reactiveValues(x = NULL, y = NULL)
+  dblclick_ranges_osc  <- reactiveValues(x = NULL)
   length_ylabs <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab  <- reactiveValues(rows = NULL, data = NULL)
   plots_open   <- reactiveValues(osc  = TRUE, spec = TRUE)
@@ -413,6 +414,27 @@ server <- function(input, output, session) {
       x_list[[nm]] <- NULL
   }
   
+  bb_iou <- function(boxA, boxB){
+    # intersection_over_union
+    # boxes have column start_time, end_time, start_freq, end_freq
+    # determine the (x, y)-coordinates of the intersection rectangle
+    xA <- max(boxA[,1], boxB[,1])
+    yA <- max(boxA[,3], boxB[,3])
+    xB <- min(boxA[,2], boxB[,2])
+    yB <- min(boxA[,4], boxB[,4])
+    #apply(rbind(boxA,boxB),2,max)
+    # compute the area of intersection rectangle
+    interArea <- max(0, xB - xA) * max(0, yB - yA)
+    # compute the area of both boxA and boxB
+    box_area <- function(box)
+      return((box[,2] - box[,1]) * (box[,4] - box[,3]))
+    boxAArea <- box_area(boxA)
+    boxBArea <- box_area(boxB)
+    # compute the intersection over union
+    iou <- interArea / (boxAArea + boxBArea - interArea)
+    return(iou)
+  }
+  
   categories   <- reactiveValues(
     base = get_entries(species_list[,1]), 
     misc = c("Noise", "Other"),
@@ -426,6 +448,23 @@ server <- function(input, output, session) {
   class_label <- reactive({
     cats <- categories
     c(cats$base, cats$misc, cats$xtra)
+  })
+  
+  labs_filename <- reactive({"tmp_labels.csv"})
+  
+  labelsData <- reactiveVal(NULL)
+  
+  observeEvent(input$file1, {
+    lab_file <- labs_filename()
+    if(file.exists(lab_file)){
+      lab_df <- read.csv(lab_file)
+      lab_df <- lab_df[lab_df$file_name == input$file1,]
+      if(nrow(lab_df)==0)
+        labelsData(NULL)
+      else
+        labelsData(lab_df)
+    } else
+      labelsData(NULL)
   })
   
   output$label_ui <- renderUI({
@@ -708,7 +747,25 @@ server <- function(input, output, session) {
   })
   
   output$specplot <- renderPlot({
-    return(specPlot())
+    spec_plot <- specPlot()
+    lab_df    <- labelsData()
+    #browser()
+    if(is.null(lab_df))
+      return(spec_plot)
+    else
+      if(input$spec_labs){
+        pb_rate   <- as.numeric(gsub("x", "", input$playbackrate))
+        spec_plot <- spec_plot +
+          geom_rect(data = lab_df, 
+                    mapping = aes(xmin = start_time / pb_rate,
+                                  xmax = end_time   / pb_rate,
+                                  ymin = start_freq * pb_rate, 
+                                  ymax = end_freq   * pb_rate),
+                    colour = "green",
+                    fill   = "lightgrey",
+                    alpha  = 0.15)
+      }
+    return(spec_plot)
   })
   
   observeEvent(input$savespec, {
@@ -840,9 +897,10 @@ server <- function(input, output, session) {
              point$frequency >= df$start_freq * pb_rate &
              point$frequency <= df$end_freq   * pb_rate)
     }
-    lab_df <- read.csv("tmp_labels.csv")
-    lab_df <- lab_df[lab_df$file_name == input$file1 & in_label_box(lab_df, point),]
-    if(nrow(lab_df) == 0 | !input$spec_labs)
+    lab_df <- labelsData()
+    lab_df <- lab_df[in_label_box(lab_df, point),]
+    
+    if(is.null(lab_df) | nrow(lab_df) == 0)
       species_in_hover <- ''
     else{
       lab_df <- lab_df[1,]
@@ -869,7 +927,7 @@ server <- function(input, output, session) {
   
   output$spec_collapse <- renderUI({
     plot_collapse_button("Spectrogram", 'spec')
-    })
+  })
   
   observeEvent(input$collapse_spec, {
     plots_open$spec <- FALSE
@@ -893,10 +951,8 @@ server <- function(input, output, session) {
       return(point$time      >= df$start_time / pb_rate & 
              point$time      <= df$end_time   / pb_rate)
     }
-    lab_df <- read.csv("tmp_labels.csv")
-    lab_df <- lab_df[lab_df$file_name == input$file1 & in_label_box(lab_df, point),]
-    
-    if(nrow(lab_df) == 0 | !input$osc_labs)
+    lab_df <- labelsData()
+    if(is.null(lab_df))
       species_in_hover <- ''
     else{
       lab_df <- lab_df[1,]
@@ -1010,26 +1066,6 @@ server <- function(input, output, session) {
     #get x and y coordinates with max and min of brushedPoints()
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
-    bb_iou <- function(boxA, boxB){
-      # intersection_over_union
-      # boxes have column start_time, end_time, start_freq, end_freq
-      # determine the (x, y)-coordinates of the intersection rectangle
-      xA <- max(boxA[,1], boxB[,1])
-      yA <- max(boxA[,3], boxB[,3])
-      xB <- min(boxA[,2], boxB[,2])
-      yB <- min(boxA[,4], boxB[,4])
-      #apply(rbind(boxA,boxB),2,max)
-      # compute the area of intersection rectangle
-      interArea <- max(0, xB - xA) * max(0, yB - yA)
-      # compute the area of both boxA and boxB
-      box_area <- function(box)
-        return((box[,2] - box[,1]) * (box[,4] - box[,3]))
-      boxAArea <- box_area(boxA)
-      boxBArea <- box_area(boxB)
-      # compute the intersection over union
-      iou <- interArea / (boxAArea + boxBArea - interArea)
-      return(iou)
-    }
     if(!is.null(input$specplot_brush)) {
       if(is.null(input$call_type))
         call_type <- "<NULL>"
@@ -1047,13 +1083,15 @@ server <- function(input, output, session) {
                            notes       = input$notes,
                            labeler     = Sys.info()[["user"]])
       
-      file_name <- "tmp_labels.csv"
-      
-        if(file.exists(file_name))
-          write.table(lab_df, file_name, append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
-        else
-          write.table(lab_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
-        showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
+      full_df <- labelsData()
+      if(!is.null(full_df)){
+        write.table(lab_df, labs_filename(), append = TRUE,  col.names = FALSE, sep=",", row.names = FALSE)
+        labelsData(rbind(full_df, lab_df))
+      } else {
+        write.table(lab_df, labs_filename(), append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+        labelsData(lab_df)
+      }
+      showNotification(HTML(paste0("Label <b>", input$label_points, "</b> successfully saved!")), type = "message")
     } else {
       showNotification("Label not saved, nothing selected!", type = "error")
     }
@@ -1063,27 +1101,6 @@ server <- function(input, output, session) {
     #get x and y coordinates with max and min of brushedPoints()
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
-    file_name <- "tmp_labels.csv"
-    bb_iou <- function(boxA, boxB){
-      # intersection_over_union
-      # boxes have column start_time, end_time, start_freq, end_freq
-      # determine the (x, y)-coordinates of the intersection rectangle
-      xA <- max(boxA[,1], boxB[,1])
-      yA <- max(boxA[,3], boxB[,3])
-      xB <- min(boxA[,2], boxB[,2])
-      yB <- min(boxA[,4], boxB[,4])
-      #apply(rbind(boxA,boxB),2,max)
-      # compute the area of intersection rectangle
-      interArea <- max(0, xB - xA) * max(0, yB - yA)
-      # compute the area of both boxA and boxB
-      box_area <- function(box)
-        return((box[,2] - box[,1]) * (box[,4] - box[,3]))
-      boxAArea <- box_area(boxA)
-      boxBArea <- box_area(boxB)
-      # compute the intersection over union
-      iou <- interArea / (boxAArea + boxBArea - interArea)
-      return(iou)
-    }
     if(!is.null(input$specplot_brush)) {
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
@@ -1093,7 +1110,7 @@ server <- function(input, output, session) {
                            end_freq    = max(res$frequency),
                            class_label = input$label_points,
                            labeler     = Sys.info()[["user"]])
-      full_df    <- read.csv(file_name)
+      full_df    <- labelsData()
       full_df_rm <- c()
       for(idx in 1:nrow(full_df)){
         bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
@@ -1107,7 +1124,8 @@ server <- function(input, output, session) {
         deleted_lab$rows <- full_df_rm
         deleted_lab$data <- full_df[full_df_rm,]
         full_df <- full_df[-full_df_rm,]
-        write.table(full_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+        labelsData(full_df)
+        write.table(full_df, labs_filename(), append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
         showNotification("Label removed, click Undo to bring back", type = "message")
       }
     } else {
@@ -1116,8 +1134,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$undo_delete_lab, {
-    file_name <- 'tmp_labels.csv'
-    full_df   <- read.csv(file_name)
+    full_df   <- labelsData()
     rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
     if(!is.null(del_df)){
@@ -1131,7 +1148,8 @@ server <- function(input, output, session) {
         full_df <- insertRow(full_df, del_df[row,], rownums[row])
       deleted_lab$rows <- NULL
       deleted_lab$data <- NULL
-      write.table(full_df, file_name, append = FALSE,  col.names = TRUE, sep=",", row.names = FALSE)
+      write.table(full_df, labs_filename(), append = FALSE, col.names = TRUE, sep=",", row.names = FALSE)
+      labelsData(full_df)
       showNotification("Label recovered", type = "message")
     } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
@@ -1141,7 +1159,7 @@ server <- function(input, output, session) {
   output$my_audio <- renderUI({
     audio_style <- "width: 100%;"
     if(!is.null(cleanInput())){
-      file_name <- 'www/tmp_clean.wav'
+      file_name   <- 'www/tmp_clean.wav'
       audio_style <- paste(audio_style, "filter: sepia(50%);")
     } else {
       file_name <- 'www/tmp.wav'
