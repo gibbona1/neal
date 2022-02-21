@@ -24,8 +24,7 @@ source('plot_helpers.R')
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
 #TODO: Save list of added species as col in species csv (or append to a column) 
-#TODO: Colour border of label buttons same as bounding boxes 
-# (ggplot override aes) (notification label colour too)
+#TODO: (notification with label colour)
 #TODO: Label hover click option instead
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights the label (option to play it)
@@ -36,7 +35,6 @@ source('plot_helpers.R')
 #countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
 #TODO: gridExtra blank plot with correct axes, paste spec as image (not raster)
-#TODO: If audio longer than 15 seconds segment, put index in printout e.g. (1/5)
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -501,7 +499,7 @@ server <- function(input, output, session) {
     return(iou)
   }
   
-  categories   <- reactiveValues(
+  categories <- reactiveValues(
     base = get_entries(species_list[,1]), 
     misc = c("Noise", "Other"),
     xtra = "abc"
@@ -545,17 +543,21 @@ server <- function(input, output, session) {
   })
   
   output$label_ui <- renderUI({
-    extra_cols   <- c('red','darkred')
+    base_cols    <- c('darkgreen', 'green')
+    misc_cols    <- c('yellow', 'orange')
+    extra_cols   <- c('darkred', 'red')
+    cbase  <- categories$base
+    cmisc  <- categories$misc
     cextra <- categories$xtra
-    my_gradients <- colorRampPalette(c('darkred','red'))(length(cextra))
+    #my_gradients <- colorRampPalette(c('darkred','red'))(length(cextra))
     
     get_jq_lines <- function(val, cols){
       x <- paste0("var ", 
                   c("originalBorder", "originalColor", "originalBackground" ), 
                   " = [];",  
                   collapse= " ")
-      button_val_id <- paste0("'input[type=radio][name=label_points][value=", 
-                              val, "]'")
+      button_val_id <- paste0("'input[type=radio][name=label_points][value=\"", 
+                              val, "\"]'")
       
       css_line <- function(css_class, css_val = NULL, func = "css", sq = "'"){
         x <- paste0("$(this).parent().", func, "(", sq, css_class, sq)
@@ -568,8 +570,8 @@ server <- function(input, output, session) {
       }
         x <- paste0(x, 
         "$(", button_val_id, ").parent().css({",
-          "'color':            'black',",
-          "'background-color': '", cols[1], "',",
+          "'color':            'white',",
+          #"'background-color': '", cols[1], "',",
           "'border-color':     '", cols[2], "'});")
         x <- paste0(x, "$(", button_val_id, ").hover(",
         "function(){",
@@ -577,16 +579,16 @@ server <- function(input, output, session) {
               css_line(button_val_id, func = "index", sq=""), 
               "]     = ", 
               css_line('border-color'),
-            "originalBackground[", 
-              css_line(button_val_id, func = "index", sq=""), 
-              "] = ", 
-              css_line('background-color'),
+            #"originalBackground[", 
+            #  css_line(button_val_id, func = "index", sq=""), 
+            #  "] = ", 
+            #  css_line('background-color'),
             "originalColor[", 
               css_line(button_val_id, func = "index", sq=""), 
               "]      = ", 
               css_line('color'),
             css_line('border-color', 'darkblue'),
-            css_line('background-color', 'blue'),
+            #css_line('background-color', 'blue'),
             css_line('color', 'white'),
           "},")
         x <- paste0(x, 
@@ -595,10 +597,10 @@ server <- function(input, output, session) {
                  paste0("originalBorder[", 
                         css_line(button_val_id, func = "index", sq=""), 
                         "]")), 
-        css_line('background-color', 
-                 paste0("originalBackground[", 
-                        css_line(button_val_id, func = "index", sq=""), 
-                        "]")), 
+        #css_line('background-color', 
+        #         paste0("originalBackground[", 
+        #                css_line(button_val_id, func = "index", sq=""), 
+        #                "]")), 
         css_line('color',            
                  paste0("originalColor[", 
                         css_line(button_val_id, func = "index", sq=""), 
@@ -609,10 +611,16 @@ server <- function(input, output, session) {
       return(x)
     }
     btn_col_js <- NULL
-    if(!is.null(cextra)){
-      for(k in 1:length(cextra))
-        btn_col_js <- paste0(btn_col_js, get_jq_lines(cextra[k], extra_cols))
+    add_colour_js <- function(x, labs, cols){
+      if(!is.null(labs)){
+        for(lab in labs)
+          x <- paste0(x, get_jq_lines(lab, cols))
+      }
+      return(x)
     }
+    btn_col_js <- add_colour_js(btn_col_js, cbase, base_cols)
+    btn_col_js <- add_colour_js(btn_col_js, cmisc, misc_cols)
+    btn_col_js <- add_colour_js(btn_col_js, cextra, extra_cols)
     #print(btn_col_js)
     div(
       radioGroupButtons(
@@ -633,7 +641,7 @@ server <- function(input, output, session) {
                           width: 100%;
                         }")),
       #might need to be wrapped in HTML
-      #tags$script(btn_col_js),
+      tags$script(btn_col_js),
       )
     })
   
@@ -882,6 +890,14 @@ server <- function(input, output, session) {
   output$specplot <- renderPlot({
     spec_plot <- specPlot()
     lab_df    <- labelsData()
+    cat_colours <- function(x){
+      cat_df <- data.frame(type = c(rep("green", length(categories$base)),
+                          rep("orange", length(categories$misc)),
+                          rep("red", length(categories$xtra))),
+                 category = class_label())
+      merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
+      return(merge_df$type)
+    }
     if(is.null(lab_df))
       return(spec_plot)
     else
@@ -892,19 +908,19 @@ server <- function(input, output, session) {
                                   xmax = end_time,
                                   ymin = start_freq, 
                                   ymax = end_freq),
-                    colour = "green",
+                    colour = cat_colours(lab_df),
                     fill   = "lightgrey",
                     alpha  = 0.15) +
           geom_label(data = lab_df,
                      aes(x     = start_time,
                          y     = end_freq,
                          label = class_label),
+                     colour = cat_colours(lab_df),
                      label.r = unit(0, units="lines"),
                      label.size = 0.5,
                      hjust  = 0,
-                     vjust  = 0,
-                     fill   = "green",
-                     colour = "green") +
+                     vjust  = 0
+                     ) +
           geom_label(data = lab_df,
                     aes(x     = start_time,
                         y     = end_freq,
