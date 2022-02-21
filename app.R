@@ -1188,7 +1188,8 @@ server <- function(input, output, session) {
       if(is.null(input$call_type))
         call_type <- "<NULL>"
       else
-        call_type <- paste(input$call_type, collapse='; ')
+        call_type <- paste(input$call_type[!.is_null(input$call_type)], 
+                           collapse='; ')
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
                            start_time  = min(res$time),
@@ -1223,14 +1224,10 @@ server <- function(input, output, session) {
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
     if(!is.null(input$specplot_brush)) {
-      lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-                           file_name   = input$file1,
-                           start_time  = min(res$time),
+      lab_df <- data.frame(start_time  = min(res$time),
                            end_time    = max(res$time),
                            start_freq  = min(res$frequency),
-                           end_freq    = max(res$frequency),
-                           class_label = input$label_points,
-                           labeler     = Sys.info()[["user"]])
+                           end_freq    = max(res$frequency))
       full_df    <- labelsData()
       full_df_rm <- c()
       for(idx in 1:nrow(full_df)){
@@ -1246,7 +1243,7 @@ server <- function(input, output, session) {
         deleted_lab$data <- full_df[full_df_rm,]
         full_df <- full_df[-full_df_rm,]
         labelsData(full_df)
-        write_labs(lab_df, append = FALSE, col.names = TRUE)
+        write_labs(full_df, append = FALSE, col.names = TRUE)
         showNotification("Label removed, click Undo to bring back", 
                          type = "message")
       }
@@ -1270,7 +1267,7 @@ server <- function(input, output, session) {
         full_df <- insertRow(full_df, del_df[row,], rownums[row])
       deleted_lab$rows <- NULL
       deleted_lab$data <- NULL
-      write_labs(lab_df, append = FALSE, col.names = TRUE)
+      write_labs(full_df, append = FALSE, col.names = TRUE)
       labelsData(full_df)
       showNotification("Label recovered", type = "message")
     } else {

@@ -1,3 +1,4 @@
-"date_time","file_name","start_time","end_time","start_freq","end_freq","class_label","labeler"
-"2022-02-21 16:57:55","SMU05115_20211104_064902_start_36_51.wav",1.92961165048544,4.07766990291262,1.8984375,5.9765625,"Eurasian Magpie","Anthony"
-"2022-02-21 16:58:06","SMU05115_20211104_064902_start_36_51.wav",2.0752427184466,4.51456310679612,2.390625,8.25,"Eurasian Magpie","<NULL>; alarm call; flight call",1,"","Anthony"
+"date_time","file_name","start_time","end_time","start_freq","end_freq","class_label","call_type","confidence","notes","labeler"
+"2022-02-21 17:14:37","SMU05115_20211104_064902_start_36_51.wav",4.76941747572816,7.46359223300971,3.6328125,7.640625,"Eurasian Magpie","<NULL>",1,NA,"Anthony"
+"2022-02-21 17:16:11","SMU05115_20211104_064902_start_36_51.wav",7.82766990291262,11.2135922330097,0,4.1484375,"Eurasian Magpie","alarm call",1,"","Anthony"
+"2022-02-21 17:16:23","SMU05115_20211104_064902_start_36_51.wav",8.37378640776699,11.7597087378641,5.390625,9.984375,"Noise","alarm call; flight call",1,"","Anthony"
