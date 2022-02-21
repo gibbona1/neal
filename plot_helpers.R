@@ -72,11 +72,10 @@ plot_oscillogram <- function(df, input, length_ylabs){
     if(nrow(lab_df)==0)
       return(osc_plot)
     if(input$osc_labs){
-      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
       osc_plot <- osc_plot +
         geom_rect(data = lab_df, 
-                aes(xmin = start_time / pb_rate,
-                    xmax = end_time   / pb_rate,
+                aes(xmin = start_time,
+                    xmax = end_time,
                     ymin = -Inf, 
                     ymax = Inf),
         colour = "red",

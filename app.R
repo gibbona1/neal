@@ -649,9 +649,6 @@ server <- function(input, output, session) {
       return(NULL) 
     tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
     
-    pb <- as.numeric(gsub("x", "", input$playbackrate))
-    tmp_audio@samp.rate <- tmp_audio@samp.rate * pb
-    
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     
     #based on torchaudio::functional_gain
@@ -849,19 +846,18 @@ server <- function(input, output, session) {
       return(spec_plot)
     else
       if(input$spec_labs){
-        pb_rate   <- as.numeric(gsub("x", "", input$playbackrate))
         spec_plot <- spec_plot +
           geom_rect(data = lab_df, 
-                    mapping = aes(xmin = start_time / pb_rate,
-                                  xmax = end_time   / pb_rate,
-                                  ymin = start_freq * pb_rate, 
-                                  ymax = end_freq   * pb_rate),
+                    mapping = aes(xmin = start_time,
+                                  xmax = end_time,
+                                  ymin = start_freq, 
+                                  ymax = end_freq),
                     colour = "green",
                     fill   = "lightgrey",
                     alpha  = 0.15) +
           geom_label(data = lab_df,
-                     aes(x     = start_time / pb_rate,
-                         y     = end_freq   * pb_rate,
+                     aes(x     = start_time,
+                         y     = end_freq,
                          label = class_label),
                      label.r = unit(0, units="lines"),
                      label.size = 0.5,
@@ -870,8 +866,8 @@ server <- function(input, output, session) {
                      fill   = "green",
                      colour = "green") +
           geom_label(data = lab_df,
-                    aes(x     = start_time / pb_rate,
-                        y     = end_freq   * pb_rate,
+                    aes(x     = start_time,
+                        y     = end_freq,
                         label = class_label),
                     label.r = unit(0, units="lines"),
                     label.size = 0,
@@ -1017,11 +1013,10 @@ server <- function(input, output, session) {
     point <- round(point, 3)
     
     in_label_box <- function(df, point){
-      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
-      return(point$time      >= df$start_time / pb_rate & 
-             point$time      <= df$end_time   / pb_rate &
-             point$frequency >= df$start_freq * pb_rate &
-             point$frequency <= df$end_freq   * pb_rate)
+      return(point$time      >= df$start_time & 
+             point$time      <= df$end_time   &
+             point$frequency >= df$start_freq &
+             point$frequency <= df$end_freq   )
     }
     lab_df <- labelsData()
     lab_df <- lab_df[in_label_box(lab_df, point),]
@@ -1079,9 +1074,8 @@ server <- function(input, output, session) {
     point <- round(point, 3)
     
     in_label_box <- function(df, point){
-      pb_rate <- as.numeric(gsub("x", "", input$playbackrate))
-      return(point$time      >= df$start_time / pb_rate & 
-             point$time      <= df$end_time   / pb_rate)
+      return(point$time      >= df$start_time & 
+             point$time      <= df$end_time)
     }
     lab_df <- labelsData()
     if(is.null(lab_df))
@@ -1313,12 +1307,17 @@ server <- function(input, output, session) {
                         autoplay = NA,
                         style    = audio_style
       ))
-    tags$audio(id       = 'my_audio_player',
+    pb <- as.numeric(gsub("x", "", input$playbackrate))
+    div(
+      tags$audio(id       = 'my_audio_player',
                src      = markdown:::.b64EncodeFile(file_name), 
                type     = "audio/wav", 
                controls = "controls",#HTML('controlsList: nodownload'),
                #TODO: HTML styling (background colour, no download button,...)
-               style    = audio_style)
+               style    = audio_style),
+      tags$script(paste0('var audio = document.getElementById("my_audio_player");
+                audio.playbackRate = ', pb, ';'))
+    )
     })
   
   output$audio_title <- renderUI({
