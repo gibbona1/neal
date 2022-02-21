@@ -57,12 +57,12 @@ btn_row_style  <- "display: inline-block;
                    height: 100%;
                    text-align: center; 
                    vertical-align: center; 
-                   horizontal-align: center"
+                   horizontal-align: center;"
 btn_sel_style  <- "display:inline-block; 
                    text-align: left; 
                    padding-left: 1%; 
                    width: 100%;"
-file_btn_style <- 'padding:1%; width:100%'
+file_btn_style <- 'padding:1%; width:100%;'
 
 ui_func <- function() {
     header <- {dashboardHeader(
@@ -432,6 +432,10 @@ server <- function(input, output, session) {
   length_ylabs   <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab    <- reactiveValues(rows = NULL, data = NULL)
   plots_open     <- reactiveValues(osc  = TRUE, spec = TRUE)
+  segment_num    <- reactiveVal(1)
+  segment_total  <- reactiveVal(1)
+  segment_end_s  <- reactiveVal(1)
+  segment_start  <- reactiveVal(0)
   
   length_b10 <- function(x){
     return(x %>% 
@@ -655,19 +659,42 @@ server <- function(input, output, session) {
     #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
     
     #based on torchaudio::functional_gain
-    audio_gain <- function (waveform, gain_db = 0){
+    audio_gain     <- function (waveform, gain_db = 0){
       if(gain_db == 0)
         return(waveform)
       ratio <- 10^(gain_db/20)
       return(waveform * ratio)
     }
-    submean <- function(x) x - mean(x)
+    submean        <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
     tmp_audio      <- audio_gain(tmp_audio, input$db_gain)
     #anything outside the 16-bit range [-32768, 32767] will be rounded
     tmp_audio@left[tmp_audio@left >  32767] <-  32767
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
+    
+    len_s <- length(tmp_audio)/tmp_audio@samp.rate
+    segment_end_s(len_s)
+    if(len_s > 15){
+      time_seq  <- seq(from=0,to=len_s, by=15)
+      tc        <- time_seq[segment_num()]
+      segment_start(tc)
+      segment_total(length(time_seq))
+      tmp_audio <- extractWave(tmp_audio, from = tc, to = tc+15, xunit = "time")
+      if(length(tmp_audio) < 15*tmp_audio@samp.rate)
+        tmp_audio@left <- c(tmp_audio@left, rep(1, 15*tmp_audio@samp.rate-length(tmp_audio)))
+      if(segment_num() == 1)
+        disable("prev_section")
+      else 
+        enable("prev_section")
+      if(segment_num() == length(time_seq))
+        disable("next_section")
+      else
+        enable("next_section")
+    } else {
+      disable("prev_section")
+      disable("next_section")
+    }
     
     writeWave(tmp_audio, 'www/tmp.wav')
     return(tmp_audio)
@@ -766,6 +793,9 @@ server <- function(input, output, session) {
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
                        amplitude = as.vector(spec$amp))
+    
+    df$time <- df$time + segment_start()
+    
     #if(!is.null(dc_ranges_osc$x))
     #  df$time <- df$time + dc_ranges_osc$x[1]
     #else if(!is.null(dc_ranges_spec$x))
@@ -844,7 +874,6 @@ server <- function(input, output, session) {
   output$specplot <- renderPlot({
     spec_plot <- specPlot()
     lab_df    <- labelsData()
-    #browser()
     if(is.null(lab_df))
       return(spec_plot)
     else
@@ -1012,6 +1041,8 @@ server <- function(input, output, session) {
                         xvar      = "time", 
                         yvar      = "frequency")
     if(nrow(point) == 0) 
+      return(NULL)
+    if(point$time > segment_end_s())
       return(NULL)
     point <- round(point, 3)
     
@@ -1377,6 +1408,10 @@ server <- function(input, output, session) {
     reset_ranges(ranges_osc)
     reset_ranges(dc_ranges_spec)
     reset_ranges(dc_ranges_osc)
+    segment_num(1)
+    segment_total(1)
+    segment_end_s(1)
+    segment_start(0)
   })
   
   # move to next file (resetting zoom)
@@ -1398,6 +1433,40 @@ server <- function(input, output, session) {
     reset_ranges(ranges_osc)
     reset_ranges(dc_ranges_spec)
     reset_ranges(dc_ranges_osc)
+    segment_num(1)
+    segment_total(1)
+    segment_end_s(1)
+    segment_start(0)
+  })
+  
+  observeEvent(input$prev_section, {
+    idx <- segment_num() - 1
+    
+    if(idx < 1)
+      showNotification("Cannot go to previous segment, at beginning of file", 
+                       type = "error")
+    else {
+      segment_num(idx)
+      reset_ranges(ranges_spec)
+      reset_ranges(ranges_osc)
+      reset_ranges(dc_ranges_spec)
+      reset_ranges(dc_ranges_osc)
+    }
+  })
+  
+  observeEvent(input$next_section, {
+    idx <- segment_num() + 1
+    
+    if(idx > segment_total())
+      showNotification("Cannot go to next segment, at end of file", 
+                       type = "error")
+      else {
+        segment_num(idx)
+        reset_ranges(ranges_spec)
+        reset_ranges(ranges_osc)
+        reset_ranges(dc_ranges_spec)
+        reset_ranges(dc_ranges_osc)
+      }
   })
 }
 
