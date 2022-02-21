@@ -763,8 +763,16 @@ server <- function(input, output, session) {
   output$file1 <- renderUI({
     if(.is_null(input$file1))
       return(NULL)
-    else
-      return(HTML(paste0('<b>', input$file1, '</b>')))
+    txt <- paste0('<b>', input$file1, '</b>')
+    if(segment_total() > 1){
+      if(segment_num() == segment_total())
+        seg_colour <- 'green'
+      else
+        seg_colour <- 'red'
+      txt <- paste(txt, '<span style="color: ', seg_colour, ';"><b>(', 
+              segment_num(), '/', segment_total(), ')</b></span>')
+    }
+    return(HTML(txt))
     })
   
   specData <- reactive({
