@@ -499,6 +499,15 @@ server <- function(input, output, session) {
     return(iou)
   }
   
+  cat_colours <- function(x){
+    cat_df <- data.frame(type = c(rep("green", length(categories$base)),
+                                  rep("orange", length(categories$misc)),
+                                  rep("red", length(categories$xtra))),
+                         category = class_label())
+    merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
+    return(merge_df$type)
+  }
+  
   categories <- reactiveValues(
     base = get_entries(species_list[,1]), 
     misc = c("Noise", "Other"),
@@ -516,7 +525,7 @@ server <- function(input, output, session) {
   
   labs_filename <- reactive({"tmp_labels.csv"})
   
-  labelsData <- reactiveVal(NULL)
+  fullData   <- reactiveVal(NULL)
   
   write_labs <- function(lab_df, 
                          fname     = labs_filename(), 
@@ -531,15 +540,19 @@ server <- function(input, output, session) {
   
   observeEvent(input$file1, {
     lab_file <- labs_filename()
-    if(file.exists(lab_file)){
-      lab_df <- read.csv(lab_file)
-      lab_df <- lab_df[lab_df$file_name == input$file1,]
-      if(nrow(lab_df)==0)
-        labelsData(NULL)
-      else
-        labelsData(lab_df)
-    } else
-      labelsData(NULL)
+    if(file.exists(lab_file))
+      fullData(read.csv(lab_file))
+    else
+      fullData(NULL)
+  })
+  
+  labelsData <- reactive({
+    lab_df <- fullData()
+    lab_df <- lab_df[lab_df$file_name == input$file1,]
+    if(nrow(lab_df)==0)
+      return(NULL)
+    else
+      return(lab_df)
   })
   
   output$label_ui <- renderUI({
@@ -890,14 +903,6 @@ server <- function(input, output, session) {
   output$specplot <- renderPlot({
     spec_plot <- specPlot()
     lab_df    <- labelsData()
-    cat_colours <- function(x){
-      cat_df <- data.frame(type = c(rep("green", length(categories$base)),
-                          rep("orange", length(categories$misc)),
-                          rep("red", length(categories$xtra))),
-                 category = class_label())
-      merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
-      return(merge_df$type)
-    }
     if(is.null(lab_df))
       return(spec_plot)
     else
@@ -1274,17 +1279,18 @@ server <- function(input, output, session) {
                            notes       = input$notes,
                            labeler     = Sys.info()[["user"]])
       
-      full_df <- labelsData()
+      full_df <- fullData()
       if(!is.null(full_df)){
         write_labs(lab_df)
-        labelsData(rbind(full_df, lab_df))
+        fullData(rbind(full_df, lab_df))
       } else {
         write_labs(lab_df, append = FALSE, col.names = TRUE)
-        labelsData(lab_df)
+        fullData(lab_df)
       }
-      showNotification(HTML(paste0("Label <b>", 
+      showNotification(HTML(paste0('Label ', '<span style="color: ', 
+                                   cat_colours(lab_df), ';"><b>', 
                                    input$label_points, 
-                                   "</b> successfully saved!")), 
+                                   '</b></span> successfully saved!')), 
                        type = "message")
     } else {
       showNotification("Label not saved, nothing selected!", type = "error")
@@ -1300,7 +1306,7 @@ server <- function(input, output, session) {
                            end_time    = max(res$time),
                            start_freq  = min(res$frequency),
                            end_freq    = max(res$frequency))
-      full_df    <- labelsData()
+      full_df    <- fullData()
       full_df_rm <- c()
       for(idx in 1:nrow(full_df)){
         bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
@@ -1314,7 +1320,7 @@ server <- function(input, output, session) {
         deleted_lab$rows <- full_df_rm
         deleted_lab$data <- full_df[full_df_rm,]
         full_df <- full_df[-full_df_rm,]
-        labelsData(full_df)
+        fullData(full_df)
         write_labs(full_df, append = FALSE, col.names = TRUE)
         showNotification("Label removed, click Undo to bring back", 
                          type = "message")
@@ -1325,7 +1331,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$undo_delete_lab, {
-    full_df   <- labelsData()
+    full_df   <- fullData()
     rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
     if(!is.null(del_df)){
@@ -1340,7 +1346,7 @@ server <- function(input, output, session) {
       deleted_lab$rows <- NULL
       deleted_lab$data <- NULL
       write_labs(full_df, append = FALSE, col.names = TRUE)
-      labelsData(full_df)
+      fullData(full_df)
       showNotification("Label recovered", type = "message")
     } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
