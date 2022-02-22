@@ -283,10 +283,12 @@ ui_func <- function() {
         column(2,{
             fixedRow(style = btn_row_style,
                 div(column(3, style = "padding:0px;",
+                    disabled(
                   tipify(actionButton("prev_file", "", 
                                       icon  = icon("arrow-left"), 
                                       style = file_btn_style),  
-                         "Previous File"),
+                         "Previous File")
+                  ),
                 ), 
                 column(3, style = "padding:0px;",
                 disabled(
@@ -1421,18 +1423,17 @@ server <- function(input, output, session) {
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
-    if(.is_null(input$file1))
-      updateSelectInput(inputId  = "file1",
-                        selected = file_list[length(file_list)])
+    idx <- which(input$file1 == file_list) - 1
+    if(idx == 0)
+      showNotification("Cannot go to previous file, at beginning of folder", 
+                       type = "error")
     else {
-      idx <- which(input$file1 == file_list) - 1
-      if(idx == 0)
-        showNotification("Cannot go to previous file, at beginning of folder", 
-                         type = "error")
-        #idx <- length(file_list)
-      else
-        updateSelectInput(inputId  = "file1",
-                          selected = file_list[idx])
+      updateSelectInput(inputId  = "file1",
+                        selected = file_list[idx])
+      if(idx == 1)
+        disable("prev_file")
+      if(idx == length(file_list)-1)
+        enable("next_file")
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
@@ -1454,10 +1455,14 @@ server <- function(input, output, session) {
       if(idx > length(file_list))
         showNotification("Cannot go to next file, at end of folder", 
                          type = "error")
-        #idx <- 1
-      else
+      else {
         updateSelectInput(inputId  = "file1",
                           selected = file_list[idx])
+        if(idx == 2)
+          enable("prev_file")
+        if(idx == length(file_list))
+          disable("next_file")
+      }
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
@@ -1469,6 +1474,7 @@ server <- function(input, output, session) {
     segment_start(0)
   })
   
+  # Previous (15 second) segment
   observeEvent(input$prev_section, {
     idx <- segment_num() - 1
     
@@ -1484,6 +1490,7 @@ server <- function(input, output, session) {
     }
   })
   
+  # Next (15 second) segment
   observeEvent(input$next_section, {
     idx <- segment_num() + 1
     
