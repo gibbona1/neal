@@ -65,6 +65,9 @@ file_btn_style <- 'padding:1%; width:100%;'
 ui_func <- function() {
     header <- {dashboardHeader(
       title = "Audio Labeler App",
+      tags$li(class = "dropdown",
+              tags$li(class = "dropdown", uiOutput("start_ui"), style = "padding-top: 5%; padding-bottom: 5%; vertical-align: center;")
+              ),
       dropdownMenu(
         type = "notifications", 
         icon = icon("question-circle"),
@@ -282,8 +285,38 @@ ui_func <- function() {
                  }),
         column(2,{
           fixedRow(style = btn_row_style,
-            uiOutput("filemove_ui"),
-            fluidRow(style = btn_row_style,
+             div(column(3, style = "padding:0px;",
+                        tipify(
+                          actionButton("prev_file", "", 
+                                       icon  = icon("arrow-left"), 
+                                       style = file_btn_style),
+                          "Previous File"
+                        ),
+             ), 
+             column(3, style = "padding:0px;",
+                    tipify(
+                      actionButton("prev_section", "", 
+                                   icon  = icon("chevron-left"), 
+                                   style = file_btn_style),
+                      "previous section"
+                    )
+             ), 
+             column(3, style = "padding:0px;",
+                    tipify(
+                      actionButton("next_section", "", 
+                                   icon  = icon("chevron-right"), 
+                                   style = file_btn_style),
+                      "next section"
+                    )
+             ), 
+             column(3, style = "padding:0px;",
+                    tipify(actionButton("next_file", "", 
+                                        icon  = icon("arrow-right"), 
+                                        style = file_btn_style), 
+                           "Next File")
+             )
+             ),
+             fluidRow(style = btn_row_style,
                      actionButton("plt_reset", "Reset Plot", 
                                   style = file_btn_style)
             )
@@ -512,6 +545,22 @@ server <- function(input, output, session) {
   }
   
   observeEvent(input$file1, {
+    if(.is_null(input$file1)){
+      disable("prev_file")
+      disable("next_file")
+      disable("prev_section")
+      disable("next_section")
+    } else {
+      idx <- which(input$file1 == file_list)
+      if(idx == 1)
+        disable("prev_file")
+      else
+        enable("prev_file")
+      if(idx == length(file_list))
+        disable("next_file")
+      else
+        enable("next_file")
+    }
     lab_file <- labs_filename()
     if(file.exists(lab_file))
       fullData(read.csv(lab_file))
@@ -528,50 +577,24 @@ server <- function(input, output, session) {
       return(lab_df)
   })
   
-  output$filemove_ui <- renderUI({
-    if(.is_null(input$file1)){
-      go_button <- actionButton("start_labelling", "Start Labelling!",
-                                class = "btn-success",
-                                style = "width: 100%"
-                                )
-      return(go_button)
-    }
-    div(column(3, style = "padding:0px;",
-              tipify(
-                actionButton("prev_file", "", 
-                                      icon  = icon("arrow-left"), 
-                                      style = file_btn_style),
-                "Previous File"
-              ),
-   ), 
-   column(3, style = "padding:0px;",
-          tipify(
-            actionButton("prev_section", "", 
-                                  icon  = icon("chevron-left"), 
-                                  style = file_btn_style),
-            "previous section"
-            )
-   ), 
-   column(3, style = "padding:0px;",
-          tipify(
-            actionButton("next_section", "", 
-                                  icon  = icon("chevron-right"), 
-                                  style = file_btn_style),
-            "next section"
-            )
-   ), 
-   column(3, style = "padding:0px;",
-          tipify(actionButton("next_file", "", 
-                              icon  = icon("arrow-right"), 
-                              style = file_btn_style), 
-                 "Next File")
-          )
-   )
+  output$start_ui <- renderUI({
+    if(.is_null(input$file1))
+      actionButton("start_labelling", "Start Labelling!",
+                                class = "btn-success")
+    else
+      actionButton("end_labelling", "End Labelling",
+                   class = "btn-danger")
+      
   })
   
   observeEvent(input$start_labelling, {
     updateSelectInput(inputId  = "file1",
                       selected = file_list[1])
+  })
+  
+  observeEvent(input$end_labelling, {
+    updateSelectInput(inputId  = "file1",
+                      selected = "<NULL>")
   })
   
   output$label_ui <- renderUI({
@@ -724,17 +747,17 @@ server <- function(input, output, session) {
       x_coords(c(tc, tc + 15))
       if(length(tmp_audio) < 15*tmp_audio@samp.rate)
         tmp_audio@left <- c(tmp_audio@left, rep(1, 15*tmp_audio@samp.rate-length(tmp_audio)))
-      #if(segment_num() == 1)
-      #  disable("prev_section")
-      #else 
-      #  enable("prev_section")
-      #if(segment_num() == length(time_seq))
-      #  disable("next_section")
-      #else
-      #  enable("next_section")
+      if(segment_num() == 1)
+        disable("prev_section")
+      else 
+        enable("prev_section")
+      if(segment_num() == length(time_seq))
+        disable("next_section")
+      else
+        enable("next_section")
     } else {
-      #disable("prev_section")
-      #disable("next_section")
+      disable("prev_section")
+      disable("next_section")
       x_coords(NULL)
     }
     
@@ -1451,10 +1474,6 @@ server <- function(input, output, session) {
     else {
       updateSelectInput(inputId  = "file1",
                         selected = file_list[idx])
-      #if(idx == 1)
-      #  disable("prev_file")
-      #if(idx == length(file_list)-1)
-      #  enable("next_file")
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
@@ -1475,10 +1494,6 @@ server <- function(input, output, session) {
     else {
       updateSelectInput(inputId  = "file1",
                         selected = file_list[idx])
-      #if(idx == 2)
-      #  enable("prev_file")
-      #if(idx == length(file_list))
-      #  disable("next_file")
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
