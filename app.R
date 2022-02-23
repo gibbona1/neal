@@ -66,7 +66,10 @@ ui_func <- function() {
     header <- {dashboardHeader(
       title = "Audio Labeler App",
       tags$li(class = "dropdown",
-              tags$li(class = "dropdown", uiOutput("start_ui"), style = "padding-top: 5%; padding-bottom: 5%; vertical-align: center;")
+              tags$li(class = "dropdown", uiOutput("start_ui"), 
+                      style = "padding-top: 5%; 
+                               padding-bottom: 5%; 
+                               vertical-align: center;")
               ),
       dropdownMenu(
         type = "notifications", 
@@ -376,7 +379,7 @@ ui_func <- function() {
       fluidRow({
         div(
           column(6, 
-                 textInput("notes", "Additional Notes:", width = "100%")
+                 textAreaInput("notes", "Additional Notes:", width = "100%")
           ),
           column(4, offset = 2,
                  sliderInput("label_confidence", "Label Confidence:", 
@@ -1130,15 +1133,15 @@ server <- function(input, output, session) {
     lab_df <- labelsData()
     lab_df <- lab_df[in_label_box(lab_df, point),]
     
-    if(is.null(lab_df))
-      species_in_hover <- ''
-    else if(nrow(lab_df) == 0)
-      species_in_hover <- ''
-    else{
-      lab_df <- lab_df[1,]
-      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
-                                 "<br/><b> Call type: </b>", lab_df$call_type)
-    }
+    #if(is.null(lab_df))
+    species_in_hover <- ''
+    #else if(nrow(lab_df) == 0)
+    #  species_in_hover <- ''
+    #else{
+    #  lab_df <- lab_df[1,]
+    #  species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
+    #                             "<br/><b> Call type: </b>", lab_df$call_type)
+    #}
     
     # create style property for tooltip
     # background color is set so tooltip is a almost transparent
