@@ -281,43 +281,13 @@ ui_func <- function() {
                  )
                  }),
         column(2,{
-            fixedRow(style = btn_row_style,
-                div(column(3, style = "padding:0px;",
-                    disabled(
-                  tipify(actionButton("prev_file", "", 
-                                      icon  = icon("arrow-left"), 
-                                      style = file_btn_style),  
-                         "Previous File")
-                  ),
-                ), 
-                column(3, style = "padding:0px;",
-                disabled(
-                  tipify(actionButton("prev_section", "", 
-                                      icon  = icon("chevron-left"), 
-                                      style = file_btn_style),  
-                         "previous section")
-                  )
-                ), 
-                column(3, style = "padding:0px;",
-                disabled(
-                  tipify(actionButton("next_section", "", 
-                                      icon  = icon("chevron-right"), 
-                                      style = file_btn_style), 
-                         "next section")
-                  )
-                ), 
-                column(3, style = "padding:0px;",
-                  tipify(actionButton("next_file", "", 
-                                      icon  = icon("arrow-right"), 
-                                      style = file_btn_style), 
-                         "Next File")
-                )
-                ),
-          fluidRow(style = btn_row_style,
-                   actionButton("plt_reset", "Reset Plot", 
-                                style = file_btn_style)
-                   )
+          fixedRow(style = btn_row_style,
+            uiOutput("filemove_ui"),
+            fluidRow(style = btn_row_style,
+                     actionButton("plt_reset", "Reset Plot", 
+                                  style = file_btn_style)
             )
+          )
             })
         )
         }),
@@ -432,6 +402,7 @@ server <- function(input, output, session) {
   length_ylabs   <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab    <- reactiveValues(rows = NULL, data = NULL)
   plots_open     <- reactiveValues(osc  = TRUE, spec = TRUE)
+  x_coords       <- reactiveVal(NULL)
   segment_num    <- reactiveVal(1)
   segment_total  <- reactiveVal(1)
   segment_end_s  <- reactiveVal(1)
@@ -555,6 +526,52 @@ server <- function(input, output, session) {
       return(NULL)
     else
       return(lab_df)
+  })
+  
+  output$filemove_ui <- renderUI({
+    if(.is_null(input$file1)){
+      go_button <- actionButton("start_labelling", "Start Labelling!",
+                                class = "btn-success",
+                                style = "width: 100%"
+                                )
+      return(go_button)
+    }
+    div(column(3, style = "padding:0px;",
+              tipify(
+                actionButton("prev_file", "", 
+                                      icon  = icon("arrow-left"), 
+                                      style = file_btn_style),
+                "Previous File"
+              ),
+   ), 
+   column(3, style = "padding:0px;",
+          tipify(
+            actionButton("prev_section", "", 
+                                  icon  = icon("chevron-left"), 
+                                  style = file_btn_style),
+            "previous section"
+            )
+   ), 
+   column(3, style = "padding:0px;",
+          tipify(
+            actionButton("next_section", "", 
+                                  icon  = icon("chevron-right"), 
+                                  style = file_btn_style),
+            "next section"
+            )
+   ), 
+   column(3, style = "padding:0px;",
+          tipify(actionButton("next_file", "", 
+                              icon  = icon("arrow-right"), 
+                              style = file_btn_style), 
+                 "Next File")
+          )
+   )
+  })
+  
+  observeEvent(input$start_labelling, {
+    updateSelectInput(inputId  = "file1",
+                      selected = file_list[1])
   })
   
   output$label_ui <- renderUI({
@@ -699,24 +716,26 @@ server <- function(input, output, session) {
     len_s <- length(tmp_audio)/tmp_audio@samp.rate
     segment_end_s(len_s)
     if(len_s > 15){
-      time_seq  <- seq(from=0,to=len_s, by=15)
+      time_seq  <- seq(from = 0, to = len_s, by = 15)
       tc        <- time_seq[segment_num()]
       segment_start(tc)
       segment_total(length(time_seq))
       tmp_audio <- extractWave(tmp_audio, from = tc, to = tc+15, xunit = "time")
+      x_coords(c(tc, tc + 15))
       if(length(tmp_audio) < 15*tmp_audio@samp.rate)
         tmp_audio@left <- c(tmp_audio@left, rep(1, 15*tmp_audio@samp.rate-length(tmp_audio)))
-      if(segment_num() == 1)
-        disable("prev_section")
-      else 
-        enable("prev_section")
-      if(segment_num() == length(time_seq))
-        disable("next_section")
-      else
-        enable("next_section")
+      #if(segment_num() == 1)
+      #  disable("prev_section")
+      #else 
+      #  enable("prev_section")
+      #if(segment_num() == length(time_seq))
+      #  disable("next_section")
+      #else
+      #  enable("next_section")
     } else {
-      disable("prev_section")
-      disable("next_section")
+      #disable("prev_section")
+      #disable("next_section")
+      x_coords(NULL)
     }
     
     writeWave(tmp_audio, 'www/tmp.wav')
@@ -893,11 +912,13 @@ server <- function(input, output, session) {
     #       height = height*pixelratio, 
     #       width  = width*pixelratio,
     #       units  = "px")
-    
+    if(!is.null(x_coords()))
+      p <- p + coord_cartesian(xlim = x_coords(),
+                               expand = FALSE)
     if(!is.null(dc_ranges_spec$y))
       p <- p + coord_cartesian(ylim = dc_ranges_spec$y,
                                xlim = dc_ranges_spec$x,
-                               expand = FALSE)
+                               expand = FALSE, default = TRUE)
     
     return(p)
   })
@@ -1430,10 +1451,10 @@ server <- function(input, output, session) {
     else {
       updateSelectInput(inputId  = "file1",
                         selected = file_list[idx])
-      if(idx == 1)
-        disable("prev_file")
-      if(idx == length(file_list)-1)
-        enable("next_file")
+      #if(idx == 1)
+      #  disable("prev_file")
+      #if(idx == length(file_list)-1)
+      #  enable("next_file")
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
@@ -1447,22 +1468,17 @@ server <- function(input, output, session) {
   
   # move to next file (resetting zoom)
   observeEvent(input$next_file, {
-    if(.is_null(input$file1))
-      updateSelectInput(inputId  = "file1",
-                        selected = file_list[1])
+    idx <- which(input$file1 == file_list) + 1
+    if(idx > length(file_list))
+      showNotification("Cannot go to next file, at end of folder", 
+                       type = "error")
     else {
-      idx <- which(input$file1 == file_list) + 1
-      if(idx > length(file_list))
-        showNotification("Cannot go to next file, at end of folder", 
-                         type = "error")
-      else {
-        updateSelectInput(inputId  = "file1",
-                          selected = file_list[idx])
-        if(idx == 2)
-          enable("prev_file")
-        if(idx == length(file_list))
-          disable("next_file")
-      }
+      updateSelectInput(inputId  = "file1",
+                        selected = file_list[idx])
+      #if(idx == 2)
+      #  enable("prev_file")
+      #if(idx == length(file_list))
+      #  disable("next_file")
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
