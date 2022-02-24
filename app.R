@@ -574,7 +574,9 @@ server <- function(input, output, session) {
   labelsData <- reactive({
     lab_df <- fullData()
     lab_df <- lab_df[lab_df$file_name == input$file1,]
-    if(nrow(lab_df)==0)
+    if(is.null(lab_df))
+      return(NULL)
+    else if(nrow(lab_df)==0)
       return(NULL)
     else
       return(lab_df)
