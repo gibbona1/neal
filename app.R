@@ -781,6 +781,7 @@ server <- function(input, output, session) {
         tc <- ranges_osc$x
       if(!is.null(ranges_spec$x))
         tc <- ranges_spec$x
+      tc <- sort(tc) - segment_start()
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], 
                                xunit = "time")
     } else if(!is.null(dc_ranges_osc$x) | !is.null(dc_ranges_spec$x)){
@@ -789,6 +790,7 @@ server <- function(input, output, session) {
         tc <- dc_ranges_osc$x
       if(!is.null(dc_ranges_spec$x))
         tc <- dc_ranges_spec$x
+      tc <- sort(tc) - segment_start()
       tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], 
                                xunit = "time")
     }
