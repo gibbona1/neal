@@ -960,6 +960,8 @@ server <- function(input, output, session) {
       return(spec_plot)
     else
       if(input$spec_labs){
+        lab_df <- lab_df %>% 
+          filter(between(start_time, segment_start(), segment_start()+15))
         spec_plot <- spec_plot +
           geom_rect(data = lab_df, 
                     mapping = aes(xmin = start_time,
