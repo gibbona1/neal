@@ -15,6 +15,7 @@ library(viridis)
 #library(grid)
 #library(gridExtra)
 #library(cowplot) # to get legend
+#library(reactlog) # view all connections for reactive objects
 library(profvis) # for checking code performance
 library(dplyr)
 library(stringr)
@@ -24,7 +25,6 @@ source('plot_helpers.R')
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
 #TODO: Save list of added species as col in species csv (or append to a column) 
-#TODO: (notification with label colour)
 #TODO: Label hover click option instead
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights the label (option to play it)
@@ -258,9 +258,12 @@ ui_func <- function() {
       #One row of audio settings
       fluidRow({
         div(
-        column(4,{
-          uiOutput("freq_ui")
-               }),
+        column(4,
+        br(),
+        actionButton("save_points", 
+                     HTML("<b>Save Selection</b>"), 
+                     style = "width: 100%;")
+        ),
         column(4,{
                div(
                  uiOutput('audio_title'),
@@ -362,9 +365,9 @@ ui_func <- function() {
             #TODO: Other info to label/record -
             ## altitude of recorder (check if in metadata)
             fluidRow(style = btn_row_style,
-              actionButton("save_points", 
-                           HTML("<b>Save Selection</b>"), 
-                           style = "width: 60%;"),
+              disabled(actionButton("save_extra", 
+                           HTML("<b>Save to List</b>"), 
+                           style = "width: 60%;")),
               actionButton("remove_points", 
                            HTML("<b>Delete Selection</b>"), 
                            style = "width: 60%;"),
@@ -378,12 +381,14 @@ ui_func <- function() {
       #more
       fluidRow({
         div(
-          column(6, 
+          column(4, 
                  textAreaInput("notes", "Additional Notes:", width = "100%")
           ),
-          column(4, offset = 2,
-                 sliderInput("label_confidence", "Label Confidence:", 
-                             width = "100%",
+          column(4,
+                 uiOutput("freq_ui")
+          ),
+          column(4,
+                 sliderInput("label_confidence", "Label Confidence:",
                              min   = 0,
                              max   = 1,
                              step  = 0.05,
@@ -1550,9 +1555,6 @@ server <- function(input, output, session) {
 #profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
 
 shinyApp(ui_func(), server)
-
-
-#library(reactlog)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
