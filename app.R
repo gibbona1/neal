@@ -485,7 +485,7 @@ server <- function(input, output, session) {
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
   
-  get_entries <- function(x) return(x[x != ""])
+  get_entries <- function(x) return(as.vector(x[x != ""]))
   
   reset_ranges <- function(x_list){
     for(nm in names(x_list))
@@ -519,7 +519,7 @@ server <- function(input, output, session) {
                                   rep("red", length(categories$xtra))),
                          category = class_label())
     merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
-    return(merge_df$type)
+    return(as.vector(merge_df$type))
   }
   
   categories <- reactiveValues(
