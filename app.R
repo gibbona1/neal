@@ -1554,6 +1554,9 @@ server <- function(input, output, session) {
 
 #profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
 
+#auth0::use_auth0()
+#usethis::edit_r_environ()
+#auth0::shinyAppAuth0(ui_func(), server)
 shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
