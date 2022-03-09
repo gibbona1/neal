@@ -1321,6 +1321,12 @@ server <- function(input, output, session) {
     #get x and y coordinates with max and min of brushedPoints()
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
+    
+    auth0_session <- session$userData$auth0_info
+    if(is.null(auth0_session))
+      labeler <- Sys.info()[["user"]]
+    else 
+      labeler <- auth0_session$name
     if(!is.null(input$specplot_brush)) {
       if(is.null(input$call_type))
         call_type <- "<NULL>"
@@ -1337,7 +1343,7 @@ server <- function(input, output, session) {
                            call_type   = call_type,
                            confidence  = input$label_confidence,
                            notes       = input$notes,
-                           labeler     = Sys.info()[["user"]])
+                           labeler     = labeler)
       
       full_df <- fullData()
       if(!is.null(full_df)){
@@ -1554,10 +1560,11 @@ server <- function(input, output, session) {
 
 #profvis(runApp(), prof_output = file.path(getwd(),'profiling'))
 
-#auth0::use_auth0()
+#auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
-#auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+#options(shiny.port = 8080)
+auth0::shinyAppAuth0(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
