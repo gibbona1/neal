@@ -61,16 +61,21 @@ btn_sel_style  <- "display:inline-block;
                    padding-left: 1%; 
                    width: 100%;"
 file_btn_style <- 'padding:1%; width:100%;'
+header_btn_style <- "padding-top: 5%;
+                     padding-bottom: 5%; 
+                     vertical-align: center;"
 
 ui_func <- function() {
     header <- {dashboardHeader(
       title = "Audio Labeler App",
       tags$li(class = "dropdown",
               tags$li(class = "dropdown", uiOutput("start_ui"), 
-                      style = "padding-top: 5%; 
-                               padding-bottom: 5%; 
-                               vertical-align: center;")
+                      style = header_btn_style)
               ),
+      tags$li(class = "dropdown",
+              tags$li(class = "dropdown", auth0::logoutButton(),
+                      style = header_btn_style)
+      ),
       dropdownMenu(
         type = "notifications", 
         icon = icon("question-circle"),
@@ -400,6 +405,7 @@ ui_func <- function() {
         )
       })
     )}
+    
   ui <- dashboardPage(
     header,
     sidebar,
