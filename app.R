@@ -62,7 +62,7 @@ btn_sel_style  <- "display:inline-block;
                    width: 100%;"
 file_btn_style <- 'padding:1%; width:100%;'
 header_btn_style <- "padding-top: 5%;
-                     padding-bottom: 5%; 
+                     padding-bottom: 0%; 
                      vertical-align: center;"
 
 ui_func <- function() {
