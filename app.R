@@ -35,6 +35,7 @@ source('plot_helpers.R')
 #countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
 #TODO: gridExtra blank plot with correct axes, paste spec as image (not raster)
+#TODO: Plot resolution should depend on the zoom size
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -157,7 +158,7 @@ ui_func <- function() {
         numericInput('fft_overlap', 'FFT Overlap (%)', 
                      value = 75, min = 0, max = 99, step = 1),
         numericInput('window_width_disp', 'Window Size for display spectrogram', 
-                     value = 1024),
+                     value = 4096),
         numericInput('fft_overlap_disp', 'FFT Overlap for display spectrogram', 
                      value = 15, min = 0, max = 99, step = 1)
       ),
@@ -871,9 +872,15 @@ server <- function(input, output, session) {
                        Rows    = 1,
                        Columns = 2)
     
+    wl <- input$window_width_disp
+    if(!is.null(dc_ranges_spec$x)){
+      wl <- as.integer(wl/10) 
+      wl <- wl - wl %% 2
+    }
+    
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
-                    wl       = input$window_width_disp, 
+                    wl       = wl, 
                     ovlp     = input$fft_overlap_disp, 
                     plot     = FALSE,
                     noisereduction = noisered)
