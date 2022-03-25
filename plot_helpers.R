@@ -29,7 +29,8 @@ hot_theme_grid <- theme(panel.grid.major.y = element_line(color = "black", linet
                         legend.position    = 'none',
                         plot.background    = element_rect(fill = "black"),
                         plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
-                        axis.title         = element_blank(),
+                        axis.title.y       = element_blank(),
+                        axis.title.x       = element_text(size=10, color = "lightgrey", family = "mono"), 
                         axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
                         axis.text.x        = element_text(size = 14, color = "grey", family = "mono"),
                         axis.ticks         = element_line(color = "grey"))

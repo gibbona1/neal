@@ -521,12 +521,12 @@ server <- function(input, output, session) {
   }
   
   cat_colours <- function(x){
-    cat_df <- data.frame(type = c(rep("green", length(categories$base)),
+    cat_df <- data.frame(typecol = c(rep("green", length(categories$base)),
                                   rep("orange", length(categories$misc)),
                                   rep("red", length(categories$xtra))),
                          category = class_label())
     merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
-    return(as.vector(merge_df$type))
+    return(merge_df)
   }
   
   categories <- reactiveValues(
@@ -586,6 +586,7 @@ server <- function(input, output, session) {
   labelsData <- reactive({
     lab_df <- fullData()
     lab_df <- lab_df[lab_df$file_name == input$file1,]
+    lab_df <- cat_colours(lab_df)
     if(is.null(lab_df))
       return(NULL)
     else if(nrow(lab_df)==0)
@@ -986,14 +987,14 @@ server <- function(input, output, session) {
                                   xmax = end_time,
                                   ymin = start_freq, 
                                   ymax = end_freq),
-                    colour = cat_colours(lab_df),
+                    colour = lab_df$typecol,
                     fill   = "lightgrey",
                     alpha  = 0.15) +
           geom_label(data = lab_df,
                      aes(x     = start_time,
                          y     = end_freq,
                          label = class_label),
-                     colour = cat_colours(lab_df),
+                     colour = lab_df$typecol,
                      label.r = unit(0, units="lines"),
                      label.size = 0.5,
                      hjust  = 0,
@@ -1357,6 +1358,7 @@ server <- function(input, output, session) {
                            confidence  = input$label_confidence,
                            notes       = input$notes,
                            labeler     = labeler)
+      typecol <- cat_colours(lab_df)$typecol
       
       full_df <- fullData()
       if(!is.null(full_df)){
@@ -1367,7 +1369,7 @@ server <- function(input, output, session) {
         fullData(lab_df)
       }
       showNotification(HTML(paste0('Label ', '<span style="color: ', 
-                                   cat_colours(lab_df), ';"><b>', 
+                                   typecol, ';"><b>', 
                                    input$label_points, 
                                    '</b></span> successfully saved!')), 
                        type = "message")
@@ -1576,8 +1578,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 #options(shiny.port = 8080)
-auth0::shinyAppAuth0(ui_func(), server)
-#shinyApp(ui_func(), server)
+#auth0::shinyAppAuth0(ui_func(), server)
+shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
