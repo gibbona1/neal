@@ -25,7 +25,7 @@ source('plot_helpers.R')
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
 #TODO: Save list of added species as col in species csv (or append to a column) 
-#TODO: Label hover click option instead
+#TODO: Ability to click Label boxes and see info/play sound
 #TODO: Show details of saved labels in list in a sidebar
 #TODO: On clicking label in sidebar, highlights the label (option to play it)
 #TODO: Unit tests (especially for plots)
@@ -35,7 +35,6 @@ source('plot_helpers.R')
 #countryside-bird-survey/cbs-bird-songs-and-calls/)
 #TODO: Mel scale
 #TODO: gridExtra blank plot with correct axes, paste spec as image (not raster)
-#TODO: Plot resolution should depend on the zoom size
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
@@ -122,7 +121,9 @@ ui_func <- function() {
                  max   = 96,
                  value = 0,
                  ticks = FALSE
-               )
+               ),
+        numericInput('t_step', 'Audio length (in window)', 
+                     value = 15, min = 10, max = 60, step = 1)
       ),
       menuItem("Spectrogram Settings", 
                tabName = "spec_menu", 
@@ -756,15 +757,16 @@ server <- function(input, output, session) {
     
     len_s <- length(tmp_audio)/tmp_audio@samp.rate
     segment_end_s(len_s)
-    if(len_s > 15){
-      time_seq  <- seq(from = 0, to = len_s, by = 15)
+    t_step <- input$t_step
+    if(len_s > t_step){
+      time_seq  <- seq(from = 0, to = len_s, by = t_step)
       tc        <- time_seq[segment_num()]
       segment_start(tc)
       segment_total(length(time_seq))
-      tmp_audio <- extractWave(tmp_audio, from = tc, to = tc+15, xunit = "time")
-      x_coords(c(tc, tc + 15))
-      if(length(tmp_audio) < 15*tmp_audio@samp.rate)
-        tmp_audio@left <- c(tmp_audio@left, rep(1, 15*tmp_audio@samp.rate-length(tmp_audio)))
+      tmp_audio <- extractWave(tmp_audio, from = tc, to = tc+t_step, xunit = "time")
+      x_coords(c(tc, tc + t_step))
+      if(length(tmp_audio) < t_step*tmp_audio@samp.rate)
+        tmp_audio@left <- c(tmp_audio@left, rep(1, t_step*tmp_audio@samp.rate-length(tmp_audio)))
       if(segment_num() == 1)
         disable("prev_section")
       else 
@@ -950,7 +952,7 @@ server <- function(input, output, session) {
     p <- plot_spectrogram(specData(), input, length_ylabs, dc_ranges_spec)
     
     #if(!is.null(input$file1))
-    #  spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
+    #  spec_name_raw <- gsub('.wav', '_spec_raw.png', input$file1)
     #else
     #  spec_name_raw <- 'blank_spec_raw.png'
     #file_nm <- file.path(getwd(), "images", spec_name_raw)
@@ -982,7 +984,7 @@ server <- function(input, output, session) {
     else
       if(input$spec_labs){
         lab_df <- lab_df %>% 
-          filter(between(start_time, segment_start(), segment_start()+15))
+          filter(between(start_time, segment_start(), segment_start()+input$t_step))
         spec_plot <- spec_plot +
           geom_rect(data = lab_df, 
                     mapping = aes(xmin = start_time,
@@ -1018,7 +1020,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$savespec, {
     if(!.is_null(input$file1))
-      spec_name <- paste0(gsub('.wav', '', input$file1), '_spec.png')
+      spec_name <- gsub('.wav', '_spec.png', input$file1)
     else
       spec_name <- 'blank_spec.png'
     file_nm <- file.path(getwd(), "images", spec_name)
@@ -1104,7 +1106,7 @@ server <- function(input, output, session) {
         p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE)
       else if(!is.null(dc_ranges_osc$x))
         p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE)
-     osc_name <- paste0(gsub('.wav', '', input$file1), '_osc.png')
+     osc_name <- gsub('.wav', '_osc.png', input$file1)
     } else 
       osc_name <- 'blank_osc.png'
     observeEvent(input$saveosc, {
