@@ -873,11 +873,13 @@ server <- function(input, output, session) {
                        Rows    = 1,
                        Columns = 2)
     
-    wl <- input$window_width_disp
+    wl <- as.integer(length(tmp_audio)/100) #input$window_width_disp
     if(!is.null(dc_ranges_spec$x)){
-      wl <- as.integer(wl/10) 
-      wl <- wl - wl %% 2
+      xr <- dc_ranges_spec$x
+      wl <- as.integer(tmp_audio@samp.rate*(xr[2]-xr[1])/100)
+      #wl <- as.integer(wl/10) 
     }
+    wl <- wl - wl %% 2
     
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
