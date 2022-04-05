@@ -1,7 +1,7 @@
 name: audio_labeller
-remote_url: ''
+remote_url: https://gibbona1.shinyapps.io/audio_labeller/
 auth0_config:
-  api_url: !expr paste0('https://', Sys.getenv("AUTH0_USER"), '.auth0.com')
+  api_url: https://dev-pr9xgo6y.us.auth0.com
   credentials:
-    key: !expr Sys.getenv("AUTH0_KEY")
-    secret: !expr Sys.getenv("AUTH0_SECRET")
+    key: oQX4nWzo4nv6TmUXD2QvBgYIJWk9wlAk
+    secret: 5l_75GSrF3Nm3VFvqNKd2WS_Vk67615QeUfzHRBsw5wyaQg00dOQ_UILmQtEH9WF

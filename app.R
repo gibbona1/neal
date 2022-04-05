@@ -1581,9 +1581,9 @@ server <- function(input, output, session) {
 
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
-#options(shiny.port = 8080)
-#auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+options(shiny.port = 8080)
+auth0::shinyAppAuth0(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()

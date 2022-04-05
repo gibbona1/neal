@@ -1,0 +1,13 @@
+name: audio_labeller
+title: audio_labeller
+username:
+account: gibbona1
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6019383
+bundleId: 5767111
+url: https://gibbona1.shinyapps.io/audio_labeller/
+when: 1649175167.21397
+lastSyncTime: 1649175167.21397
+asMultiple: FALSE
+asStatic: FALSE
