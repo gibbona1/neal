@@ -174,7 +174,8 @@ ui_func <- function() {
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
-                     value = 5, min = 1, max = 9, step = 1)
+                     value = 5, min = 1, max = 9, step = 1),
+        downloadButton("downloadData", "Download Labels")
       )
       ),
       #Options for sidebar
@@ -1503,6 +1504,15 @@ server <- function(input, output, session) {
     shinyjs::toggle(id  = "oscplot_blank",
                     condition = !plots_open$osc)
   })
+  
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste0("data-", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(fullData(), file)
+    }
+  )
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
