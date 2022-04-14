@@ -403,7 +403,8 @@ ui_func <- function() {
                              max   = 1,
                              step  = 0.05,
                              value = 1,
-                             ticks = FALSE),
+                             ticks = FALSE,
+                             width = "100%"),
                  div(div(style='float:left;', 'low'), 
                      div(style='float:right;', 'high')),
           )
@@ -732,7 +733,8 @@ server <- function(input, output, session) {
         max   = freq_range[2],
         step  = 0.2,
         value = freq_range,
-        ticks = FALSE
+        ticks = FALSE,
+        width = "100%"
       ))
   })
   
