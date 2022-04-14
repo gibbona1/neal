@@ -268,10 +268,10 @@ ui_func <- function() {
       fluidRow({
         div(
         column(4,
-        br(),
+        #br(),
         actionButton("save_points", 
-                     HTML("<b>Save Selection</b>"), 
-                     style = "width: 100%;"),
+                     HTML("<b>Save Selection</b>"), icon("vector-square"),
+                     style = "width: 100%; background-color: #fff491;"),
         uiOutput("meta_text")
         ),
         column(4,{
@@ -1484,7 +1484,9 @@ server <- function(input, output, session) {
       #latlong <- c(52.208330, -6.594489)
       dt <- get_audio_dt(input$file1)
       div(#HTML(base),
-        bsCollapse(id = "collapseExample", open = "Panel 2",
+        tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
+        tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
+        bsCollapse(id = "collapseExample",
                    bsCollapsePanel("Meta Information", 
                                    #HTML("<b>filename: </b>"), input$file1, br(),
                                    HTML("<b>time recorded: </b>"), as.character(dt), br(),

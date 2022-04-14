@@ -13,7 +13,6 @@ get_gmap_link <- function(latlong){
 
 dd2dms <- function(x, c = 'lat'){
   #https://gis.stackexchange.com/questions/10703/seeking-tool-to-convert-dd-to-dms/10729
-  
   y <- abs(x)     # Work with positive values only.
   d <- floor(y)   # Whole degrees.  Floor() is ok too.
   z <- 60*(y - d) # The fractional degrees, converted to minutes.
@@ -21,15 +20,15 @@ dd2dms <- function(x, c = 'lat'){
   s <- 60*(z - m) # The fractional minutes, converted to seconds.
   
   if(c == "lat")
-    if(sign(x) == -1)
+    if(x < 0)
       hemisphere <- "S" 
     else 
       hemisphere <- "N"
   else #c is a longitude
-    if(sign(x) == -1) 
-      hemisphere = "W" 
+    if(x < 0) 
+      hemisphere <- "W" 
     else 
-      hemisphere = "E"
+      hemisphere <- "E"
   res <- paste0(d, '\u00B0', m,'\'', s,'"', hemisphere)
   return(res)
 }
