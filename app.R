@@ -21,6 +21,7 @@ library(dplyr)
 library(stringr)
 
 source('plot_helpers.R')
+source('audio_meta.R')
 
 #TODO: navbarPage() to have distinct pages: label, verify/check, run model
 #from https://shiny.rstudio.com/articles/layout-guide.html
@@ -270,7 +271,8 @@ ui_func <- function() {
         br(),
         actionButton("save_points", 
                      HTML("<b>Save Selection</b>"), 
-                     style = "width: 100%;")
+                     style = "width: 100%;"),
+        uiOutput("meta_text")
         ),
         column(4,{
                div(
@@ -1477,6 +1479,24 @@ server <- function(input, output, session) {
     HTML(base)
   })
   
+  output$meta_text <- renderUI({
+    if(!is.null(audioInput())){
+      #latlong <- c(52.208330, -6.594489)
+      dt <- get_audio_dt(input$file1)
+      div(#HTML(base),
+        bsCollapse(id = "collapseExample", open = "Panel 2",
+                   bsCollapsePanel("Meta Information", 
+                                   #HTML("<b>filename: </b>"), input$file1, br(),
+                                   HTML("<b>time recorded: </b>"), as.character(dt), br(),
+                                   #HTML("<b>Location: </b>"),
+                                   #paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
+                                   #get_gmap_link(latlong),
+                                   style = "info")
+        ))
+    } else
+      return(NULL)
+  })
+  
   output$audio_time <- renderPrint({
     if(.is_null(input$file1))
       return("<NULL>")
@@ -1592,8 +1612,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-auth0::shinyAppAuth0(ui_func(), server)
-#shinyApp(ui_func(), server)
+#auth0::shinyAppAuth0(ui_func(), server)
+shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
