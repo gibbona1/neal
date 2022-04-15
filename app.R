@@ -176,7 +176,7 @@ ui_func <- function() {
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
                      value = 5, min = 1, max = 9, step = 1),
-        downloadButton("downloadData", "Download Labels")
+        disabled(downloadButton("downloadData", "Download Labels"))
       )
       ),
       #Options for sidebar
@@ -1553,6 +1553,17 @@ server <- function(input, output, session) {
       write.csv(fullData(), file)
     }
   )
+  
+  # only let me download labels
+  observe({
+    auth0_session <- session$userData$auth0_info
+    if(is.null(auth0_session))
+      labeler <- Sys.info()[["user"]]
+    else 
+      labeler <- auth0_session$name
+    if(labeler == "anthony.gibbons.2022@mumail.ie")
+      enable("downloadData")
+  })
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {

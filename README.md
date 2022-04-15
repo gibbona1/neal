@@ -5,7 +5,7 @@ TODOs:
   - [ ] Make sure instructions say hot wo zoom in/out
 - [ ] Get ~1 hour of files in 4/5 folders
 - [ ] Default logged in users to their folder, if guest or cant find folder, use tmp folder
-- [ ] Only I can use download labels button (admin)
+- [x] Only I can use download labels button (admin)
 - [ ] Display metadata
   - [x] Collapsible panel under play audio
   - [x] Basic collapsible panel with formatted time display
@@ -19,7 +19,7 @@ TODOs:
 - [ ] Otherwise:
   - [ ] Scroll bar instead
   - [ ] If you haven't scrolled through all (or most of) the way right when clicking `next file`, give warning notification
-- [ ] Label name should always be visible if box is on screen (not just top left)
+- [x] Label name should always be visible if box is on screen (not just top left)
 - [ ] `<NULL>` option shouldn't be visible in call type, file select etc
 - [x] Change colour of save selection button
 - [x] Any box with a label not in list doesn't show
