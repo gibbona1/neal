@@ -526,10 +526,14 @@ server <- function(input, output, session) {
   }
   
   cat_colours <- function(x){
-    cat_df <- data.frame(typecol = c(rep("green", length(categories$base)),
-                                  rep("orange", length(categories$misc)),
-                                  rep("red", length(categories$xtra))),
-                         category = class_label())
+    other_c <- unique(unlist(species_list))
+    other_c <- other_c[other_c != "" & !(other_c %in% class_label())]
+    other_c <- c(other_c, x$class_label[!x$class_label %in% class_label()])
+    cat_df  <- data.frame(typecol = c(rep("green", length(categories$base)),
+                                      rep("orange", length(categories$misc)),
+                                      rep("cyan", length(categories$xtra)),
+                                      rep("grey", length(other_c))),
+                          category = c(class_label(), other_c))
     merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
     return(merge_df)
   }
@@ -621,9 +625,9 @@ server <- function(input, output, session) {
   })
   
   output$label_ui <- renderUI({
-    base_cols    <- c('darkgreen', 'green')
-    misc_cols    <- c('yellow', 'orange')
-    extra_cols   <- c('darkred', 'red')
+    base_cols  <- c('darkgreen', 'green')
+    misc_cols  <- c('yellow', 'orange')
+    extra_cols <- c('cyan4', 'cyan')
     cbase  <- categories$base
     cmisc  <- categories$misc
     cextra <- categories$xtra
