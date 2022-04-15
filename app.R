@@ -994,6 +994,18 @@ server <- function(input, output, session) {
       if(input$spec_labs){
         lab_df <- lab_df %>% 
           filter(between(start_time, segment_start(), segment_start()+input$t_step))
+        if(!is.null(dc_ranges_spec$x)){
+          lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2],]
+          lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
+          lab_df$end_freq_crop   <- sapply(lab_df$end_freq, function(y) min(y, dc_ranges_spec$y[2]))
+          hj <- 0
+          vj <- 1
+        } else {
+          lab_df$start_time_crop <- lab_df$start_time
+          lab_df$end_freq_crop   <- lab_df$end_freq
+          hj <- 0
+          vj <- 0
+        }
         spec_plot <- spec_plot +
           geom_rect(data = lab_df, 
                     mapping = aes(xmin = start_time,
@@ -1004,23 +1016,23 @@ server <- function(input, output, session) {
                     fill   = "lightgrey",
                     alpha  = 0.15) +
           geom_label(data = lab_df,
-                     aes(x     = start_time,
-                         y     = end_freq,
+                     aes(x     = start_time_crop,
+                         y     = end_freq_crop,
                          label = class_label),
-                     colour = lab_df$typecol,
+                     colour  = lab_df$typecol,
                      label.r = unit(0, units="lines"),
                      label.size = 0.5,
-                     hjust  = 0,
-                     vjust  = 0
+                     hjust  = hj,
+                     vjust  = vj
                      ) +
           geom_label(data = lab_df,
-                    aes(x     = start_time,
-                        y     = end_freq,
+                    aes(x     = start_time_crop,
+                        y     = end_freq_crop,
                         label = class_label),
                     label.r = unit(0, units="lines"),
                     label.size = 0,
-                    hjust  = 0,
-                    vjust  = 0,
+                    hjust  = hj,
+                    vjust  = vj,
                     alpha  = 0,
                     colour = "black")
       }
