@@ -2,7 +2,7 @@
 
 TODOs:
 - [ ] Instruction pdf to have open in adjacent tab
-  - [ ] Make sure instructions say hot wo zoom in/out
+  - [ ] Make sure instructions say how to zoom in/out
 - [ ] Get ~1 hour of files in 4/5 folders
 - [ ] Default logged in users to their folder, if guest or cant find folder, use tmp folder
 - [x] Only I can use download labels button (admin)
@@ -25,4 +25,5 @@ TODOs:
 - [x] Any box with a label not in list doesn't show
 - [x] Extra button border colour light blue
 - [ ] N+E Logo on login page
-- [ ] Empty space "header" above save selection
+- [x] Empty space "header" above save selection
+- [ ] Reset button (sidebar, body, etc) to put all inputs back to default
