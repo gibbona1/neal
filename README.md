@@ -27,7 +27,7 @@ TODOs:
 - [x] Change colour of save selection button
 - [x] Any box with a label not in list doesn't show
 - [x] Extra button border colour light blue
-- [ ] N+E Logo on login page
+- [x] N+E Logo on login page (in branding tab of Auth0)
 - [x] Empty space "header" above save selection
 - [ ] Reset button (sidebar, body, etc) to put all inputs back to default
 - [ ] Interactive bounding boxes:
