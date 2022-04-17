@@ -97,8 +97,9 @@ ui_func <- function() {
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
         #File/Folder selection
         shinyDirButton('folder',
-                       label    = 'Folder select',
-                       title    = 'Please select a folder'),
+                       label = 'Folder select',
+                       title = 'Please select a folder',
+                       icon  = icon('folder')),
         verbatimTextOutput("folder", placeholder = TRUE),
         selectInput(
           "file1",
@@ -152,7 +153,7 @@ ui_func <- function() {
                  ticks = FALSE
                ),
         checkboxInput("palette_invert", "Invert color palette"),
-        actionButton("savespec", "Save Spectrogram"),
+        actionButton("savespec", "Save Spectrogram", icon = icon('save')),
         checkboxInput("include_hover", "Include spectrogram hover tooltip", 
                       value = TRUE),
         checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
@@ -170,7 +171,7 @@ ui_func <- function() {
       ),
       menuItem("Oscillogram Settings", 
                tabName = "osc_menu", icon = icon('chart-line'),
-        actionButton("saveosc", "Save Oscilloogram"),
+        actionButton("saveosc", "Save Oscilloogram", icon = icon('save')),
         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", 
                       value = FALSE),
         checkboxInput("osc_labs", "Show oscillogram labels"),

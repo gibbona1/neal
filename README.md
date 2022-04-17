@@ -37,6 +37,6 @@ TODOs:
   - [ ] editing label and other info
   - [ ] 
 - [x] Display logged in username in header
-- [ ] More icons for buttons:
+- [x] More icons for buttons:
   - [x] Body
-  - [ ] Sidebar
+  - [x] Sidebar
