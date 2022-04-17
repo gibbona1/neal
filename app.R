@@ -69,20 +69,24 @@ header_btn_style <- "padding-top: 5%;
 ui_func <- function() {
     header <- {dashboardHeader(
       title = "Audio Labeler App",
+      tags$li(
+        class = "dropdown",
+        a(uiOutput("user_ui")
+        )
+      ),
       tags$li(class = "dropdown",
-              tags$li(class = "dropdown", uiOutput("start_ui"), 
-                      style = header_btn_style)
+              uiOutput("start_ui"),
+              style = header_btn_style
               ),
       tags$li(class = "dropdown",
-              tags$li(class = "dropdown", auth0::logoutButton(),
-                      style = header_btn_style)
+              auth0::logoutButton(),
+              style = header_btn_style
       ),
       dropdownMenu(
         type = "notifications", 
         icon = icon("question-circle"),
         badgeStatus = NULL,
         headerText  = "Links:",
-        
         notificationItem("GitHub", icon = icon("github"), status = "info",
                          href = "https://github.com/gibbona1/audio_labeler")
       )
@@ -612,6 +616,14 @@ server <- function(input, output, session) {
       actionButton("end_labelling", "End Labelling",
                    class = "btn-danger")
       
+  })
+  
+  output$user_ui <- renderUI({
+    auth0_session <- session$userData$auth0_info
+    if(!is.null(auth0_session))
+      return(auth0_session$name)
+    else 
+      return(Sys.info()[["user"]])
   })
   
   observeEvent(input$start_labelling, {

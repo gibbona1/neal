@@ -1,12 +1,13 @@
 # audio_labeler
 
 TODOs:
-- [ ] Instruction pdf to have open in adjacent tab
+- [ ] Instruction pdf:
+  - [ ] Open in adjacent tab
   - [ ] Make sure instructions say how to zoom in/out
 - [ ] Get ~1 hour of files in 4/5 folders
 - [ ] Default logged in users to their folder, if guest or cant find folder, use tmp folder
 - [x] Only I can use download labels button (admin)
-- [ ] Display metadata
+- [ ] Display metadata:
   - [x] Collapsible panel under play audio
   - [x] Basic collapsible panel with formatted time display
   - [ ] Get location from recorder text files
@@ -27,3 +28,11 @@ TODOs:
 - [ ] N+E Logo on login page
 - [x] Empty space "header" above save selection
 - [ ] Reset button (sidebar, body, etc) to put all inputs back to default
+- [ ] Interactive bounding boxes:
+  - [ ] resizable
+  - [ ] moveable
+  - [ ] copy/paste-able
+  - [ ] editing label and other info
+  - [ ] 
+- [x] Display logged in username in header
+- [ ] More icons for buttons
