@@ -6,9 +6,9 @@ TODOs:
   - [ ] Make sure instructions say how to zoom in/out
 - [ ] Get ~1 hour of files in 4/5 folders
 - [ ] Default logged in users to their folder, if guest or cant find folder, use tmp folder
-- [ ] Download labels button:
+- [x] Download labels button:
   - [x] Only I can download all labels (admin)
-  - [ ] Other users can download their own
+  - [x] Other users can download their own
 - [ ] Display metadata:
   - [x] Collapsible panel under play audio
   - [x] Basic collapsible panel with formatted time display

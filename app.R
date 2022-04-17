@@ -62,8 +62,7 @@ btn_sel_style  <- "display:inline-block;
                    padding-left: 1%; 
                    width: 100%;"
 file_btn_style <- 'padding:1%; width:100%;'
-header_btn_style <- "padding-top: 5%;
-                     padding-bottom: 0%; 
+header_btn_style <- "padding: 0%;
                      vertical-align: center;"
 
 ui_func <- function() {
@@ -181,7 +180,7 @@ ui_func <- function() {
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
                      value = 5, min = 1, max = 9, step = 1),
-        disabled(downloadButton("downloadData", "Download Labels"))
+        downloadButton("downloadData", "Download Labels")
       )
       ),
       #Options for sidebar
@@ -394,7 +393,7 @@ ui_func <- function() {
                            style = "width: 60%;"),
               actionButton("undo_delete_lab", 
                            HTML("<b>Undo Deletion</b>"), 
-                           icon  = icon("rotate-left"),
+                           icon  = icon("undo-alt"),
                            style = "width: 60%;")
               )
             )
@@ -614,6 +613,21 @@ server <- function(input, output, session) {
       return(NULL)
     else
       return(lab_df)
+  })
+  
+  # only admin can download all labels
+  # other users download only theirs
+  saveData <- reactive({
+    df <- fullData()
+    auth0_session <- session$userData$auth0_info
+    if(is.null(auth0_session))
+      labeler <- Sys.info()[["user"]]
+    else 
+      labeler <- auth0_session$name
+    if(labeler == "anthony.gibbons.2022@mumail.ie")
+      return(df)
+    else
+      return(df[df$labeler == labeler,])
   })
   
   output$start_ui <- renderUI({
@@ -1570,20 +1584,9 @@ server <- function(input, output, session) {
       paste0("data-", Sys.Date(), ".csv")
     },
     content = function(file) {
-      write.csv(fullData(), file)
+      write.csv(saveData(), file)
     }
   )
-  
-  # only let me download labels
-  observe({
-    auth0_session <- session$userData$auth0_info
-    if(is.null(auth0_session))
-      labeler <- Sys.info()[["user"]]
-    else 
-      labeler <- auth0_session$name
-    if(labeler == "anthony.gibbons.2022@mumail.ie")
-      enable("downloadData")
-  })
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
