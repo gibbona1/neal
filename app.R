@@ -274,7 +274,8 @@ ui_func <- function() {
         column(4,
         #br(),
         actionButton("save_points", 
-                     HTML("<b>Save Selection</b>"), icon("vector-square"),
+                     HTML("<b>Save Selection</b>"), 
+                     icon  = icon("vector-square"),
                      style = "width: 100%; background-color: #fff491;"),
         uiOutput("meta_text")
         ),
@@ -356,12 +357,15 @@ ui_func <- function() {
               fixedRow(style = btn_row_style,
                 actionButton("addCategory", 
                              HTML("<b>Add category</b>"), 
+                             icon  = icon("plus-square"),
                              style = "width: 60%;"),
                 actionButton("remCategory", 
                              HTML("<b>Remove category</b>"), 
+                             icon  = icon("minus-square"),
                              style = "width: 60%;"),
                 actionButton("resetCategory", 
                              HTML("<b>Reset categories</b>"), 
+                             icon  = icon("list"),
                              style = "width: 60%;")
                 )
               ),
@@ -381,12 +385,15 @@ ui_func <- function() {
             fluidRow(style = btn_row_style,
               disabled(actionButton("save_extra", 
                            HTML("<b>Save to List</b>"), 
+                           icon  = icon("archive"),
                            style = "width: 60%;")),
               actionButton("remove_points", 
                            HTML("<b>Delete Selection</b>"), 
+                           icon  = icon("trash-alt"),
                            style = "width: 60%;"),
               actionButton("undo_delete_lab", 
                            HTML("<b>Undo Deletion</b>"), 
+                           icon  = icon("rotate-left"),
                            style = "width: 60%;")
               )
             )
