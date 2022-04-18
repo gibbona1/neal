@@ -5,6 +5,7 @@ library(shinyBS)
 library(shinyFiles)
 library(shinythemes)
 library(shinydashboard)
+library(shinydashboardPlus)
 library(shinyWidgets)
 library(imola)
 library(tuneR)
@@ -92,6 +93,7 @@ ui_func <- function() {
       )}
     
     sidebar <- {dashboardSidebar(
+      shinyjs::useShinyjs(),
       sidebarMenu(
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
         #File/Folder selection
@@ -180,13 +182,19 @@ ui_func <- function() {
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
                      value = 5, min = 1, max = 9, step = 1),
-        downloadButton("downloadData", "Download Labels")
+        downloadButton("downloadData", "Download Labels"),
+        actionButton("reset_sidebar", "Reset Sidebar"),
+        actionButton("reset_body", "Reset Body")
       )
       ),
       #Options for sidebar
-      collapsed = TRUE)}
+      collapsed = TRUE,
+      minified  = FALSE,
+      id = "side-panel")}
     
     body <- {dashboardBody(
+      shinyjs::useShinyjs(),
+      id    = "main-panel",
       theme = "blue_gradient",
       useShinyjs(),
       tags$style(".content-wrapper{margin-left: 0px;}"),
@@ -1658,6 +1666,14 @@ server <- function(input, output, session) {
         reset_ranges(dc_ranges_spec)
         reset_ranges(dc_ranges_osc)
       }
+  })
+  
+  observeEvent(input$reset_sidebar, {
+    shinyjs::reset("side-panel")
+  })
+  
+  observeEvent(input$reset_body, {
+    shinyjs::reset("main-panel")
   })
 }
 
