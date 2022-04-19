@@ -15,6 +15,7 @@ TODOs:
   - [ ] Get location from recorder text files
   - [ ] Infer weather using some API (temperature, weather, wind, percipitation)
   - [ ] Get habitat type (either hard coded or gotten from wind farm GIS files)
+  - [ ] Recorder height (~1m)
 - [ ] Make File Select dropdown easier to navigate
 - [ ] File label stats (# labels)
 - [ ] If keeping next/previous section buttons:
@@ -31,11 +32,13 @@ TODOs:
 - [x] Empty space "header" above save selection
 - [x] Reset button (sidebar, body, etc) to put all inputs back to default
 - [ ] Interactive bounding boxes:
+  - [ ] Show details of saved labels in list in a sidebar or navbar page
   - [ ] resizable
   - [ ] moveable
   - [ ] copy/paste-able
   - [ ] editing label and other info
-  - [ ] 
+  - [ ] ability to click Label boxes and see info/play sound
+  - [ ] delete
 - [x] Display logged in username in header
 - [x] More icons for buttons:
   - [x] Body
@@ -43,13 +46,11 @@ TODOs:
 - [ ] navbarPage() to have distinct pages: label, verify/check, run model
   from https://shiny.rstudio.com/articles/layout-guide.html
 - [ ] Save list of added species as col in species csv (or append to a column) 
-- [ ] Ability to click Label boxes and see info/play sound
-- [ ] Show details of saved labels in list in a sidebar
+- [ ] 
 - [ ] On clicking label in sidebar, highlights the label (option to play it)
 - [ ] Unit tests (especially for plots)
 - [ ] Check soundgen pitch app https://github.com/tatters/soundgen
 - [ ] Example sound files in right sidebar 
-  (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/
-#countryside-bird-survey/cbs-bird-songs-and-calls/)
+  (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)

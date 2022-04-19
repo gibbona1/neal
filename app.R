@@ -55,18 +55,17 @@ header_btn_style <- "padding: 0%;
 ui_func <- function() {
     header <- {dashboardHeader(
       title = "Audio Labeler App",
-      tags$li(
-        class = "dropdown",
-        a(uiOutput("user_ui")
-        )
-      ),
-      tags$li(class = "dropdown",
-              uiOutput("start_ui"),
-              style = header_btn_style
-              ),
-      tags$li(class = "dropdown",
-              auth0::logoutButton(),
-              style = header_btn_style
+      dropdownMenu(
+        tags$li(class = "dropdown",
+          uiOutput("start_ui")
+        ),
+        tags$li(class = "dropdown",
+          auth0::logoutButton()
+        ),
+        type = "notifications", 
+        icon = icon("user"),
+        badgeStatus = NULL,
+        headerText  = uiOutput("user_ui")
       ),
       dropdownMenu(
         type = "notifications", 
@@ -182,7 +181,6 @@ ui_func <- function() {
       shinyjs::useShinyjs(),
       id    = "main-panel",
       theme = "blue_gradient",
-      useShinyjs(),
       tags$style(".content-wrapper{margin-left: 0px;}"),
       tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
       htmlOutput("file1"),
@@ -356,8 +354,8 @@ ui_func <- function() {
                        label      = "Call Type:", 
                        width      = '100%',
                        multiple   = TRUE,
-                       choices    = c("<NULL>", call_types), 
-                       selected   = "<NULL>")
+                       choices    = call_types, 
+                       selected   = NULL)
                      ),
             #br(),
             #TODO: Other info to label/record -
@@ -630,7 +628,7 @@ server <- function(input, output, session) {
   output$start_ui <- renderUI({
     if(.is_null(input$file1))
       actionButton("start_labelling", "Start Labelling!",
-                                class = "btn-success")
+                   class = "btn-success")
     else
       actionButton("end_labelling", "End Labelling",
                    class = "btn-danger")
@@ -1399,7 +1397,7 @@ server <- function(input, output, session) {
       labeler <- auth0_session$name
     if(!is.null(input$specplot_brush)) {
       if(is.null(input$call_type))
-        call_type <- "<NULL>"
+        call_type <- ""
       else
         call_type <- paste(input$call_type[!.is_null(input$call_type)], 
                            collapse='; ')
@@ -1548,11 +1546,11 @@ server <- function(input, output, session) {
       return(NULL)
   })
   
-  output$audio_time <- renderPrint({
+  output$audio_time <- renderText({
     if(.is_null(input$file1))
-      return("<NULL>")
+      return(NULL)
     else {
-      input$get_time
+      return(input$get_time)
     }
   })
   
