@@ -181,7 +181,7 @@ ui_func <- function() {
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
-                     value = 5, min = 1, max = 9, step = 1),
+                     value = 4, min = 1, max = 9, step = 1),
         downloadButton("downloadData", "Download Labels"),
         actionButton("reset_sidebar", "Reset Sidebar"),
         actionButton("reset_body", "Reset Body")
@@ -273,9 +273,9 @@ ui_func <- function() {
           )
       }),
       #Oscillogram Plot
-      fluidRow({
-        uiOutput("oscplot_ui")
-        }),
+      #fluidRow({
+      #  uiOutput("oscplot_ui")
+      #  }),
       #One row of audio settings
       fluidRow({
         div(
@@ -355,29 +355,15 @@ ui_func <- function() {
         }),
       #Labelling
       fluidPage({
-        div(uiOutput("label_ui"),
-            column(6, 
+        div(column(7, 
               fluidRow(style = btn_sel_style,
+              uiOutput("label_ui"),
               textInput("otherCategory", "Type in additional category:", 
                         width = "100%")
               ),
               #br(),
-              fixedRow(style = btn_row_style,
-                actionButton("addCategory", 
-                             HTML("<b>Add category</b>"), 
-                             icon  = icon("plus-square"),
-                             style = "width: 60%;"),
-                actionButton("remCategory", 
-                             HTML("<b>Remove category</b>"), 
-                             icon  = icon("minus-square"),
-                             style = "width: 60%;"),
-                actionButton("resetCategory", 
-                             HTML("<b>Reset categories</b>"), 
-                             icon  = icon("list"),
-                             style = "width: 60%;")
-                )
               ),
-            column(6,
+            column(5,
             fluidRow(style = btn_sel_style,
                      selectInput(
                        inputId    = "call_type", 
@@ -390,20 +376,37 @@ ui_func <- function() {
             #br(),
             #TODO: Other info to label/record -
             ## altitude of recorder (check if in metadata)
-            fluidRow(style = btn_row_style,
-              disabled(actionButton("save_extra", 
-                           HTML("<b>Save to List</b>"), 
-                           icon  = icon("archive"),
-                           style = "width: 60%;")),
-              actionButton("remove_points", 
-                           HTML("<b>Delete Selection</b>"), 
-                           icon  = icon("trash-alt"),
-                           style = "width: 60%;"),
-              actionButton("undo_delete_lab", 
-                           HTML("<b>Undo Deletion</b>"), 
-                           icon  = icon("undo-alt"),
-                           style = "width: 60%;")
-              )
+            column(6,
+                   fixedRow(#style = btn_row_style,
+                            actionButton("addCategory", 
+                                         HTML("<b>Add category</b>"), 
+                                         icon  = icon("plus-square"),
+                                         style = "width: 100%; text-align:left;"),
+                            actionButton("remCategory", 
+                                         HTML("<b>Remove category</b>"), 
+                                         icon  = icon("minus-square"),
+                                         style = "width: 100%; text-align:left;"),
+                            actionButton("resetCategory", 
+                                         HTML("<b>Reset categories</b>"), 
+                                         icon  = icon("list"),
+                                         style = "width: 100%; text-align:left;")
+                   )),
+            column(6,
+                   fluidRow(#style = btn_row_style,
+                            disabled(actionButton("save_extra", 
+                                         HTML("<b>Save to List</b>"), 
+                                         icon  = icon("archive"),
+                                         style = "width: 100%; text-align:left;")),
+                            actionButton("remove_points", 
+                                         HTML("<b>Delete Selection</b>"), 
+                                         icon  = icon("trash-alt"),
+                                         style = "width: 100%; text-align:left"),
+                            actionButton("undo_delete_lab", 
+                                         HTML("<b>Undo Deletion</b>"), 
+                                         icon  = icon("undo-alt"),
+                                         style = "width: 100%; text-align:left;")
+                            )
+            )
             )
           )
         }),
@@ -667,7 +670,7 @@ server <- function(input, output, session) {
   })
   
   output$label_ui <- renderUI({
-    base_cols  <- c('darkgreen', 'green')
+    base_cols  <- c('darkgreen', 'limegreen')
     misc_cols  <- c('yellow', 'orange')
     extra_cols <- c('cyan4', 'cyan')
     cbase  <- categories$base

@@ -29,7 +29,7 @@ TODOs:
 - [x] Extra button border colour light blue
 - [x] N+E Logo on login page (in branding tab of Auth0)
 - [x] Empty space "header" above save selection
-- [ ] Reset button (sidebar, body, etc) to put all inputs back to default
+- [x] Reset button (sidebar, body, etc) to put all inputs back to default
 - [ ] Interactive bounding boxes:
   - [ ] resizable
   - [ ] moveable
