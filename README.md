@@ -40,3 +40,16 @@ TODOs:
 - [x] More icons for buttons:
   - [x] Body
   - [x] Sidebar
+- [ ] navbarPage() to have distinct pages: label, verify/check, run model
+  from https://shiny.rstudio.com/articles/layout-guide.html
+- [ ] Save list of added species as col in species csv (or append to a column) 
+- [ ] Ability to click Label boxes and see info/play sound
+- [ ] Show details of saved labels in list in a sidebar
+- [ ] On clicking label in sidebar, highlights the label (option to play it)
+- [ ] Unit tests (especially for plots)
+- [ ] Check soundgen pitch app https://github.com/tatters/soundgen
+- [ ] Example sound files in right sidebar 
+  (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/
+#countryside-bird-survey/cbs-bird-songs-and-calls/)
+- [ ] Mel scale
+- [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)

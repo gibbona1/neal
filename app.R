@@ -24,20 +24,6 @@ library(stringr)
 source('plot_helpers.R')
 source('audio_meta.R')
 
-#TODO: navbarPage() to have distinct pages: label, verify/check, run model
-#from https://shiny.rstudio.com/articles/layout-guide.html
-#TODO: Save list of added species as col in species csv (or append to a column) 
-#TODO: Ability to click Label boxes and see info/play sound
-#TODO: Show details of saved labels in list in a sidebar
-#TODO: On clicking label in sidebar, highlights the label (option to play it)
-#TODO: Unit tests (especially for plots)
-#TODO: Check soundgen pitch app https://github.com/tatters/soundgen
-#TODO: Example sound files in right sidebar 
-# (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/
-#countryside-bird-survey/cbs-bird-songs-and-calls/)
-#TODO: Mel scale
-#TODO: gridExtra blank plot with correct axes, paste spec as image (not raster)
-
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
 
