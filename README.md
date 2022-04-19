@@ -24,7 +24,7 @@ TODOs:
   - [ ] Scroll bar instead
   - [ ] If you haven't scrolled through all (or most of) the way right when clicking `next file`, give warning notification
 - [x] Label name should always be visible if box is on screen (not just top left)
-- [ ] `<NULL>` option shouldn't be visible in call type, file select etc
+- [x] `<NULL>` option shouldn't be visible in call type, file select etc
 - [x] Change colour of save selection button
 - [x] Any box with a label not in list doesn't show
 - [x] Extra button border colour light blue
@@ -46,7 +46,6 @@ TODOs:
 - [ ] navbarPage() to have distinct pages: label, verify/check, run model
   from https://shiny.rstudio.com/articles/layout-guide.html
 - [ ] Save list of added species as col in species csv (or append to a column) 
-- [ ] 
 - [ ] On clicking label in sidebar, highlights the label (option to play it)
 - [ ] Unit tests (especially for plots)
 - [ ] Check soundgen pitch app https://github.com/tatters/soundgen

@@ -90,7 +90,7 @@ ui_func <- function() {
         selectInput(
           "file1",
           "Select File:",
-          choices = c("<NULL>", file_list),
+          choices = file_list, #c("<NULL>", file_list),
           width   = '100%'
           ),
         selectInput("species_list",
@@ -825,7 +825,7 @@ server <- function(input, output, session) {
   
   cleanInput <- reactive({
     tmp_audio <- audioInput()
-    if(is.null(tmp_audio))
+    if(is.null(tmp_audio) | is.null(input$frequency_range))
       return(NULL)
     
     if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)){
@@ -945,8 +945,9 @@ server <- function(input, output, session) {
     df$freq_select <- 1
     
     frange <- input$frequency_range
-    if(frange_check(frange, range(df$frequency)))
-      df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
+    if(!is.null(frange))
+      if(frange_check(frange, range(df$frequency)))
+        df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
     
     write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
