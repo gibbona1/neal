@@ -1,8 +1,13 @@
 #audio meta extraction
 
 get_audio_dt <- function(x){
-  dt_str  <- stringr::str_extract(x, regex("[0-9]{8}_[0-9]{6}"))
-  dt_time <- strptime(dt_str, format = "%Y%m%d_%H%M%S")
+  dt_str   <- stringr::str_extract(x, regex("[0-9]{8}_[0-9]{6}"))
+  add_str  <- stringr::str_extract(x, regex("start_[0-9]{1,2}_[0-9]{1,2}"))
+  add_str  <- str_replace(add_str, "start_", "")
+  add_time <- as.numeric(str_replace(add_str, "_", "."))
+  dt_time  <- strptime(dt_str, format = "%Y%m%d_%H%M%S")
+  if(!is.na(add_time))
+    dt_time <- dt_time + add_time
   return(dt_time)
 }
 
