@@ -53,3 +53,4 @@ TODOs:
   (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
+- [ ] only show own labels. Admin can select/deselect user labels

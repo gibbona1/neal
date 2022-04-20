@@ -96,7 +96,7 @@ ui_func <- function() {
         selectInput(
           "file1",
           "Select File:",
-          choices = file_list, #c("<NULL>", file_list),
+          choices = c("<NULL>", file_list),
           width   = '100%'
           ),
         selectInput("species_list",
