@@ -4,7 +4,7 @@ TODOs:
 - [ ] Instruction pdf:
   - [ ] Open in adjacent tab
   - [ ] Make sure instructions say how to zoom in/out
-- [ ] Get ~1 hour of files in 4/5 folders
+- [ ] Get ~1 hour of files in 4/5 folders. 15 seconds with little overlap
 - [ ] Default logged in users to their folder, if guest or cant find folder, use tmp folder
 - [x] Download labels button:
   - [x] Only I can download all labels (admin)
@@ -53,4 +53,4 @@ TODOs:
   (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
-- [ ] only show own labels. Admin can select/deselect user labels
+- [x] only show own labels. Admin can select/deselect user labels

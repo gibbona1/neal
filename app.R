@@ -170,11 +170,13 @@ ui_func <- function() {
         checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
         uiOutput("osc_collapse")
       ),
+      menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
+               checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
+               downloadButton("downloadData", "Download Labels")
+               ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
                      value = 4, min = 1, max = 9, step = 1),
-        checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
-        downloadButton("downloadData", "Download Labels"),
         actionButton("reset_sidebar", "Reset Sidebar"),
         actionButton("reset_body", "Reset Body")
       )
@@ -1673,8 +1675,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-#auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+auth0::shinyAppAuth0(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
