@@ -173,6 +173,7 @@ ui_func <- function() {
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
         numericInput('label_columns', 'Number of Columns', 
                      value = 4, min = 1, max = 9, step = 1),
+        checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
         downloadButton("downloadData", "Download Labels"),
         actionButton("reset_sidebar", "Reset Sidebar"),
         actionButton("reset_body", "Reset Body")
@@ -1027,6 +1028,8 @@ server <- function(input, output, session) {
       return(spec_plot)
     else
       if(input$spec_labs){
+        if(input$hide_other_labels)
+          lab_df <- lab_df[lab_df$labeler == labeler(),]
         lab_df <- lab_df %>% 
           filter(between(start_time, segment_start(), segment_start()+input$t_step))
         if(!is.null(dc_ranges_spec$x)){
