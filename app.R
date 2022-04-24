@@ -616,19 +616,22 @@ server <- function(input, output, session) {
       return(lab_df)
   })
   
+  labeler <- reactive({
+    auth0_session <- session$userData$auth0_info
+    if(is.null(auth0_session))
+      return(Sys.info()[["user"]])
+    else 
+      return(auth0_session$name)
+  })
+  
   # only admin can download all labels
   # other users download only theirs
   saveData <- reactive({
     df <- fullData()
-    auth0_session <- session$userData$auth0_info
-    if(is.null(auth0_session))
-      labeler <- Sys.info()[["user"]]
-    else 
-      labeler <- auth0_session$name
-    if(labeler == "anthony.gibbons.2022@mumail.ie")
+    if(labeler() == "anthony.gibbons.2022@mumail.ie")
       return(df)
     else
-      return(df[df$labeler == labeler,])
+      return(df[df$labeler == labeler(),])
   })
   
   output$start_ui <- renderUI({
@@ -642,11 +645,7 @@ server <- function(input, output, session) {
   })
   
   output$user_ui <- renderUI({
-    auth0_session <- session$userData$auth0_info
-    if(!is.null(auth0_session))
-      return(auth0_session$name)
-    else 
-      return(Sys.info()[["user"]])
+    labeler()
   })
   
   observeEvent(input$start_labelling, {
@@ -1397,11 +1396,6 @@ server <- function(input, output, session) {
     res <- brushedPoints(specData(), input$specplot_brush,
                          xvar = 'time', yvar = 'frequency')
     
-    auth0_session <- session$userData$auth0_info
-    if(is.null(auth0_session))
-      labeler <- Sys.info()[["user"]]
-    else 
-      labeler <- auth0_session$name
     if(!is.null(input$specplot_brush)) {
       if(is.null(input$call_type))
         call_type <- ""
@@ -1418,7 +1412,7 @@ server <- function(input, output, session) {
                            call_type   = call_type,
                            confidence  = input$label_confidence,
                            notes       = input$notes,
-                           labeler     = labeler)
+                           labeler     = labeler())
       typecol <- cat_colours(lab_df)$typecol
       
       full_df <- fullData()
@@ -1676,8 +1670,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-auth0::shinyAppAuth0(ui_func(), server)
-#shinyApp(ui_func(), server)
+#auth0::shinyAppAuth0(ui_func(), server)
+shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
