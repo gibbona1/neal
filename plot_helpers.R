@@ -4,36 +4,51 @@ library(grid)
 
 #theming based on: https://rug.mnhn.fr/seewave/spec.html
 
-oscillo_theme_dark <- theme(panel.grid.major.y = element_line(color = "black", linetype = "dotted"),
-                            panel.grid.major.x = element_line(color = "darkgrey", linetype = "dashed"),
-                            panel.grid.minor.x = element_blank(),
-                            panel.grid.minor.y = element_blank(),
-                            panel.background   = element_rect(fill = "transparent"),
-                            panel.border       = element_rect(linetype = "solid", fill = NA, color = "grey"),
-                            axis.line          = element_blank(),
-                            legend.position    = 'none',
-                            plot.background    = element_rect(fill = "black"),
-                            plot.margin        = unit(c(0.2, 0.9, 0.1, 0), "lines"),
-                            axis.title         = element_blank(),
-                            axis.text.x        = element_text(size = 16, color = "grey", family = "mono"),
-                            axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
-                            axis.ticks         = element_line(color = "grey"))
+osc_theme <- theme(panel.grid.major.y = element_line(color = "black",    linetype = "dotted"),
+                   panel.grid.major.x = element_line(color = "darkgrey", linetype = "dashed"),
+                   panel.grid.minor.x = element_blank(),
+                   panel.grid.minor.y = element_blank(),
+                   panel.background   = element_rect(fill = "transparent"),
+                   panel.border       = element_rect(linetype = "solid", fill = NA, color = "grey"),
+                   axis.line          = element_blank(),
+                   legend.position    = 'none',
+                   plot.background    = element_rect(fill = "black"),
+                   plot.margin        = unit(c(0.2, 0.9, 0.1, 0), "lines"),
+                   axis.title         = element_blank(),
+                   axis.text.x        = element_text(size = 16, color = "grey", family = "mono"),
+                   axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
+                   axis.ticks         = element_line(color = "grey"))
 #TODO: minor ticks on x axis
 
-hot_theme_grid <- theme(panel.grid.major.y = element_line(color = "black", linetype = "dotted"),
-                        panel.grid.major.x = element_blank(),
-                        panel.grid.minor   = element_blank(),
-                        panel.background   = element_rect(fill = "transparent"),
-                        panel.border       = element_rect(linetype = "solid", fill = NA, color = "grey"),
-                        axis.line          = element_blank(),
-                        legend.position    = 'none',
-                        plot.background    = element_rect(fill = "black"),
-                        plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
-                        axis.title.y       = element_blank(),
-                        axis.title.x       = element_text(size=10, color = "lightgrey", family = "mono"), 
-                        axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
-                        axis.text.x        = element_text(size = 14, color = "grey", family = "mono"),
-                        axis.ticks         = element_line(color = "grey"))
+spec_theme <- theme(panel.grid.major.y = element_line(color = "black", linetype = "dotted"),
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.minor   = element_blank(),
+                    panel.background   = element_rect(fill = "transparent"),
+                    panel.border       = element_rect(linetype = "solid", fill = NA, color = "grey"),
+                    axis.line          = element_blank(),
+                    legend.position    = 'none',
+                    plot.background    = element_rect(fill = "black"),
+                    plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
+                    axis.title.y       = element_blank(),
+                    axis.title.x       = element_text(size = 10, color = "lightgrey", family = "mono"), 
+                    axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
+                    axis.text.x        = element_text(size = 14, color = "grey", family = "mono"),
+                    axis.ticks         = element_line(color = "grey"))
+
+spec_theme_front <- theme(panel.grid.major.y = element_line(color = NA, linetype = "dotted"),
+                          panel.grid.major.x = element_blank(),
+                          panel.grid.minor   = element_blank(),
+                          panel.background   = element_rect(fill = NA),
+                          panel.border       = element_rect(linetype = "solid", fill = NA, color = NA),
+                          axis.line          = element_blank(),
+                          legend.position    = 'none',
+                          plot.background    = element_rect(fill='transparent', color=NA),
+                          plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
+                          axis.title.y       = element_blank(),
+                          axis.title.x       = element_text(size = 10, color = NA, family = "mono"), 
+                          axis.text.y        = element_text(size = 14, color = NA, family = "mono"),
+                          axis.text.x        = element_text(size = 14, color = NA, family = "mono"),
+                          axis.ticks         = element_line(color = NA))
 
 virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
 
@@ -64,7 +79,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
     xlab("Time (s)") + 
     ylab("Amplitude") + 
     geom_hline(yintercept = 0, colour = "white", linetype = "dotted") +
-    oscillo_theme_dark
+    osc_theme
   
   lab_file <- "tmp_labels.csv"
   if(file.exists(lab_file)){
@@ -87,7 +102,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec){
+plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, y_breaks){
   palette_cols <- function(pal_name, n=6){
     if(pal_name == "viridisplus")
       return(virpluscols)
@@ -100,11 +115,6 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec){
   sel_col <- palette_cols(input$palette_selected)
   if(input$palette_invert)
     sel_col <- rev(sel_col)
-  
-  y_breaks <- pretty(df$frequency, 5)
-  
-  if(!is.null(dc_ranges_spec$y))
-    y_breaks <- pretty(dc_ranges_spec$y, 5)
   
   spec_plot <- ggplot(df)
   
@@ -143,6 +153,23 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec){
                        labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse=''), 
                                        y_breaks, "kHz")
                        ) +
-    hot_theme_grid
+    spec_theme
+  return(spec_plot)
+}
+
+plot_spec_front  <- function(input, length_ylabs, specplot_range, y_breaks){
+  spec_plot <- ggplot(NULL) + 
+    xlab("Time (s)") + 
+    ylab("Frequency (kHz)") + 
+    scale_x_continuous(expand = c(0, 0),
+                       limits = specplot_range$x) +
+    scale_y_continuous(expand = c(0, 0), 
+                       limits = specplot_range$y,
+                       breaks = y_breaks,
+                       #limits = range(y_breaks),
+                       labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse=''), 
+                                       y_breaks, "kHz")
+    ) +
+    spec_theme_front
   return(spec_plot)
 }

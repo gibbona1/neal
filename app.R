@@ -51,6 +51,15 @@ btn_sel_style  <- "display:inline-block;
 file_btn_style <- 'padding:1%; width:100%;'
 header_btn_style <- "padding: 0%;
                      vertical-align: center;"
+plot_z_style <- "
+#specplot {
+  position: absolute;
+  z-index: 0;
+}
+#specplot_front {
+  position: relative;
+  z-index: 1;
+}"
 
 ui_func <- function() {
     header <- {dashboardHeader(
@@ -196,11 +205,10 @@ ui_func <- function() {
       #Spectrogram Plot
       fluidRow({
         div(
+          tags$head(tags$style(HTML(plot_z_style))),
           plotOutput(
             "specplot",
             height   = 300,
-            click    = "specplot_click",
-            dblclick = "specplot_dblclick",
             hover    = hoverOpts(
               id        = "specplot_hover",
               delay     = 10,
@@ -210,6 +218,15 @@ ui_func <- function() {
               id         = "specplot_brush",
               resetOnNew = TRUE)
             ),
+          plotOutput(
+            "specplot_front",
+            height   = 300,
+            click    = "specplot_click",
+            dblclick = "specplot_dblclick",
+            brush    = brushOpts(
+              id         = "specplot_brush",
+              resetOnNew = TRUE)
+          ),
           #plotOutput(
           #  "specplot_blank",
           #  height   = 25,
@@ -470,6 +487,7 @@ server <- function(input, output, session) {
   length_ylabs   <- reactiveValues(osc  = 4,    spec = 0)
   deleted_lab    <- reactiveValues(rows = NULL, data = NULL)
   plots_open     <- reactiveValues(osc  = TRUE, spec = TRUE)
+  specplot_range <- reactiveValues(x = NULL, y = NULL)
   x_coords       <- reactiveVal(NULL)
   segment_num    <- reactiveVal(1)
   segment_total  <- reactiveVal(1)
@@ -996,7 +1014,15 @@ server <- function(input, output, session) {
   })
   
   specPlot <- reactive({
-    p <- plot_spectrogram(specData(), input, length_ylabs, dc_ranges_spec)
+    df <- specData()
+    y_breaks <- pretty(df$frequency, 5)
+    
+    if(!is.null(dc_ranges_spec$y))
+      y_breaks <- pretty(dc_ranges_spec$y, 5)
+    
+    specplot_range$x <- range(df$time)
+    specplot_range$y <- range(y_breaks)
+    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, y_breaks)
     
     #if(!is.null(input$file1))
     #  spec_name_raw <- gsub('.wav', '_spec_raw.png', input$file1)
@@ -1023,61 +1049,84 @@ server <- function(input, output, session) {
     return(p)
   })
   
+  specPlotFront <- reactive({
+    df <- specData()
+    y_breaks <- pretty(df$frequency, 5)
+    
+    if(!is.null(dc_ranges_spec$y))
+      y_breaks <- pretty(dc_ranges_spec$y, 5)
+    
+    p <- plot_spec_front(input, length_ylabs, specplot_range, y_breaks)
+    
+    if(!is.null(x_coords()))
+      p <- p + coord_cartesian(xlim = x_coords(),
+                               expand = FALSE)
+    if(!is.null(dc_ranges_spec$y))
+      p <- p + coord_cartesian(ylim = dc_ranges_spec$y,
+                               xlim = dc_ranges_spec$x,
+                               expand = FALSE, default = TRUE)
+    
+    return(p)
+  })
+  
   output$specplot <- renderPlot({
-    spec_plot <- specPlot()
+    return(specPlot())
+  })
+  
+  output$specplot_front <- renderPlot({
+    spec_plot <- specPlotFront()
     lab_df    <- labelsData()
     if(is.null(lab_df))
       return(spec_plot)
-    else
-      if(input$spec_labs){
-        if(input$hide_other_labels)
-          lab_df <- lab_df[lab_df$labeler == labeler(),]
-        lab_df <- lab_df %>% 
-          filter(between(start_time, segment_start(), segment_start()+input$t_step))
-        if(!is.null(dc_ranges_spec$x)){
-          lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2],]
-          lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
-          lab_df$end_freq_crop   <- sapply(lab_df$end_freq, function(y) min(y, dc_ranges_spec$y[2]))
-          hj <- 0
-          vj <- 1
-        } else {
-          lab_df$start_time_crop <- lab_df$start_time
-          lab_df$end_freq_crop   <- lab_df$end_freq
-          hj <- 0
-          vj <- 0
-        }
-        spec_plot <- spec_plot +
-          geom_rect(data = lab_df, 
-                    mapping = aes(xmin = start_time,
-                                  xmax = end_time,
-                                  ymin = start_freq, 
-                                  ymax = end_freq),
-                    colour = lab_df$typecol,
-                    fill   = "lightgrey",
-                    alpha  = 0.15) +
-          geom_label(data = lab_df,
-                     aes(x     = start_time_crop,
-                         y     = end_freq_crop,
-                         label = class_label),
-                     colour  = lab_df$typecol,
-                     label.r = unit(0, units="lines"),
-                     label.size = 0.5,
-                     hjust  = hj,
-                     vjust  = vj
-                     ) +
-          geom_label(data = lab_df,
-                    aes(x     = start_time_crop,
-                        y     = end_freq_crop,
-                        label = class_label),
-                    label.r = unit(0, units="lines"),
-                    label.size = 0,
-                    hjust  = hj,
-                    vjust  = vj,
-                    alpha  = 0,
-                    colour = "black")
+    else if(input$spec_labs){
+      if(input$hide_other_labels)
+        lab_df <- lab_df[lab_df$labeler == labeler(),]
+      lab_df <- lab_df %>% 
+        filter(between(start_time, segment_start(), segment_start()+input$t_step))
+      if(!is.null(dc_ranges_spec$x)){
+        lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2],]
+        lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
+        lab_df$end_freq_crop   <- sapply(lab_df$end_freq, function(y) min(y, dc_ranges_spec$y[2]))
+        hj <- 0
+        vj <- 1
+      } else {
+        lab_df$start_time_crop <- lab_df$start_time
+        lab_df$end_freq_crop   <- lab_df$end_freq
+        hj <- 0
+        vj <- 0
       }
+      spec_plot <- spec_plot +
+        geom_rect(data = lab_df, 
+                  mapping = aes(xmin = start_time,
+                                xmax = end_time,
+                                ymin = start_freq, 
+                                ymax = end_freq),
+                  colour = lab_df$typecol,
+                  fill   = "lightgrey",
+                  alpha  = 0.15) +
+        geom_label(data = lab_df,
+                   aes(x     = start_time_crop,
+                       y     = end_freq_crop,
+                       label = class_label),
+                   colour  = lab_df$typecol,
+                   label.r = unit(0, units="lines"),
+                   label.size = 0.5,
+                   hjust  = hj,
+                   vjust  = vj
+                   ) +
+        geom_label(data = lab_df,
+                  aes(x     = start_time_crop,
+                      y     = end_freq_crop,
+                      label = class_label),
+                  label.r = unit(0, units="lines"),
+                  label.size = 0,
+                  hjust  = hj,
+                  vjust  = vj,
+                  alpha  = 0,
+                  colour = "black")
+    }
     return(spec_plot)
-  })
+  }, bg="transparent")
   
   observeEvent(input$savespec, {
     if(!.is_null(input$file1))
@@ -1675,8 +1724,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-auth0::shinyAppAuth0(ui_func(), server)
-#shinyApp(ui_func(), server)
+#auth0::shinyAppAuth0(ui_func(), server)
+shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog_enable()
