@@ -54,3 +54,7 @@ TODOs:
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
 - [x] only show own labels. Admin can select/deselect user labels
+- [ ] Dedicated configuration page/tab (easy way to view labels per file)
+- [ ] Transparent plot in front of spectrogram:
+  - [ ] Plotting Vertical line indicating timestamp while playing
+  - [ ] Label boxes (see above)
