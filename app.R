@@ -1024,14 +1024,20 @@ server <- function(input, output, session) {
   
   specPlot <- reactive({
     df <- specData()
-    y_breaks <- pretty(df$frequency, 5)
     
+    y_breaks <- pretty(df$frequency, 5)
     if(!is.null(dc_ranges_spec$y))
       y_breaks <- pretty(dc_ranges_spec$y, 5)
     
-    specplot_range$x <- range(df$time)
-    specplot_range$y <- range(df$frequency)
-    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, specplot_range, y_breaks)
+    x_breaks <- pretty(df$time, 5)
+    if(!is.null(dc_ranges_spec$x))
+      x_breaks <- pretty(dc_ranges_spec$x, 5)
+    
+    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks)
+    
+    gb   <- ggplot_build(p)
+    specplot_range$x <- gb$layout$panel_params[[1]]$x.range
+    specplot_range$y <- gb$layout$panel_params[[1]]$y.range
     
     #if(!is.null(input$file1))
     #  spec_name_raw <- gsub('.wav', '_spec_raw.png', input$file1)
@@ -1060,12 +1066,16 @@ server <- function(input, output, session) {
   
   specPlotFront <- reactive({
     df <- specData()
-    y_breaks <- pretty(df$frequency, 5)
     
+    y_breaks <- pretty(df$frequency, 5)
     if(!is.null(dc_ranges_spec$y))
       y_breaks <- pretty(dc_ranges_spec$y, 5)
     
-    p <- plot_spec_front(input, length_ylabs, specplot_range, y_breaks)
+    x_breaks <- pretty(df$time, 5)
+    if(!is.null(dc_ranges_spec$x))
+      x_breaks <- pretty(dc_ranges_spec$x, 5)
+    
+    p <- plot_spec_front(input, length_ylabs, specplot_range, x_breaks, y_breaks)
     
     if(!is.null(x_coords()))
       p <- p + coord_cartesian(xlim = x_coords(),
@@ -1480,10 +1490,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$save_points, {
-    #get x and y coordinates with max and min of brushedPoints()
-    res <- brushedPoints(specData(), input$specplot_brush,
-                         xvar = 'time', yvar = 'frequency')
-    
     if(!is.null(input$specplot_brush)) {
       if(is.null(input$call_type))
         call_type <- ""
@@ -1492,10 +1498,10 @@ server <- function(input, output, session) {
                            collapse='; ')
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
-                           start_time  = min(res$time),
-                           end_time    = max(res$time),
-                           start_freq  = min(res$frequency),
-                           end_freq    = max(res$frequency),
+                           start_time  = ranges_spec$x[1],
+                           end_time    = ranges_spec$x[2],
+                           start_freq  = ranges_spec$y[1],
+                           end_freq    = ranges_spec$y[2],
                            class_label = input$label_points,
                            call_type   = call_type,
                            confidence  = input$label_confidence,
@@ -1522,14 +1528,11 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$remove_points, {
-    #get x and y coordinates with max and min of brushedPoints()
-    res <- brushedPoints(specData(), input$specplot_brush,
-                         xvar = 'time', yvar = 'frequency')
     if(!is.null(input$specplot_brush)) {
-      lab_df <- data.frame(start_time  = min(res$time),
-                           end_time    = max(res$time),
-                           start_freq  = min(res$frequency),
-                           end_freq    = max(res$frequency))
+      lab_df <- data.frame(start_time  = ranges_spec$x[1],
+                           end_time    = ranges_spec$x[2],
+                           start_freq  = ranges_spec$y[1],
+                           end_freq    = ranges_spec$y[2])
       full_df    <- fullData()
       full_df_rm <- c()
       for(idx in 1:nrow(full_df)){

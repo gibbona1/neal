@@ -34,21 +34,22 @@ spec_theme <- theme(panel.grid.major.y = element_line(color = "black", linetype 
                     axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
                     axis.text.x        = element_text(size = 14, color = "grey", family = "mono"),
                     axis.ticks         = element_line(color = "grey"))
-
-spec_theme_front <- theme(panel.grid.major.y = element_line(color = NA, linetype = "dotted"),
+#debug colour to check alignment with main plot
+plt_col <- NA#"dodgerblue"
+spec_theme_front <- theme(panel.grid.major.y = element_line(color = plt_col, linetype = "dotted"),
                           panel.grid.major.x = element_blank(),
                           panel.grid.minor   = element_blank(),
                           panel.background   = element_rect(fill = NA),
-                          panel.border       = element_rect(linetype = "solid", fill = NA, color = NA),
+                          panel.border       = element_rect(linetype = "solid", fill = NA, color = plt_col),
                           axis.line          = element_blank(),
                           legend.position    = 'none',
-                          plot.background    = element_rect(fill='transparent', color=NA),
+                          plot.background    = element_rect(fill='transparent', color=plt_col),
                           plot.margin        = margin(0.6,0.9,0.25,0, "lines"),
                           axis.title.y       = element_blank(),
-                          axis.title.x       = element_text(size = 10, color = NA, family = "mono"), 
-                          axis.text.y        = element_text(size = 14, color = NA, family = "mono"),
-                          axis.text.x        = element_text(size = 14, color = NA, family = "mono"),
-                          axis.ticks         = element_line(color = NA))
+                          axis.title.x       = element_text(size = 10, color = plt_col, family = "mono"), 
+                          axis.text.y        = element_text(size = 14, color = plt_col, family = "mono"),
+                          axis.text.x        = element_text(size = 14, color = plt_col, family = "mono"),
+                          axis.ticks         = element_line(color = plt_col))
 
 virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", "#FDE725FF", "#ff0000")
 
@@ -102,7 +103,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_range, y_breaks){
+plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks){
   palette_cols <- function(pal_name, n=6){
     if(pal_name == "viridisplus")
       return(virpluscols)
@@ -147,11 +148,9 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
                          limits   = c(-96,96), 
                          na.value = sel_col[1]) +
     scale_x_continuous(expand = c(0, 0),
-                       limits = specplot_range$x) +
+                       breaks = x_breaks) +
     scale_y_continuous(expand = c(0, 0), 
                        breaks = y_breaks,
-                       limits = specplot_range$y,
-                       #limits = range(y_breaks),
                        labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse=''), 
                                        y_breaks, "kHz")
                        ) +
@@ -159,16 +158,16 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
   return(spec_plot)
 }
 
-plot_spec_front  <- function(input, length_ylabs, specplot_range, y_breaks){
+plot_spec_front  <- function(input, length_ylabs, specplot_range, x_breaks, y_breaks){
   spec_plot <- ggplot(NULL) + 
     xlab("Time (s)") + 
     ylab("Frequency (kHz)") + 
     scale_x_continuous(expand = c(0, 0),
+                       breaks = x_breaks,
                        limits = specplot_range$x) +
     scale_y_continuous(expand = c(0, 0), 
-                       limits = specplot_range$y,
                        breaks = y_breaks,
-                       #limits = range(y_breaks),
+                       limits = specplot_range$y,
                        labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse=''), 
                                        y_breaks, "kHz")
     ) +
