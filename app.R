@@ -157,6 +157,10 @@ ui_func <- function() {
         actionButton("savespec", "Save Spectrogram", icon = icon('save')),
         checkboxInput("include_hover", "Include spectrogram hover tooltip", 
                       value = TRUE),
+        checkboxInput("spec_time", "Vertical line guide for audio current time", 
+                      value = TRUE),
+        checkboxInput("include_guides", "Selected time/frequency guidelines",
+                      value = TRUE),
         checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
         uiOutput("spec_collapse")
       ),
@@ -1079,20 +1083,22 @@ server <- function(input, output, session) {
   })
   
   output$specplot_time <- renderPlot({
-    if(.is_null(input$file1))
+    if(.is_null(input$file1) | !input$spec_time)
       return(NULL)
     spec_plot <- specPlotFront()
-    if(!is.null(ranges_spec$y))
+    if(!is.null(ranges_spec$y)){
+      if(input$include_guides)
+        spec_plot <- spec_plot + 
+          geom_hline(aes(yintercept = ranges_spec$y[1]), colour="yellow", linetype="dashed", alpha=0.4) +
+          geom_hline(aes(yintercept = ranges_spec$y[2]), colour="yellow", linetype="dashed", alpha=0.4) +
+          geom_vline(aes(xintercept = ranges_spec$x[1]), colour="yellow", linetype="dashed", alpha=0.4) +
+          geom_vline(aes(xintercept = ranges_spec$x[2]), colour="yellow", linetype="dashed", alpha=0.4)
       spec_plot <- spec_plot + 
-        geom_hline(aes(yintercept = ranges_spec$y[1]), colour="yellow", linetype="dashed", alpha=0.4) +
-        geom_hline(aes(yintercept = ranges_spec$y[2]), colour="yellow", linetype="dashed", alpha=0.4) +
-        geom_vline(aes(xintercept = ranges_spec$x[1]), colour="yellow", linetype="dashed", alpha=0.4) +
-        geom_vline(aes(xintercept = ranges_spec$x[2]), colour="yellow", linetype="dashed", alpha=0.4) +
         geom_segment(aes(x=ranges_spec$x[1]+gettime_t()$x, 
                      xend=ranges_spec$x[1]+gettime_t()$x,
                      y=ranges_spec$y[1], yend=ranges_spec$y[2]),
                      colour = "yellow")
-    else if(!is.null(dc_ranges_spec$y))
+    } else if(!is.null(dc_ranges_spec$y))
       spec_plot <- spec_plot + geom_vline(aes(xintercept=dc_ranges_spec$x[1]+gettime_t()$x), colour = "yellow")
     else
       spec_plot <- spec_plot + geom_vline(aes(xintercept=gettime_t()$x), colour = "yellow")
