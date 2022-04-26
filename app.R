@@ -52,9 +52,13 @@ file_btn_style <- 'padding:1%; width:100%;'
 header_btn_style <- "padding: 0%;
                      vertical-align: center;"
 plot_z_style <- "
-#specplot_front {
+#specplot_time {
   position: absolute;
   z-index: 1;
+}
+#specplot_front {
+  position: absolute;
+  z-index: 2;
 }"
 
 ui_func <- function() {
@@ -217,6 +221,10 @@ ui_func <- function() {
             )
           ),
           plotOutput(
+            "specplot_time",
+            height   = 300,
+          ),
+          plotOutput(
             "specplot",
             height   = 300,
           ),
@@ -293,15 +301,15 @@ ui_func <- function() {
         column(4,{
                div(
                  uiOutput('audio_title'),
-                 uiOutput('my_audio')#,
-                 #tags$script('
-                 #var id = setInterval(audio_pos, 100);
-                 #function audio_pos() {
-                 #var audio = document.getElementById("my_audio_player");
-                 #var curtime = audio.currentTime;
-                 #console.log(audio);
-                 #Shiny.onInputChange("get_time", curtime);
-                 #};'),
+                 uiOutput('my_audio'),
+                 tags$script('
+                 var id = setInterval(audio_pos, 100);
+                 function audio_pos() {
+                 var audio = document.getElementById("my_audio_player");
+                 var curtime = audio.currentTime;
+                 console.log(audio);
+                 Shiny.onInputChange("get_time", curtime);
+                 };'),
                  #actionButton("get_time", "Get Time", onclick = js),
                  #verbatimTextOutput("audio_time")
                  )
@@ -1014,7 +1022,7 @@ server <- function(input, output, session) {
       y_breaks <- pretty(dc_ranges_spec$y, 5)
     
     specplot_range$x <- range(df$time)
-    specplot_range$y <- range(y_breaks)
+    specplot_range$y <- range(df$frequency)
     p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, specplot_range, y_breaks)
     
     #if(!is.null(input$file1))
@@ -1066,7 +1074,26 @@ server <- function(input, output, session) {
     return(specPlot())
   })
   
+  output$specplot_time <- renderPlot({
+    if(.is_null(input$file1))
+      return(NULL)
+    spec_plot <- specPlotFront()
+    if(!is.null(ranges_spec$y))
+      spec_plot <- spec_plot + 
+        geom_segment(aes(x=ranges_spec$x[1]+input$get_time, 
+                     xend=ranges_spec$x[1]+input$get_time,
+                     y=ranges_spec$y[1], yend=ranges_spec$y[2]),
+                     colour = "yellow")
+    else if(!is.null(dc_ranges_spec$y))
+      spec_plot <- spec_plot + geom_vline(aes(xintercept=dc_ranges_spec$x[1]+input$get_time), colour = "yellow")
+    else
+      spec_plot <- spec_plot + geom_vline(aes(xintercept=input$get_time), colour = "yellow")
+    return(spec_plot)
+  }, bg="transparent")
+  
   output$specplot_front <- renderPlot({
+    if(.is_null(input$file1))
+      return(NULL)
     spec_plot <- specPlotFront()
     lab_df    <- labelsData()
     if(is.null(lab_df))
