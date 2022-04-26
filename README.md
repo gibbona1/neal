@@ -58,3 +58,4 @@ TODOs:
 - [x] Transparent plots in front of spectrogram:
   - [x] Plotting Vertical line indicating timestamp while playing
   - [x] Label boxes (see above)
+- [ ] Noise also cleans audio 

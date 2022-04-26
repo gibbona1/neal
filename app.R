@@ -1084,6 +1084,10 @@ server <- function(input, output, session) {
     spec_plot <- specPlotFront()
     if(!is.null(ranges_spec$y))
       spec_plot <- spec_plot + 
+        geom_hline(aes(yintercept = ranges_spec$y[1]), colour="yellow", linetype="dashed", alpha=0.4) +
+        geom_hline(aes(yintercept = ranges_spec$y[2]), colour="yellow", linetype="dashed", alpha=0.4) +
+        geom_vline(aes(xintercept = ranges_spec$x[1]), colour="yellow", linetype="dashed", alpha=0.4) +
+        geom_vline(aes(xintercept = ranges_spec$x[2]), colour="yellow", linetype="dashed", alpha=0.4) +
         geom_segment(aes(x=ranges_spec$x[1]+gettime_t()$x, 
                      xend=ranges_spec$x[1]+gettime_t()$x,
                      y=ranges_spec$y[1], yend=ranges_spec$y[2]),
