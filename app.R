@@ -912,6 +912,10 @@ server <- function(input, output, session) {
     return(tmp_audio)
   })
   
+  gettime <- reactive({list(x=input$get_time)})
+  
+  gettime_t <- gettime %>% throttle(200)
+  
   output$file1 <- renderUI({
     if(.is_null(input$file1))
       return(NULL)
@@ -1080,14 +1084,14 @@ server <- function(input, output, session) {
     spec_plot <- specPlotFront()
     if(!is.null(ranges_spec$y))
       spec_plot <- spec_plot + 
-        geom_segment(aes(x=ranges_spec$x[1]+input$get_time, 
-                     xend=ranges_spec$x[1]+input$get_time,
+        geom_segment(aes(x=ranges_spec$x[1]+gettime_t()$x, 
+                     xend=ranges_spec$x[1]+gettime_t()$x,
                      y=ranges_spec$y[1], yend=ranges_spec$y[2]),
                      colour = "yellow")
     else if(!is.null(dc_ranges_spec$y))
-      spec_plot <- spec_plot + geom_vline(aes(xintercept=dc_ranges_spec$x[1]+input$get_time), colour = "yellow")
+      spec_plot <- spec_plot + geom_vline(aes(xintercept=dc_ranges_spec$x[1]+gettime_t()$x), colour = "yellow")
     else
-      spec_plot <- spec_plot + geom_vline(aes(xintercept=input$get_time), colour = "yellow")
+      spec_plot <- spec_plot + geom_vline(aes(xintercept=gettime_t()$x), colour = "yellow")
     return(spec_plot)
   }, bg="transparent")
   
