@@ -28,7 +28,7 @@ spec_theme <- theme(panel.grid.major.y = element_line(color = "black", linetype 
                     axis.line          = element_blank(),
                     legend.position    = 'none',
                     plot.background    = element_rect(fill = "black"),
-                    plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
+                    plot.margin        = margin(0.6,0.9,0.25,0, "lines"),
                     axis.title.y       = element_blank(),
                     axis.title.x       = element_text(size = 10, color = "lightgrey", family = "mono"), 
                     axis.text.y        = element_text(size = 14, color = "grey", family = "mono"),
@@ -43,7 +43,7 @@ spec_theme_front <- theme(panel.grid.major.y = element_line(color = NA, linetype
                           axis.line          = element_blank(),
                           legend.position    = 'none',
                           plot.background    = element_rect(fill='transparent', color=NA),
-                          plot.margin        = margin(0.2,0.9,0.25,0, "lines"),
+                          plot.margin        = margin(0.6,0.9,0.25,0, "lines"),
                           axis.title.y       = element_blank(),
                           axis.title.x       = element_text(size = 10, color = NA, family = "mono"), 
                           axis.text.y        = element_text(size = 14, color = NA, family = "mono"),
@@ -102,7 +102,7 @@ plot_oscillogram <- function(df, input, length_ylabs){
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, y_breaks){
+plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_range, y_breaks){
   palette_cols <- function(pal_name, n=6){
     if(pal_name == "viridisplus")
       return(virpluscols)
@@ -146,9 +146,11 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, y_breaks){
                          colours  = sel_col,
                          limits   = c(-96,96), 
                          na.value = sel_col[1]) +
-    scale_x_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0),
+                       limits = specplot_range$x) +
     scale_y_continuous(expand = c(0, 0), 
                        breaks = y_breaks,
+                       limits = specplot_range$y,
                        #limits = range(y_breaks),
                        labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse=''), 
                                        y_breaks, "kHz")

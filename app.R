@@ -52,12 +52,8 @@ file_btn_style <- 'padding:1%; width:100%;'
 header_btn_style <- "padding: 0%;
                      vertical-align: center;"
 plot_z_style <- "
-#specplot {
-  position: absolute;
-  z-index: 0;
-}
 #specplot_front {
-  position: relative;
+  position: absolute;
   z-index: 1;
 }"
 
@@ -207,25 +203,22 @@ ui_func <- function() {
         div(
           tags$head(tags$style(HTML(plot_z_style))),
           plotOutput(
-            "specplot",
-            height   = 300,
-            hover    = hoverOpts(
-              id        = "specplot_hover",
-              delay     = 10,
-              delayType = "debounce"
-              ),
-            brush    = brushOpts(
-              id         = "specplot_brush",
-              resetOnNew = TRUE)
-            ),
-          plotOutput(
             "specplot_front",
             height   = 300,
             click    = "specplot_click",
             dblclick = "specplot_dblclick",
             brush    = brushOpts(
               id         = "specplot_brush",
-              resetOnNew = TRUE)
+              resetOnNew = TRUE),
+            hover    = hoverOpts(
+              id        = "specplot_hover",
+              delay     = 10,
+              delayType = "debounce"
+            )
+          ),
+          plotOutput(
+            "specplot",
+            height   = 300,
           ),
           #plotOutput(
           #  "specplot_blank",
@@ -242,7 +235,7 @@ ui_func <- function() {
         tags$script(HTML('
           $(document).ready(function(){
             // id of the plot
-            $("#specplot").mousemove(function(e){ 
+            $("#specplot_front").mousemove(function(e){ 
               var hover     = $("#hover_info");
               var winwidth  = $( window ).width();
               var winheight = $( window ).height();
@@ -1022,7 +1015,7 @@ server <- function(input, output, session) {
     
     specplot_range$x <- range(df$time)
     specplot_range$y <- range(y_breaks)
-    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, y_breaks)
+    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, specplot_range, y_breaks)
     
     #if(!is.null(input$file1))
     #  spec_name_raw <- gsub('.wav', '_spec_raw.png', input$file1)
