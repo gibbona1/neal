@@ -939,8 +939,8 @@ server <- function(input, output, session) {
   specData <- reactive({
     if(.is_null(input$file1))     
       return(data.frame(time        = 0,
-                        frequency   = 1:10,
-                        amplitude   = rep(-96,10),
+                        frequency   = 0,
+                        amplitude   = -96,
                         freq_select = 1))
     tmp_audio <- audioInput()
     
