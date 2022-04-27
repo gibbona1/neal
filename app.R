@@ -162,6 +162,7 @@ ui_func <- function() {
         checkboxInput("include_guides", "Selected time/frequency guidelines",
                       value = TRUE),
         checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
+        downloadButton("downloadSpec", "Download Spec as CSV"),
         uiOutput("spec_collapse")
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
@@ -984,7 +985,6 @@ server <- function(input, output, session) {
       if(frange_check(frange, range(df$frequency)))
         df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
     
-    write.csv(df, 'tmp_spec.csv', row.names = FALSE)
     return(df)
   })
   
@@ -1665,6 +1665,15 @@ server <- function(input, output, session) {
     shinyjs::toggle(id  = "oscplot_blank",
                     condition = !plots_open$osc)
   })
+  
+  output$downloadSpec <- downloadHandler(
+    filename = function() {
+      paste0("tmp_spec-", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(specData(), file, row.names = FALSE)
+    }
+  )
   
   output$downloadData <- downloadHandler(
     filename = function() {
