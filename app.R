@@ -500,6 +500,14 @@ server <- function(input, output, session) {
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
   
+  extractWave_t <- function(x,tc){
+    return(extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
+  }
+  
+  btw <- function(x, left, right){
+    return(x >= left & x <= right)
+  }
+  
   length_b10 <- function(x){
     return(x %>% 
              range %>% 
@@ -808,14 +816,11 @@ server <- function(input, output, session) {
       return(NULL) 
     tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
     
-    #setWavPlayer("C:/Program Files/Windows Media Player/wmplayer.exe")
-    
     #based on torchaudio::functional_gain
     audio_gain     <- function (waveform, gain_db = 0){
       if(gain_db == 0)
         return(waveform)
-      ratio <- 10^(gain_db/20)
-      return(waveform * ratio)
+      return(waveform * 10^(gain_db/20))
     }
     submean        <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
@@ -833,7 +838,7 @@ server <- function(input, output, session) {
       tc        <- time_seq[segment_num()]
       segment_start(tc)
       segment_total(length(time_seq))
-      tmp_audio <- extractWave(tmp_audio, from = tc, to = tc+t_step, xunit = "time")
+      tmp_audio <- extractWave_t(tmp_audio, c(tc,tc+t_step))
       x_coords(c(tc, tc + t_step))
       if(length(tmp_audio) < t_step*tmp_audio@samp.rate)
         tmp_audio@left <- c(tmp_audio@left, rep(1, t_step*tmp_audio@samp.rate-length(tmp_audio)))
@@ -867,8 +872,7 @@ server <- function(input, output, session) {
       if(!is.null(ranges_spec$x))
         tc <- ranges_spec$x
       tc <- sort(tc) - segment_start()
-      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], 
-                               xunit = "time")
+      tmp_audio <- extractWave_t(tmp_audio, tc)
     } else if(!is.null(dc_ranges_osc$x) | !is.null(dc_ranges_spec$x)){
       #time crop
       if(!is.null(dc_ranges_osc$x))
@@ -876,8 +880,7 @@ server <- function(input, output, session) {
       if(!is.null(dc_ranges_spec$x))
         tc <- dc_ranges_spec$x
       tc <- sort(tc) - segment_start()
-      tmp_audio <- extractWave(tmp_audio, from = tc[1], to = tc[2], 
-                               xunit = "time")
+      tmp_audio <- extractWave_t(tmp_audio, tc)
     }
 
     if(!is.null(ranges_spec$y))
@@ -949,7 +952,8 @@ server <- function(input, output, session) {
                        Rows    = 1,
                        Columns = 2)
     
-    wl <- as.integer(length(tmp_audio)/100) #input$window_width_disp
+    wl <- as.integer(length(tmp_audio)/100) 
+    #wl <- input$window_width_disp
     if(!is.null(dc_ranges_spec$x)){
       xr <- dc_ranges_spec$x
       wl <- as.integer(tmp_audio@samp.rate*(xr[2]-xr[1])/100)
@@ -1033,7 +1037,8 @@ server <- function(input, output, session) {
     if(!is.null(dc_ranges_spec$x))
       x_breaks <- pretty(dc_ranges_spec$x, 5)
     
-    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks)
+    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec, 
+                          specplot_range, x_breaks, y_breaks)
     
     gb   <- ggplot_build(p)
     specplot_range$x <- gb$layout$panel_params[[1]]$x.range
@@ -1308,13 +1313,11 @@ server <- function(input, output, session) {
     point <- round(point, 3)
     
     in_label_box <- function(df, point){
-      return(point$time      >= df$start_time & 
-             point$time      <= df$end_time   &
-             point$frequency >= df$start_freq &
-             point$frequency <= df$end_freq   )
+      return(btw(point$time, df$start_time, df$end_time) &
+             btw(point$frequency, df$start_freq, df$end_freq))
     }
-    lab_df <- labelsData()
-    lab_df <- lab_df[in_label_box(lab_df, point),]
+    #lab_df <- labelsData()
+    #lab_df <- lab_df[in_label_box(lab_df, point),]
     
     #if(is.null(lab_df))
     species_in_hover <- ''
@@ -1369,8 +1372,7 @@ server <- function(input, output, session) {
     point <- round(point, 3)
     
     in_label_box <- function(df, point){
-      return(point$time      >= df$start_time & 
-             point$time      <= df$end_time)
+      return(btw(point$time, df$start_time, df$end_time))
     }
     lab_df <- labelsData()
     if(is.null(lab_df))
@@ -1418,9 +1420,8 @@ server <- function(input, output, session) {
       ranges_spec$y <- c(brush$ymin, brush$ymax)
       #showNotification("Click play to hear selected times/frequencies", 
       #                  type = "warning") 
-    } else {
+    } else
       reset_ranges(ranges_spec)
-    }
   })
   
   observeEvent(input$specplot_click, {
@@ -1495,7 +1496,7 @@ server <- function(input, output, session) {
         call_type <- ""
       else
         call_type <- paste(input$call_type[!.is_null(input$call_type)], 
-                           collapse='; ')
+                           collapse = '; ')
       lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                            file_name   = input$file1,
                            start_time  = ranges_spec$x[1],
@@ -1522,26 +1523,24 @@ server <- function(input, output, session) {
                                    input$label_points, 
                                    '</b></span> successfully saved!')), 
                        type = "message")
-    } else {
+    } else
       showNotification("Label not saved, nothing selected!", type = "error")
-    }
   })
   
   observeEvent(input$remove_points, {
     if(!is.null(input$specplot_brush)) {
-      lab_df <- data.frame(start_time  = ranges_spec$x[1],
-                           end_time    = ranges_spec$x[2],
-                           start_freq  = ranges_spec$y[1],
-                           end_freq    = ranges_spec$y[2])
+      lab_df <- data.frame(start_time = ranges_spec$x[1],
+                           end_time   = ranges_spec$x[2],
+                           start_freq = ranges_spec$y[1],
+                           end_freq   = ranges_spec$y[2])
       full_df    <- fullData()
       full_df_rm <- c()
       for(idx in 1:nrow(full_df)){
         bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
         check_df <- full_df[idx,]
         row_iou  <- bb_iou(lab_df[,bb_cols], check_df[,bb_cols])
-        if(row_iou > 0.6){
+        if(row_iou > 0.6)
           full_df_rm <- c(full_df_rm, idx)
-        }
       }
       if(!is.null(full_df_rm)){
         deleted_lab$rows <- full_df_rm
@@ -1552,9 +1551,8 @@ server <- function(input, output, session) {
         showNotification("Label removed, click Undo to bring back", 
                          type = "message")
       }
-    } else {
+    } else
       showNotification("Label not removed, nothing selected!", type = "error")
-    }
   })
   
   observeEvent(input$undo_delete_lab, {
@@ -1570,14 +1568,12 @@ server <- function(input, output, session) {
       }
       for(row in 1:length(rownums))
         full_df <- insertRow(full_df, del_df[row,], rownums[row])
-      deleted_lab$rows <- NULL
-      deleted_lab$data <- NULL
+      deleted_lab$rows <- deleted_lab$data <- NULL
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
       showNotification("Label recovered", type = "message")
-    } else {
+    } else
       showNotification("Nothing undone, no deletions detected!", type = "error")
-    }
   })
   
   output$my_audio <- renderUI({
@@ -1585,9 +1581,8 @@ server <- function(input, output, session) {
     if(!is.null(cleanInput())){
       file_name   <- 'www/tmp_clean.wav'
       audio_style <- paste(audio_style, "filter: sepia(50%);")
-    } else {
+    } else
       file_name <- 'www/tmp.wav'
-    }
     
     audio_style <- HTML(audio_style)
     if(.is_null(input$file1))     
@@ -1595,10 +1590,15 @@ server <- function(input, output, session) {
                         src      = "", 
                         type     = "audio/wav", 
                         controls = NA, 
-                        autoplay = NA,
                         style    = audio_style
       ))
     pb <- input$playbackrate
+    pb_script <- NULL
+    if(pb != 1){
+      pb_script <- paste0(
+        'var audio = document.getElementById("my_audio_player");
+       audio.playbackRate = ', pb, ';')
+    }
     div(
       tags$audio(id       = 'my_audio_player',
                  src      = markdown:::.b64EncodeFile(file_name), 
@@ -1606,9 +1606,8 @@ server <- function(input, output, session) {
                  controls = "controls",#HTML('controlsList: nodownload'),
                  #TODO: HTML styling (background colour, no download button,...)
                  style    = audio_style),
-      tags$script(paste0('var audio = document.getElementById("my_audio_player");
-                audio.playbackRate = ', pb, ';'))
-    )
+      tags$script(pb_script)
+      )
     })
   
   output$audio_title <- renderUI({
@@ -1641,9 +1640,8 @@ server <- function(input, output, session) {
   output$audio_time <- renderText({
     if(.is_null(input$file1))
       return(NULL)
-    else {
+    else
       return(input$get_time)
-    }
   })
   
   observe({
@@ -1670,7 +1668,7 @@ server <- function(input, output, session) {
     filename = function() {
       paste0("tmp_spec-", Sys.Date(), ".csv")
     },
-    content = function(file) {
+    content  = function(file) {
       write.csv(specData(), file, row.names = FALSE)
     }
   )
@@ -1679,7 +1677,7 @@ server <- function(input, output, session) {
     filename = function() {
       paste0("data-", Sys.Date(), ".csv")
     },
-    content = function(file) {
+    content  = function(file) {
       write.csv(saveData(), file)
     }
   )
@@ -1774,7 +1772,7 @@ auth0::shinyAppAuth0(ui_func(), server)
 #shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
-#reactlog_enable()
+#reactlog::reactlog_enable()
 
 # run a shiny app
 #shinyApp(ui_func(), server)
