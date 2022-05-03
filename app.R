@@ -494,6 +494,7 @@ server <- function(input, output, session) {
   deleted_lab    <- reactiveValues(rows = NULL, data = NULL)
   plots_open     <- reactiveValues(osc  = TRUE, spec = TRUE)
   specplot_range <- reactiveValues(x = NULL, y = NULL)
+  audio_clean    <- reactiveValues(select = FALSE, noisered = FALSE)
   x_coords       <- reactiveVal(NULL)
   segment_num    <- reactiveVal(1)
   segment_total  <- reactiveVal(1)
@@ -583,6 +584,49 @@ server <- function(input, output, session) {
                           category = c(class_label(), other_c))
     merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
     return(merge_df)
+  }
+  
+  noise_reduce <- function(x){
+    return(switch(x,
+                  None    = NULL,
+                  Rows    = 1,
+                  Columns = 2))
+  }
+  
+  geometric_median <- function(X, eps=1e-5, numIter = 200){
+    mX <- matrix(c(as.vector(Re(X)), 
+                   as.vector(Im(X))), 
+                 ncol=2, byrow = FALSE)
+    y  <- colMeans(mX)
+    itr <- 1
+    while(TRUE){
+      D <- rdist::cdist(mX, matrix(y, nrow=1))
+      nonzeros <- (D != 0)[, 1]
+      Dinv  <- 1 / D[nonzeros]
+      Dinvs <- sum(Dinv)
+      W     <- Dinv / Dinvs
+      WT    <- colSums(W * mX[nonzeros,])
+      
+      num_zeros <- length(X) - sum(nonzeros)
+      if(num_zeros == 0)
+        y1 <- WT
+      else if(num_zeros == length(X))
+        return(y)
+      else {
+        R <- (WT - y) * Dinvs
+        r <- norm(R, type = "F")
+        if(r == 0)
+          rinv <- 0
+        else
+          rinv <- num_zeros/r
+        y1 <-  max(0, 1-rinv)*WT + min(1, rinv)*y
+      }
+      euclidean <- function(a, b) sqrt(sum((a - b)^2))
+      if(euclidean(y, y1) < eps | itr > numIter)
+        return(y)
+      y <- y1
+      itr <- itr + 1
+    }
   }
   
   categories <- reactiveValues(
@@ -896,7 +940,45 @@ server <- function(input, output, session) {
                         ovlp     = input$fft_overlap, 
                         plot     = FALSE)
     
+    if(!frange_check(frange, range(tmp_spec$freq)) & 
+       (input$noisereduction == 'None'))
+      return(NULL)
+    
+    if(input$noisereduction != 'None'){
+      audio_clean$noisered <- TRUE
+      complex_spec <- spectro(tmp_audio,
+                              f        = tmp_audio@samp.rate, 
+                              wl       = input$window_width, 
+                              ovlp     = input$fft_overlap,
+                              complex  = TRUE,
+                              plot     = FALSE,
+                              norm     = FALSE,
+                              dB       = NULL)
+      
+      noisered  <- noise_reduce(input$noisereduction)
+      #noise is the geometric median of each row/column
+      specnoise <- t(apply(complex_spec$amp, MARGIN=noisered, geometric_median))
+      specnoise_complex <- complex(real=specnoise[,1], imaginary=specnoise[,2])
+      if(input$noisereduction == "Rows")
+        noise_mat <- matrix(rep(specnoise_complex, ncol(complex_spec$amp)),
+                            ncol = ncol(complex_spec$amp))
+      else
+        noise_mat <- matrix(rep(specnoise_complex, nrow(complex_spec$amp)),
+                            nrow = nrow(complex_spec$amp), byrow = TRUE)
+      
+      complex_spec$amp <- complex_spec$amp - noise_mat
+      
+      audio_inv <- istft(complex_spec$amp,
+                         f    = tmp_audio@samp.rate,
+                         wl   = input$window_width, 
+                         ovlp = input$fft_overlap,
+                         out  = "Wave")
+      tmp_audio <- normalize(audio_inv, unit = "16")
+    } else
+      audio_clean$noisered <- FALSE
+    
     if(frange_check(frange, range(tmp_spec$freq))){
+      audio_clean$select <- TRUE
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate, 
                               wl       = input$window_width, 
@@ -914,8 +996,9 @@ server <- function(input, output, session) {
                          ovlp = input$fft_overlap,
                          out  = "Wave")
       tmp_audio <- normalize(audio_inv, unit = "16")
-    } else 
-      return(NULL)
+    } else
+      audio_clean$select <- FALSE
+    
     writeWave(tmp_audio, 'www/tmp_clean.wav')
     return(tmp_audio)
   })
@@ -947,10 +1030,7 @@ server <- function(input, output, session) {
                         freq_select = 1))
     tmp_audio <- audioInput()
     
-    noisered <- switch(input$noisereduction,
-                       None    = NULL,
-                       Rows    = 1,
-                       Columns = 2)
+    noisered <- noise_reduce(input$noisereduction)
     
     wl <- as.integer(length(tmp_audio)/100) 
     #wl <- input$window_width_disp
@@ -1612,8 +1692,12 @@ server <- function(input, output, session) {
   
   output$audio_title <- renderUI({
     base <- "<b>Play audio:<b/>"
-    if(!is.null(cleanInput()))
-      base <- paste(base, '<span style="color: red;">(selected)</span>')
+    if(!is.null(cleanInput())){
+      if(audio_clean$select)
+        base <- paste(base, '<span style="color: red;">(selected)</span>')
+      if(audio_clean$noisered)
+        base <- paste(base, '<span style="color: red;">(noise reduction)</span>')
+    }
     HTML(base)
   })
   
