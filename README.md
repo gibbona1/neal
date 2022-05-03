@@ -58,4 +58,8 @@ TODOs:
 - [x] Transparent plots in front of spectrogram:
   - [x] Plotting Vertical line indicating timestamp while playing
   - [x] Label boxes (see above)
-- [ ] Noise also cleans audio 
+- [ ] Noise removal also cleans audio. Filter audio player e.g. slightly green
+- [ ] 3 labeling modes: 
+  - [ ] Binary classification (whole file)
+  - [ ] Event detection (time/x-axis)
+  - [ ] Object detection (time and frewquency bounding boxes)

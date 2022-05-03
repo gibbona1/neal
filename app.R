@@ -114,13 +114,6 @@ ui_func <- function() {
                     width   = '100%')
       ),
       menuItem("Sound Settings", tabName = "sound_menu", icon = icon("music"),
-        selectInput(
-          "noisereduction",
-          "Spectrogram Noise reduction:",
-          choices  = c("None", "Rows", "Columns"),
-          selected = "None",
-          width    = '100%'
-        ),
         sliderInput(
                  "db_gain",
                  "dB Gain:",
@@ -139,6 +132,13 @@ ui_func <- function() {
                     choices = c(0, 2^(3:7)), selected = 0),
         selectInput("freq_max", "maximum frequency in filter", 
                     choices = 2^(4:9), selected = 32),
+        selectInput(
+          "noisereduction",
+          "Noise reduction:",
+          choices  = c("None", "Rows", "Columns"),
+          selected = "None",
+          width    = '100%'
+        ),
         selectInput(
           "palette_selected",
           "Spectrogram colour palette:",
