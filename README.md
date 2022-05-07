@@ -5,7 +5,7 @@ TODOs:
   - [ ] Open in adjacent tab
   - [ ] Make sure instructions say how to zoom in/out
 - [ ] Get ~1 hour of files in 4/5 folders. 15 seconds with little overlap
-- [ ] Default logged in users to their folder, if guest or cant find folder, use tmp folder
+- [ ] Default logged in users to their folder, if guest or can't find folder, use tmp folder
 - [x] Download labels button:
   - [x] Only I can download all labels (admin)
   - [x] Other users can download their own

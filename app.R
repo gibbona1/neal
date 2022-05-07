@@ -52,13 +52,17 @@ file_btn_style <- 'padding:1%; width:100%;'
 header_btn_style <- "padding: 0%;
                      vertical-align: center;"
 plot_z_style <- "
-#specplot_time {
+#specplot_freq {
   position: absolute;
   z-index: 1;
 }
-#specplot_front {
+#specplot_time {
   position: absolute;
   z-index: 2;
+}
+#specplot_front {
+  position: absolute;
+  z-index: 3;
 }"
 
 ui_func <- function() {
@@ -227,6 +231,10 @@ ui_func <- function() {
           ),
           plotOutput(
             "specplot_time",
+            height   = 300,
+          ),
+          plotOutput(
+            "specplot_freq",
             height   = 300,
           ),
           plotOutput(
@@ -1062,13 +1070,6 @@ server <- function(input, output, session) {
     #else if(!is.null(dc_ranges_spec$x))
     #  df$time <- df$time + dc_ranges_spec$x[1]
     
-    df$freq_select <- 1
-    
-    frange <- input$frequency_range
-    if(!is.null(frange))
-      if(frange_check(frange, range(df$frequency)))
-        df$freq_select[df$frequency < frange[1] | df$frequency > frange[2]] <- 0.4
-    
     return(df)
   })
   
@@ -1176,6 +1177,30 @@ server <- function(input, output, session) {
   output$specplot <- renderPlot({
     return(specPlot())
   })
+  
+  output$specplot_freq <- renderPlot({
+    if(.is_null(input$file1) | !input$spec_time)
+      return(NULL)
+    spec_plot <- specPlotFront()
+    
+    df <- specData()
+    frange <- input$frequency_range
+    
+    if(!is.null(frange))
+      if(frange_check(frange, range(df$frequency)))
+        spec_plot <- spec_plot + 
+          geom_rect(aes(xmin = -Inf, 
+                        xmax = Inf, 
+                        ymin = frange[2], 
+                        ymax = Inf),
+                    fill = 'black', alpha = .5) +
+          geom_rect(aes(xmin = -Inf, 
+                        xmax = Inf, 
+                        ymin = -Inf, 
+                        ymax = frange[1]),
+                    fill = 'black', alpha = .5)
+    return(spec_plot)
+  }, bg="transparent")
   
   output$specplot_time <- renderPlot({
     if(.is_null(input$file1) | !input$spec_time)
