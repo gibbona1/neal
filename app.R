@@ -27,16 +27,13 @@ source('audio_meta.R')
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30*1024^2)
 
-file_list <- list.files('www/')
-file_list <- file_list[!stringr::str_starts(file_list, "tmp")]
-
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 call_types   <- c("song", "alarm call", "flight call", "flock")
 
 playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
 names(playback_vals) <- paste0(playback_vals, "x")
 
-.is_null <- function(x) return(is.null(x) | x == "<NULL>")
+.is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
 
 btn_row_style  <- "display: inline-block;
                    width: 100%;
@@ -109,7 +106,7 @@ ui_func <- function() {
         selectInput(
           "file1",
           "Select File:",
-          choices = c("<NULL>", file_list),
+          choices = c(),
           width   = '100%'
           ),
         selectInput("species_list",
@@ -478,6 +475,26 @@ server <- function(input, output, session) {
     allowDirCreate = FALSE
   )
   
+  lab_nickname <- function(){
+    auth0_session <- session$userData$auth0_info
+    if(is.null(auth0_session))
+      nickname <- Sys.info()[["user"]]
+    else 
+      nickname <- auth0_session$nickname
+    if(!(nickname %in% list.files('www/')))
+      nickname <- 'tmp'
+    return(nickname)
+  }
+  
+  file_list <- reactive({
+    filenames <- list.files(paste0('www/', lab_nickname()))
+    filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
+    updateSelectInput(inputId  ='file1', 
+                      choices  = filenames,
+                      selected = filenames[1])
+    return(filenames)
+  })
+  
   global <- reactiveValues(datapath = getwd())
   
   mydir <- reactive(input$folder)
@@ -640,7 +657,7 @@ server <- function(input, output, session) {
   categories <- reactiveValues(
     base = get_entries(species_list[,1]), 
     misc = c("Noise", "Other"),
-    xtra = "abc"
+    xtra = c()
   )
   
   observeEvent(input$species_list, {
@@ -674,12 +691,12 @@ server <- function(input, output, session) {
       disable("prev_section")
       disable("next_section")
     } else {
-      idx <- which(input$file1 == file_list)
+      idx <- which(input$file1 == file_list())
       if(idx == 1)
         disable("prev_file")
       else
         enable("prev_file")
-      if(idx == length(file_list))
+      if(idx == length(file_list()))
         disable("next_file")
       else
         enable("next_file")
@@ -737,7 +754,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$start_labelling, {
     updateSelectInput(inputId  = "file1",
-                      selected = file_list[1])
+                      selected = file_list()[1])
   })
   
   observeEvent(input$end_labelling, {
@@ -866,7 +883,7 @@ server <- function(input, output, session) {
   audioInput <- reactive({
     if(.is_null(input$file1))     
       return(NULL) 
-    tmp_audio <- readWave(file.path(getwd(), "www", input$file1))
+    tmp_audio <- readWave(file.path(getwd(), "www", lab_nickname(), input$file1))
     
     #based on torchaudio::functional_gain
     audio_gain     <- function (waveform, gain_db = 0){
@@ -907,8 +924,7 @@ server <- function(input, output, session) {
       disable("next_section")
       x_coords(NULL)
     }
-    
-    writeWave(tmp_audio, 'www/tmp.wav')
+    writeWave(tmp_audio, file.path('www', lab_nickname(), 'tmp.wav'))
     return(tmp_audio)
   })
   
@@ -1006,8 +1022,7 @@ server <- function(input, output, session) {
       tmp_audio <- normalize(audio_inv, unit = "16")
     } else
       audio_clean$select <- FALSE
-    
-    writeWave(tmp_audio, 'www/tmp_clean.wav')
+    writeWave(tmp_audio, file.path('www', lab_nickname(), 'tmp_clean.wav'))
     return(tmp_audio)
   })
   
@@ -1684,10 +1699,10 @@ server <- function(input, output, session) {
   output$my_audio <- renderUI({
     audio_style <- "width: 100%;"
     if(!is.null(cleanInput())){
-      file_name   <- 'www/tmp_clean.wav'
+      file_name   <- file.path('www', lab_nickname(), 'tmp_clean.wav')
       audio_style <- paste(audio_style, "filter: sepia(50%);")
     } else
-      file_name <- 'www/tmp.wav'
+      file_name <- file.path('www', lab_nickname(), 'tmp.wav')
     
     audio_style <- HTML(audio_style)
     if(.is_null(input$file1))     
@@ -1793,13 +1808,13 @@ server <- function(input, output, session) {
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
-    idx <- which(input$file1 == file_list) - 1
+    idx <- which(input$file1 == file_list()) - 1
     if(idx == 0)
       showNotification("Cannot go to previous file, at beginning of folder", 
                        type = "error")
     else {
       updateSelectInput(inputId  = "file1",
-                        selected = file_list[idx])
+                        selected = file_list()[idx])
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
@@ -1813,13 +1828,13 @@ server <- function(input, output, session) {
   
   # move to next file (resetting zoom)
   observeEvent(input$next_file, {
-    idx <- which(input$file1 == file_list) + 1
-    if(idx > length(file_list))
+    idx <- which(input$file1 == file_list()) + 1
+    if(idx > length(file_list()))
       showNotification("Cannot go to next file, at end of folder", 
                        type = "error")
     else {
       updateSelectInput(inputId  = "file1",
-                        selected = file_list[idx])
+                        selected = file_list()[idx])
     }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)

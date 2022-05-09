@@ -138,7 +138,6 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
     geom_raster(aes(x    = time,
                     y    = frequency, 
                     fill = amplitude),
-                alpha       = df$freq_select,
                 interpolate = TRUE
                 ) +
     xlab("Time (s)") + 
