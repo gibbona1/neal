@@ -186,7 +186,7 @@ ui_func <- function() {
         uiOutput("osc_collapse")
       ),
       menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
-               checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
+               #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
                downloadButton("downloadData", "Download Labels")
                ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
@@ -733,11 +733,13 @@ server <- function(input, output, session) {
   # only admin can download all labels
   # other users download only theirs
   saveData <- reactive({
-    df <- fullData()
-    if(labeler() == "anthony.gibbons.2022@mumail.ie")
+    if(labeler() == "anthony.gibbons.2022@mumail.ie"){
+      df <- data.frame()
+      for(labfile in list.files('labels'))
+        df <- rbind(df,read.csv(file.path('labels',labfile)))
       return(df)
-    else
-      return(df[df$labeler == labeler(),])
+    } else
+      return(fullData())
   })
   
   output$start_ui <- renderUI({
@@ -1250,8 +1252,8 @@ server <- function(input, output, session) {
     if(is.null(lab_df))
       return(spec_plot)
     else if(input$spec_labs){
-      if(input$hide_other_labels)
-        lab_df <- lab_df[lab_df$labeler == labeler(),]
+      #if(input$hide_other_labels)
+      #  lab_df <- lab_df[lab_df$labeler == labeler(),]
       lab_df <- lab_df %>% 
         filter(between(start_time, segment_start(), segment_start()+input$t_step))
       if(!is.null(dc_ranges_spec$x)){
