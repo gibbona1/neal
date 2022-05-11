@@ -335,7 +335,7 @@ ui_func <- function() {
                  }),
         column(2,{
           fixedRow(style = btn_row_style,
-             div(column(3, style = "padding:0px;",
+             div(column(6, style = "padding:0px;",
                         tipify(
                           actionButton("prev_file", "", 
                                        icon  = icon("arrow-left"), 
@@ -343,23 +343,23 @@ ui_func <- function() {
                           "Previous File"
                         ),
              ), 
-             column(3, style = "padding:0px;",
-                    tipify(
-                      actionButton("prev_section", "", 
-                                   icon  = icon("chevron-left"), 
-                                   style = file_btn_style),
-                      "previous section"
-                    )
-             ), 
-             column(3, style = "padding:0px;",
-                    tipify(
-                      actionButton("next_section", "", 
-                                   icon  = icon("chevron-right"), 
-                                   style = file_btn_style),
-                      "next section"
-                    )
-             ), 
-             column(3, style = "padding:0px;",
+             #column(3, style = "padding:0px;",
+            #        tipify(
+            #          actionButton("prev_section", "", 
+            #                       icon  = icon("chevron-left"), 
+            #                       style = file_btn_style),
+            #          "previous section"
+            #        )
+            # ), 
+             #column(3, style = "padding:0px;",
+            #        tipify(
+            #          actionButton("next_section", "", 
+            #                       icon  = icon("chevron-right"), 
+            #                       style = file_btn_style),
+            #          "next section"
+            #        )
+            # ), 
+             column(6, style = "padding:0px;",
                     tipify(actionButton("next_file", "", 
                                         icon  = icon("arrow-right"), 
                                         style = file_btn_style), 
@@ -599,6 +599,8 @@ server <- function(input, output, session) {
   }
   
   cat_colours <- function(x){
+    if(is.null(x))
+      return(NULL)
     other_c <- unique(unlist(species_list))
     other_c <- other_c[other_c != "" & !(other_c %in% class_label())]
     other_c <- c(other_c, x$class_label[!x$class_label %in% class_label()])
@@ -669,7 +671,7 @@ server <- function(input, output, session) {
     c(cats$base, cats$misc, cats$xtra)
   })
   
-  labs_filename <- reactive({"tmp_labels.csv"})
+  labs_filename <- reactive({paste0("labels/tmp_labels_",lab_nickname(),".csv")})
   
   fullData   <- reactiveVal(NULL)
   
@@ -1055,18 +1057,18 @@ server <- function(input, output, session) {
     
     noisered <- noise_reduce(input$noisereduction)
     
-    wl <- as.integer(length(tmp_audio)/100) 
+    #wl <- as.integer(length(tmp_audio)/100) 
     #wl <- input$window_width_disp
-    if(!is.null(dc_ranges_spec$x)){
-      xr <- dc_ranges_spec$x
-      wl <- as.integer(tmp_audio@samp.rate*(xr[2]-xr[1])/100)
+    #if(!is.null(dc_ranges_spec$x)){
+    #  xr <- dc_ranges_spec$x
+    #  wl <- as.integer(tmp_audio@samp.rate*(xr[2]-xr[1])/100)
       #wl <- as.integer(wl/10) 
-    }
-    wl <- wl - wl %% 2
+    #}
+    #wl <- wl - wl %% 2
     
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
-                    wl       = wl, 
+                    wl       = input$window_width, 
                     ovlp     = input$fft_overlap_disp, 
                     plot     = FALSE,
                     noisereduction = noisered)
