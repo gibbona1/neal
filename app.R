@@ -487,7 +487,7 @@ server <- function(input, output, session) {
   }
   
   file_list <- reactive({
-    filenames <- list.files(paste0('www/', lab_nickname()))
+    filenames <- list.files(file.path('www', lab_nickname()))
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     updateSelectInput(inputId  ='file1', 
                       choices  = filenames,
