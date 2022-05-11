@@ -11,9 +11,20 @@ get_audio_dt <- function(x){
   return(dt_time)
 }
 
+get_audio_recdf <- function(x){
+  name_str <- stringr::str_extract(x, regex("[A-Z,0-9]{1,}_*"))
+  name_str <- substr(name_str, 1, nchar(name_str)-1)
+  
+  loc_df <- read.csv("location_list.csv", fileEncoding = 'UTF-8-BOM')
+  if(name_str %in% loc_df$recorder_name)
+    return(loc_df[loc_df$recorder_name == name_str,])
+  return(NULL)
+}
+
 get_gmap_link <- function(latlong){
   href <- "http://maps.google.com/maps?t=k&q=loc:"
-  return(tags$a(href=paste0(href, latlong[1], "+", latlong[2]), "Google Maps Link"))
+  return(tags$a(href=paste0(href, latlong[1], "+", latlong[2]), "Google Maps Link",
+                target="_blank"))
 }
 
 dd2dms <- function(x, c = 'lat'){
@@ -34,6 +45,6 @@ dd2dms <- function(x, c = 'lat'){
       hemisphere <- "W" 
     else 
       hemisphere <- "E"
-  res <- paste0(d, '\u00B0', m,'\'', s,'"', hemisphere)
+  res <- paste0(d, '\u00B0', m,'\'', round(s,1),'"', hemisphere)
   return(res)
 }

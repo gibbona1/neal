@@ -1749,6 +1749,21 @@ server <- function(input, output, session) {
     if(!is.null(audioInput())){
       #latlong <- c(52.208330, -6.594489)
       dt <- get_audio_dt(input$file1)
+      df <- get_audio_recdf(input$file1)
+      latlong <- NULL
+      if(!is.null(df))
+        latlong <- c(df$lat, df$long)
+      wf_address <- ifelse(!is.null(df), 
+             paste0(df$wind_farm_name, ", Co.", df$wind_farm_county),
+             "")
+      #browser()
+      wf_latlong <- ifelse(!is.null(latlong), 
+             paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
+             "")
+      wf_link <- ""
+      if(!is.null(latlong))
+        wf_link <- get_gmap_link(latlong)
+      #browser()
       div(#HTML(base),
         tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
         tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
@@ -1756,7 +1771,10 @@ server <- function(input, output, session) {
                    bsCollapsePanel("Meta Information", 
                                    #HTML("<b>filename: </b>"), input$file1, br(),
                                    HTML("<b>time recorded: </b>"), as.character(dt), br(),
-                                   #HTML("<b>Location: </b>"),
+                                   HTML("<b>Location: </b>"),
+                                   wf_address, br(),
+                                   wf_latlong, 
+                                   wf_link,
                                    #paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
                                    #get_gmap_link(latlong),
                                    style = "info")
