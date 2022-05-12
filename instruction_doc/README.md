@@ -22,5 +22,5 @@ Sometimes there is a disconnect from the server. If this happens, reload or put 
     ![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_4select.png)
     1. Double-click to zoom in on selection.
     ![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_5azoom.png)
-    2. Click Save Selection to label the selection as the chosen species.
+    2. Click ``Save Selection`` to label the selection as the chosen species.
     ![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_5bselection_saved.png)
