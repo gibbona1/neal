@@ -65,3 +65,7 @@ TODOs:
 - [ ] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
 - [x] Delete note after label saved
 - [ ] Order species list alphabetically, or group by family (get definitive list)
+- [ ] Hotkeys:
+  - [ ] play/pause
+  - [ ] label
+  - [ ] prev/next file

@@ -18,3 +18,13 @@ Sometimes there is a disconnect from the server. If this happens, reload or put 
 
 ![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_3display.png)
 
+5. Drag a tight box around the audio of interest.
+
+![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_4select.png)
+
+    a. Double-click to zoom
+![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_5azoom.png)
+
+    b. Alternatively
+
+![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_5bselection_saved.png)
