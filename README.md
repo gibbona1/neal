@@ -13,7 +13,7 @@ TODOs:
   - [x] Collapsible panel under play audio
   - [x] Basic collapsible panel with formatted time display
   - [x] Get location from recorder filename
-  - [ ] Distance from coast
+  - [x] Distance from coastline
   - [ ] Distance from closest Special Area of Conservation (SAC) and species concerned
   - [ ] Infer weather using some API (temperature, weather, wind, percipitation)
   - [ ] Get habitat type (either hard coded or gotten from wind farm GIS files)
@@ -61,7 +61,7 @@ TODOs:
   - [ ] Binary classification (whole file)
   - [ ] Event detection (time/x-axis)
   - [ ] Object detection (time and frewquency bounding boxes)
-- [ ] Expand call types - call, agitation/contact, flight, notcurnal, juvenile 
+- [ ] Expand call types - call, agitation/contact, flight, nocturnal, juvenile 
 - [ ] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
-- [ ] Delete note after label saved
+- [x] Delete note after label saved
 - [ ] Order species list alphabetically, or group by family (get difinitive list)

@@ -435,7 +435,7 @@ ui_func <- function() {
       fluidRow({
         div(
           column(4, 
-                 textAreaInput("notes", "Additional Notes:", width = "100%")
+                 textAreaInput("notes", "Additional Notes:", width = "100%", resize = "vertical")
           ),
           column(4,
                  uiOutput("freq_ui")
@@ -1647,6 +1647,7 @@ server <- function(input, output, session) {
                                    input$label_points, 
                                    '</b></span> successfully saved!')), 
                        type = "message")
+      updateTextAreaInput(inputId = "notes", value="")
     } else
       showNotification("Label not saved, nothing selected!", type = "error")
   })
