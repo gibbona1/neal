@@ -1,4 +1,5 @@
 profiling/*
+shp_data/*
 .Rproj.user
 .Rhistory
 .RData

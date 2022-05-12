@@ -48,3 +48,8 @@ dd2dms <- function(x, c = 'lat'){
   res <- paste0(d, '\u00B0', m,'\'', round(s,1),'"', hemisphere)
   return(res)
 }
+
+m2km <- function(x){
+  x_m <- format(round(as.numeric(1000*x), 1), nsmall=1, big.mark=",")
+  return(paste(x_m, "m"))
+}

@@ -1763,6 +1763,9 @@ server <- function(input, output, session) {
       wf_link <- ""
       if(!is.null(latlong))
         wf_link <- get_gmap_link(latlong)
+      wf_d2c <- ""
+      if(!is.null(df))
+        wf_d2c <- m2km(df$dist_to_coastline)
       #browser()
       div(#HTML(base),
         tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
@@ -1770,11 +1773,12 @@ server <- function(input, output, session) {
         bsCollapse(id = "collapseExample",
                    bsCollapsePanel("Meta Information", 
                                    #HTML("<b>filename: </b>"), input$file1, br(),
-                                   HTML("<b>time recorded: </b>"), as.character(dt), br(),
-                                   HTML("<b>Location: </b>"),
-                                   wf_address, br(),
-                                   wf_latlong, 
-                                   wf_link,
+                                   HTML("<b>Time recorded: </b>"), as.character(dt), br(),
+                                   HTML("<b>Location: </b>"), wf_address, br(),
+                                   HTML("<b>Coordinates: </b>"), 
+                                   wf_latlong, wf_link, br(),
+                                   HTML("<b>Distance to coastline: </b>"),
+                                   wf_d2c,
                                    #paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
                                    #get_gmap_link(latlong),
                                    style = "info")

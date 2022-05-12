@@ -1,7 +1,7 @@
-﻿recorder_name,lat,long,wind_farm_name,wind_farm_county
-RICHFIELDMET,52.208335,-6.594489,Richfield ,Wexford
-RICHFIELDM1,52.208335,-6.594489,Richfield,Wexford
-CARNSOREMET,52.181183,-6.368361,Carnsore Point,Wexford
-CLOOSHVALLEY,53.388299,-9.392224,Galway Wind Park,Galway
-RAHORA,52.395551,-7.052513,Rahora,Kilkenny
-TEEVURCHER,53.883233,-6.919155,Teevurcher,Meath
+﻿recorder_name,lat,long,wind_farm_name,wind_farm_county,dist_to_coastline
+RICHFIELDMET,52.208335,-6.594489,Richfield ,Wexford,0.6667271
+RICHFIELDM1,52.208335,-6.594489,Richfield,Wexford,0.6667271
+CARNSOREMET,52.181183,-6.368361,Carnsore Point,Wexford,0.8403536
+CLOOSHVALLEY,53.388299,-9.392224,Galway Wind Park,Galway,2.471742
+RAHORA,52.395551,-7.052513,Rahora,Kilkenny,0.3503482
+TEEVURCHER,53.883233,-6.919155,Teevurcher,Meath,1.139233
