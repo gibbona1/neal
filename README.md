@@ -61,7 +61,7 @@ TODOs:
   - [ ] Binary classification (whole file)
   - [ ] Event detection (time/x-axis)
   - [ ] Object detection (time and frewquency bounding boxes)
-- [ ] Expand call types - call, agitation/contact, flight, nocturnal, juvenile 
+- [x] Expand call types - call, agitation/contact, flight, nocturnal, juvenile 
 - [ ] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
 - [x] Delete note after label saved
-- [ ] Order species list alphabetically, or group by family (get difinitive list)
+- [ ] Order species list alphabetically, or group by family (get definitive list)

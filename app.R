@@ -28,7 +28,8 @@ source('audio_meta.R')
 options(shiny.maxRequestSize = 30*1024^2)
 
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
-call_types   <- c("song", "alarm call", "flight call", "flock")
+#Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
+call_types   <- c("alarm call", "begging call", "call", "contact call", "flight call", "flock", "juvenile call", "nocturnal call", "song")
 
 playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
 names(playback_vals) <- paste0(playback_vals, "x")
