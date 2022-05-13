@@ -114,7 +114,7 @@ ui_func <- function() {
         selectInput(
           "file1",
           "Select File:",
-          choices = c(),
+          choices = c(""),
           width   = '100%'
           ),
         selectInput("species_list",
@@ -180,7 +180,7 @@ ui_func <- function() {
         numericInput('fft_overlap', 'FFT Overlap (%)', 
                      value = 75, min = 0, max = 99, step = 1),
         numericInput('window_width_disp', 'Window Size for display spectrogram', 
-                     value = 4096),
+                     value = 1024),
         numericInput('fft_overlap_disp', 'FFT Overlap for display spectrogram', 
                      value = 15, min = 0, max = 99, step = 1)
       ),
@@ -768,12 +768,14 @@ server <- function(input, output, session) {
   
   observeEvent(input$start_labelling, {
     updateSelectInput(inputId  = "file1",
-                      selected = file_list()[1])
+                      selected = file_list()[1],
+                      choices  = file_list())
   })
   
   observeEvent(input$end_labelling, {
     updateSelectInput(inputId  = "file1",
-                      selected = "<NULL>")
+                      selected = "",
+                      choices  = c(""))
   })
   
   output$label_ui <- renderUI({
@@ -1080,7 +1082,7 @@ server <- function(input, output, session) {
     
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate, 
-                    wl       = input$window_width, 
+                    wl       = input$window_width_disp, 
                     ovlp     = input$fft_overlap_disp, 
                     plot     = FALSE,
                     noisereduction = noisered)
@@ -1321,7 +1323,7 @@ server <- function(input, output, session) {
     height  <- session$clientData$output_specplot_height
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
-    ggsave(file_nm, p,
+    ggsave(file_nm, specPlot(),
            height = height*pixelratio, 
            width  = width*pixelratio,
            units  = "px")
