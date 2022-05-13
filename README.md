@@ -67,5 +67,5 @@ TODOs:
 - [ ] Order species list alphabetically, or group by family (get definitive list)
 - [ ] Hotkeys:
   - [ ] play/pause
-  - [ ] label
+  - [x] label/delete
   - [ ] prev/next file

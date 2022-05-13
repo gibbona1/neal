@@ -7,6 +7,7 @@ library(shinythemes)
 library(shinydashboard)
 library(shinydashboardPlus)
 library(shinyWidgets)
+library(keys)
 library(imola)
 library(tuneR)
 library(seewave) # for spectrogram
@@ -33,6 +34,12 @@ call_types   <- c("alarm call", "begging call", "call", "contact call", "flight 
 
 playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
 names(playback_vals) <- paste0(playback_vals, "x")
+
+hotkeys <- c(
+  "shift+space", 
+  "shift+enter",
+  "shift+backspace" 
+)
 
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
 
@@ -204,6 +211,8 @@ ui_func <- function() {
     
     body <- {dashboardBody(
       shinyjs::useShinyjs(),
+      useKeys(),
+      keysInput("keys", hotkeys),
       id    = "main-panel",
       theme = "blue_gradient",
       tags$style(".content-wrapper{margin-left: 0px;}"),
@@ -1481,6 +1490,21 @@ server <- function(input, output, session) {
   
   observeEvent(input$open_spec, {
     plots_open$spec <- TRUE
+  })
+  
+  observeEvent(input$keys, {
+    #if(input$keys == "shift+space")
+    #  tags$script('var audio = document.getElementById("my_audio_player");
+    #               if(audio.paused){ //check audio is playing
+    #                  audio.play();
+    #               } else {
+    #                  audio.pause();
+    #               }')
+    #else 
+    if(input$keys == "shift+enter")
+      click("save_points")
+    else if(input$keys == "shift+backspace")
+      click("remove_points")
   })
   
   output$hover_info_osc <- renderUI({
