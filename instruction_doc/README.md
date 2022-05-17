@@ -1,3 +1,7 @@
+# Table of Contents
+- [Instructions](https://github.com/gibbona1/audio_labeler/edit/master/instruction_doc/README.md#instructions)
+- [Hotkeys](https://github.com/gibbona1/audio_labeler/edit/master/instruction_doc/README.md#hotkeys)
+
 # Instructions
 
 1. Login at https://gibbona1.shinyapps.io/audio_labeller
@@ -24,3 +28,7 @@ Sometimes there is a disconnect from the server. If this happens, reload or put 
     ![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_5azoom.png)
     2. Click ``Save Selection`` to label the selection as the chosen species.
     ![Display](https://github.com/gibbona1/audio_labeler/blob/master/images/app_5bselection_saved.png)
+
+# Hotkeys
+- <kbd>CTRL</kbd>+<kbd>&#9166;</kbd> to Save Selection
+- <kbd>CTRL</kbd>+<kbd>&#9003;</kbd> to Delete Selection
