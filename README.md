@@ -66,6 +66,6 @@ TODOs:
 - [x] Delete note after label saved
 - [ ] Order species list alphabetically, or group by family (get definitive list)
 - [ ] Hotkeys:
-  - [ ] play/pause
+  - [ ] play/pause audio (needs JS workaround)
   - [x] label/delete
-  - [ ] prev/next file
+  - [x] prev/next file

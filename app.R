@@ -87,6 +87,17 @@ ui_func <- function() {
         badgeStatus = NULL,
         headerText  = uiOutput("user_ui")
       ),
+      dropdownMenu(tags$li(class = "dropdown",
+          HTML("<kbd>&#8679;</kbd>+<kbd>&#9166;</kbd> to Save Selection <br/>"),
+          HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
+          HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
+          HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>")
+        ),
+        type = "notifications", 
+        icon = icon("keyboard"),
+        badgeStatus = NULL,
+        headerText  = "Hotkeys"
+      ),
       dropdownMenu(
         type = "notifications", 
         icon = icon("question-circle"),
