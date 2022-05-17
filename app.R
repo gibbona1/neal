@@ -38,7 +38,9 @@ names(playback_vals) <- paste0(playback_vals, "x")
 hotkeys <- c(
   "shift+space", 
   "shift+enter",
-  "shift+backspace" 
+  "shift+backspace",
+  "shift+left",
+  "shift+right"
 )
 
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
@@ -1507,6 +1509,10 @@ server <- function(input, output, session) {
       click("save_points")
     else if(input$keys == "shift+backspace")
       click("remove_points")
+    else if(input$keys == "shift+left") 
+      click("prev_file")
+    else if(input$keys == "shift+right")
+      click("next_file")
   })
   
   output$hover_info_osc <- renderUI({
