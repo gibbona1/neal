@@ -1,0 +1,4 @@
+"date_time","file_name","start_time","end_time","start_freq","end_freq","class_label","call_type","confidence","notes","labeler"
+"2022-05-18 21:02:13","1_SMU05115_20211104_064902_start_39_16.wav",2.1900049443852,3.1989077315743,7.257152723421,9.4042710365883,"Eurasian Magpie","",1,"","Anthony"
+"2022-05-18 21:02:33","1_SMU05115_20211104_064902_start_39_16.wav",7.0183254259332,7.9911959707227,6.8837408428702,8.8908297008309,"Eurasian Magpie","",1,"","Anthony"
+"2022-05-18 21:02:45","2_RICHFIELDMET_20211218_111120.wav",7.594611664365,8.277566612317,6.5103289623194,9.9643888574145,"European Goldfinch","",1,"","Anthony"

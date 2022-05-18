@@ -454,7 +454,7 @@ ui_func <- function() {
             )
           )
         }),
-      #more
+      #notes, frequency filtering and label confidence
       fluidRow({
         div(
           column(4, 
@@ -475,6 +475,10 @@ ui_func <- function() {
                      div(style='float:right;', 'high')),
           )
         )
+      }),
+      #label summary
+      fluidRow({
+          uiOutput("fileLabInfo")
       })
     )}
     
@@ -764,6 +768,43 @@ server <- function(input, output, session) {
     } else
       return(fullData())
   })
+  
+  output$fileLabInfo <- renderUI({
+    if(.is_null(input$file1))
+      return(NULL)
+    lab_df <- labelsData()
+    bsCollapse(id = "fileLabInfo",
+               bsCollapsePanel(paste0("Label Info", 
+                                      ifelse(is.null(lab_df), " ", 
+                                             paste0(' (',nrow(lab_df),')'))),
+                               tags$style("width: 100%"),
+                               tableOutput("labTable"),
+                               style = "info")
+    )
+  })
+  
+  output$labTable <- renderTable({
+    lab_df <- labelsData()
+    lab_df <- lab_df[,1:10]
+    lab_df <- lab_df[,colnames(lab_df)!="file_name"]
+    tab_num_input <- function(x, a, name)
+      paste0("<input id='", name, 1:nrow(x), "' class='shiny-bound-input' type='number' value='",
+             a, "' style='width: 100%;'>")
+    #input id="abc" type="number" class="form-control" value="0.5" min="0" max="1" step="0.1"
+    time1 <- tab_num_input(lab_df, lab_df$start_time, "start_time")
+    time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time")
+    freq1 <- tab_num_input(lab_df, lab_df$start_freq, "start_freq")
+    freq2 <- tab_num_input(lab_df, lab_df$end_freq,   "end_freq")
+    
+    lab_df$start_time <- time1
+    lab_df$end_time   <- time2
+    lab_df$start_freq <- freq1
+    lab_df$end_freq   <- freq2
+    return(lab_df)
+    },
+    striped  = TRUE,
+    bordered = TRUE,
+    sanitize.text.function = function(x) x)
   
   output$start_ui <- renderUI({
     if(.is_null(input$file1))
@@ -1062,7 +1103,7 @@ server <- function(input, output, session) {
   output$file1 <- renderUI({
     if(.is_null(input$file1))
       return(NULL)
-    txt <- paste0('<b>', input$file1, '</b>')
+    txt <- paste0('<b>Filename: <span style="color: grey;">', input$file1, '</span></b>')
     if(segment_total() > 1){
       if(segment_num() == segment_total())
         seg_colour <- 'green'
@@ -1963,8 +2004,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-auth0::shinyAppAuth0(ui_func(), server)
-#shinyApp(ui_func(), server)
+#auth0::shinyAppAuth0(ui_func(), server)
+shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog::reactlog_enable()
