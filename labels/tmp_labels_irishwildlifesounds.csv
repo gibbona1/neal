@@ -1,2 +1,1 @@
-"date_time","file_name","start_time","end_time","start_freq","end_freq","class_label","call_type","confidence","notes","labeler","id"
-"2022-05-19 18:04:07","RICHFIELDM1_20220413_134900_start_1_24.wav",7.6000232105303,8.6234385979127,3.5478231297915,6.3556934292621,"Eurasian Magpie","",1,"","irishwildlifesounds@gmail.com",1
+date_time,file_name,start_time,end_time,start_freq,end_freq,class_label,call_type,confidence,notes,labeler,id

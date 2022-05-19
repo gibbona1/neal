@@ -766,8 +766,11 @@ server <- function(input, output, session) {
   saveData <- reactive({
     if(labeler() == "anthony.gibbons.2022@mumail.ie"){
       df <- data.frame()
-      for(labfile in list.files('labels'))
-        df <- rbind(df,read.csv(file.path('labels',labfile)))
+      for(labfile in list.files('labels')){
+        fname <- file.path('labels',labfile)
+        if(file.exists(fname))
+          df <- rbind(df,read.csv(fname))
+      }
       return(df)
     } else
       return(fullData())

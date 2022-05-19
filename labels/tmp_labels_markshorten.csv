@@ -1,3 +1,1 @@
-"date_time","file_name","start_time","end_time","start_freq","end_freq","class_label","call_type","confidence","notes","labeler"
-"2022-05-19 18:08:46","RICHFIELDM1_20220413_134900_start_0_56.wav",10.520501267207,11.918336918266,3.4542274531425,8.6019896688385,"Eurasian Magpie","",1,"","markshorten@icloud.com",1
-"2022-05-19 18:08:52","RICHFIELDM1_20220413_134900_start_0_56.wav",12.617254743795,14.127416473957,3.6414188064405,8.6955853454875,"Eurasian Magpie","",1,"","markshorten@icloud.com",2
+date_time,file_name,start_time,end_time,start_freq,end_freq,class_label,call_type,confidence,notes,labeler,id
