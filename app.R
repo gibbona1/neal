@@ -103,10 +103,14 @@ ui_func <- function() {
         icon = icon("question-circle"),
         badgeStatus = NULL,
         headerText  = "Links:",
-        notificationItem("GitHub", icon = icon("github"), status = "info",
-                         href = "https://github.com/gibbona1/audio_labeler"),
         tags$li(
-          a(href = "https://github.com/gibbona1/audio_labeler/blob/master/instructions/audio_labeler_instructions.pdf",
+          a(href = "https://github.com/gibbona1/audio_labeler",
+            target = "_blank",
+            tagAppendAttributes(icon("github"), class = "text-info"),
+            "GitHub")
+        ),
+        tags$li(
+          a(href = "https://github.com/gibbona1/audio_labeler/tree/master/instruction_doc",
             target = "_blank",
             tagAppendAttributes(icon("file"), class = "text-info"),
             "Instructions")

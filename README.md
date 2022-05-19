@@ -2,8 +2,9 @@
 
 TODOs:
 - [ ] Instruction pdf:
-  - [ ] Open in adjacent tab
-  - [ ] Make sure instructions say how to zoom in/out
+  - [x] Open in adjacent tab
+  - [x] Make sure instructions say how to zoom in/out
+  - [ ] Videos
 - [x] Get ~1 hour of files in 4/5 folders. 15 seconds with little overlap
 - [x] Default logged in users to their folder, if guest or can't find folder, use tmp folder
 - [x] Download labels button:
