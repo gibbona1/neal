@@ -803,6 +803,16 @@ server <- function(input, output, session) {
       res <- paste0(res, "style='width: 100%;'>")
       res
     }
+    tab_class_input <- function(x, sel, choices, name){
+      res <- paste0("<select id='", name, 1:nrow(x), "'>")
+      optlist <- rep("", length(sel))
+      for(i in 1:length(sel)){
+        sel_str <- ifelse(choices == sel[i], " selected", "")
+        optlist[i] <- paste0("<option value='", choices, "'", sel_str, ">", choices, "</option>", collapse = "")
+      }
+      res <- paste0(res, optlist, "</select>")
+      return(res)
+    }
     #ranges in frequencies and times from spectrogram plot
     fs <- specplot_range$y
     ts <- specplot_range$x
@@ -818,6 +828,9 @@ server <- function(input, output, session) {
     
     conf <- tab_num_input(lab_df, lab_df$confidence, "confidence", 0, 1, 0.1)
     lab_df$confidence <- conf
+    
+    class1 <- tab_class_input(lab_df, lab_df$class_label, class_label(), 'class_label')
+    lab_df$class_label <- class1
     
     return(lab_df)
     },
@@ -864,6 +877,11 @@ server <- function(input, output, session) {
     return(input_list(x))
   })
   
+  classInputs <- reactive({
+    x <- input_names("class_label")
+    return(input_list(x))
+  })
+  
   overwriteLabData <- function(vals, col_name){
     full_df <- fullData()
     lab_df  <- labelsData()
@@ -905,6 +923,10 @@ server <- function(input, output, session) {
   
   observeEvent(confInputs(), {
     overwriteLabData(unlist(confInputs()), 'confidence')
+  })
+  
+  observeEvent(classInputs(), {
+    overwriteLabData(unlist(classInputs()), 'class_label')
   })
   
   output$start_ui <- renderUI({
