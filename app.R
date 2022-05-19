@@ -773,10 +773,12 @@ server <- function(input, output, session) {
     if(.is_null(input$file1))
       return(NULL)
     lab_df <- labelsData()
+    panel_name <- paste0("Label Info", 
+                         ifelse(is.null(lab_df), " ", 
+                                paste0(' (',nrow(lab_df),')')))
     bsCollapse(id = "fileLabInfo",
-               bsCollapsePanel(paste0("Label Info", 
-                                      ifelse(is.null(lab_df), " ", 
-                                             paste0(' (',nrow(lab_df),')'))),
+               open = panel_name,
+               bsCollapsePanel(panel_name,
                                tags$style("width: 100%"),
                                tableOutput("labTable"),
                                style = "info")
@@ -815,6 +817,27 @@ server <- function(input, output, session) {
     paste0("start_time", 1:nrow(lab_df))
   })
   
+  t2InputNames <- reactive({
+    lab_df <- labelsData()
+    if(is.null(lab_df))
+      return(NULL)
+    paste0("end_time", 1:nrow(lab_df))
+  })
+  
+  f1InputNames <- reactive({
+    lab_df <- labelsData()
+    if(is.null(lab_df))
+      return(NULL)
+    paste0("start_freq", 1:nrow(lab_df))
+  })
+  
+  f2InputNames <- reactive({
+    lab_df <- labelsData()
+    if(is.null(lab_df))
+      return(NULL)
+    paste0("end_freq", 1:nrow(lab_df))
+  })
+  
   t1Inputs <- reactive({
     a <- list()
     for(name in t1InputNames())
@@ -822,27 +845,64 @@ server <- function(input, output, session) {
     return(a)
   })
   
-  #If any of the inputs in the label info table change
-  #edit the values in saved data
-  observeEvent(t1Inputs(), {
+  t2Inputs <- reactive({
+    a <- list()
+    for(name in t2InputNames())
+      a <- append(a,input[[name]])
+    return(a)
+  })
+  
+  f1Inputs <- reactive({
+    a <- list()
+    for(name in f1InputNames())
+      a <- append(a,input[[name]])
+    return(a)
+  })
+  
+  f2Inputs <- reactive({
+    a <- list()
+    for(name in f2InputNames())
+      a <- append(a,input[[name]])
+    return(a)
+  })
+  
+  overwriteLabData <- function(vals, col_name){
     full_df <- fullData()
     lab_df  <- labelsData()
     #columns in right order
     lab_df  <- lab_df[,colnames(full_df)]
-    t1vals <- unlist(t1Inputs())
-    #which start time inputs (in table) differ from saved data
+    
+    #which inputs (in display table) differ from saved data
     #there should be at most one changed
-    diff_idx    <- which(t1vals!=lab_df$start_time[1:length(t1vals)])
+    diff_idx    <- which(vals!=lab_df[,col_name][1:length(vals)])
     if(length(diff_idx)>0){
       changed_row <- lab_df[diff_idx,]
       #change to the new edited value
-      changed_row$start_time <- t1vals[diff_idx]
+      changed_row[,col_name] <- vals[diff_idx]
       changed_idx <- which(full_df$id == changed_row$id)
       #change value in full data and overwrite
       full_df[changed_idx,] <- changed_row
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
     }
+  }
+  
+  #If any of the inputs in the label info table change
+  #edit the values in saved data
+  observeEvent(t1Inputs(), {
+    overwriteLabData(unlist(t1Inputs()), 'start_time')
+  })
+  
+  observeEvent(t2Inputs(), {
+    overwriteLabData(unlist(t2Inputs()), 'end_time')
+  })
+  
+  observeEvent(f1Inputs(), {
+    overwriteLabData(unlist(f1Inputs()), 'start_freq')
+  })
+  
+  observeEvent(f2Inputs(), {
+    overwriteLabData(unlist(f2Inputs()), 'end_freq')
   })
   
   output$start_ui <- renderUI({
