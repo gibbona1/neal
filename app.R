@@ -791,9 +791,18 @@ server <- function(input, output, session) {
     lab_df <- lab_df[,colnames(fullData())]
     lab_df <- lab_df[,1:10]
     lab_df <- lab_df[,colnames(lab_df)!="file_name"]
-    tab_num_input <- function(x, a, name)
-      paste0("<input id='", name, 1:nrow(x), "' class='shiny-bound-input' type='number' value='",
-             a, "' style='width: 100%;'>")
+    tab_num_input <- function(x, val, name, minv = NULL, maxv = NULL, step = NULL){
+      res <- paste0("<input id='", name, 1:nrow(x), "' ",
+                    "class='shiny-bound-input' type='number' value='", val, "' ")
+      if(!is.null(minv))
+        res <- paste0(res, "min='", minv, "' ")
+      if(!is.null(maxv))
+        res <- paste0(res, "max='", maxv, "' ")
+      if(!is.null(step))
+        res <- paste0(res, "step='", step, "' ")
+      res <- paste0(res, "style='width: 100%;'>")
+      res
+    }
     #input id="abc" type="number" class="form-control" value="0.5" min="0" max="1" step="0.1"
     time1 <- tab_num_input(lab_df, lab_df$start_time, "start_time")
     time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time")
@@ -804,66 +813,68 @@ server <- function(input, output, session) {
     lab_df$end_time   <- time2
     lab_df$start_freq <- freq1
     lab_df$end_freq   <- freq2
+    
+    conf <- tab_num_input(lab_df, lab_df$confidence, "confidence", 0, 1, 0.1)
+    lab_df$confidence <- conf
+    
     return(lab_df)
     },
     striped  = TRUE,
     bordered = TRUE,
     sanitize.text.function = function(x) x)
   
-  t1InputNames <- reactive({
+  input_names <- function(x){
     lab_df <- labelsData()
     if(is.null(lab_df))
       return(NULL)
-    paste0("start_time", 1:nrow(lab_df))
+    paste0(x, 1:nrow(lab_df))
+  }
+  
+  input_list <- function(x){
+    a <- list()
+    for(name in x)
+      a <- append(a,input[[name]])
+    return(a)
+  }
+  
+  t1InputNames <- reactive({
+    input_names("start_time")
   })
   
   t2InputNames <- reactive({
-    lab_df <- labelsData()
-    if(is.null(lab_df))
-      return(NULL)
-    paste0("end_time", 1:nrow(lab_df))
+    input_names("end_time")
   })
   
   f1InputNames <- reactive({
-    lab_df <- labelsData()
-    if(is.null(lab_df))
-      return(NULL)
-    paste0("start_freq", 1:nrow(lab_df))
+    input_names("start_freq")
   })
   
   f2InputNames <- reactive({
-    lab_df <- labelsData()
-    if(is.null(lab_df))
-      return(NULL)
-    paste0("end_freq", 1:nrow(lab_df))
+    input_names("end_freq")
+  })
+  
+  confInputNames <- reactive({
+    input_names("confidence")
   })
   
   t1Inputs <- reactive({
-    a <- list()
-    for(name in t1InputNames())
-      a <- append(a,input[[name]])
-    return(a)
+    input_list(t1InputNames())
   })
   
   t2Inputs <- reactive({
-    a <- list()
-    for(name in t2InputNames())
-      a <- append(a,input[[name]])
-    return(a)
+    input_list(t2InputNames())
   })
   
   f1Inputs <- reactive({
-    a <- list()
-    for(name in f1InputNames())
-      a <- append(a,input[[name]])
-    return(a)
+    input_list(f1InputNames())
   })
   
   f2Inputs <- reactive({
-    a <- list()
-    for(name in f2InputNames())
-      a <- append(a,input[[name]])
-    return(a)
+    input_list(f2InputNames())
+  })
+  
+  confInputs <- reactive({
+    input_list(confInputNames())
   })
   
   overwriteLabData <- function(vals, col_name){
@@ -903,6 +914,10 @@ server <- function(input, output, session) {
   
   observeEvent(f2Inputs(), {
     overwriteLabData(unlist(f2Inputs()), 'end_freq')
+  })
+  
+  observeEvent(confInputs(), {
+    overwriteLabData(unlist(confInputs()), 'confidence')
   })
   
   output$start_ui <- renderUI({
