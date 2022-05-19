@@ -837,44 +837,29 @@ server <- function(input, output, session) {
     return(a)
   }
   
-  t1InputNames <- reactive({
-    input_names("start_time")
-  })
-  
-  t2InputNames <- reactive({
-    input_names("end_time")
-  })
-  
-  f1InputNames <- reactive({
-    input_names("start_freq")
-  })
-  
-  f2InputNames <- reactive({
-    input_names("end_freq")
-  })
-  
-  confInputNames <- reactive({
-    input_names("confidence")
-  })
-  
   t1Inputs <- reactive({
-    input_list(t1InputNames())
+    x <- input_names("start_time")
+    return(input_list(x))
   })
   
   t2Inputs <- reactive({
-    input_list(t2InputNames())
+    x <- input_names("end_time")
+    return(input_list(x))
   })
   
   f1Inputs <- reactive({
-    input_list(f1InputNames())
+    x <- input_names("start_freq")
+    return(input_list(x))
   })
   
   f2Inputs <- reactive({
-    input_list(f2InputNames())
+    x <- input_names("end_freq")
+    return(input_list(x))
   })
   
   confInputs <- reactive({
-    input_list(confInputNames())
+    x <- input_names("confidence")
+    return(input_list(x))
   })
   
   overwriteLabData <- function(vals, col_name){
