@@ -777,6 +777,10 @@ server <- function(input, output, session) {
     if(.is_null(input$file1))
       return(NULL)
     lab_df <- labelsData()
+    if(is.null(lab_df))
+      return(NULL)
+    if(nrow(lab_df)==0)
+      return(NULL)
     panel_name <- paste0("Label Info", 
                          ifelse(is.null(lab_df), " ", 
                                 paste0(' (',nrow(lab_df),')')))
@@ -2131,8 +2135,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-#auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+auth0::shinyAppAuth0(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog::reactlog_enable()
