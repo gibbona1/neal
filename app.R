@@ -785,6 +785,8 @@ server <- function(input, output, session) {
   
   output$labTable <- renderTable({
     lab_df <- labelsData()
+    #columns in right order
+    lab_df <- lab_df[,colnames(fullData())]
     lab_df <- lab_df[,1:10]
     lab_df <- lab_df[,colnames(lab_df)!="file_name"]
     tab_num_input <- function(x, a, name)
@@ -805,6 +807,43 @@ server <- function(input, output, session) {
     striped  = TRUE,
     bordered = TRUE,
     sanitize.text.function = function(x) x)
+  
+  t1InputNames <- reactive({
+    lab_df <- labelsData()
+    if(is.null(lab_df))
+      return(NULL)
+    paste0("start_time", 1:nrow(lab_df))
+  })
+  
+  t1Inputs <- reactive({
+    a <- list()
+    for(name in t1InputNames())
+      a <- append(a,input[[name]])
+    return(a)
+  })
+  
+  #If any of the inputs in the label info table change
+  #edit the values in saved data
+  observeEvent(t1Inputs(), {
+    full_df <- fullData()
+    lab_df  <- labelsData()
+    #columns in right order
+    lab_df  <- lab_df[,colnames(full_df)]
+    t1vals <- unlist(t1Inputs())
+    #which start time inputs (in table) differ from saved data
+    #there should be at most one changed
+    diff_idx    <- which(t1vals!=lab_df$start_time[1:length(t1vals)])
+    if(length(diff_idx)>0){
+      changed_row <- lab_df[diff_idx,]
+      #change to the new edited value
+      changed_row$start_time <- t1vals[diff_idx]
+      changed_idx <- which(full_df$id == changed_row$id)
+      #change value in full data and overwrite
+      full_df[changed_idx,] <- changed_row
+      write_labs(full_df, append = FALSE, col.names = TRUE)
+      fullData(full_df)
+    }
+  })
   
   output$start_ui <- renderUI({
     if(.is_null(input$file1))
@@ -1721,9 +1760,11 @@ server <- function(input, output, session) {
       
       full_df <- fullData()
       if(!is.null(full_df)){
+        lab_df$id <- nrow(full_df)+1
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
       } else {
+        lab_df$id <- 1
         write_labs(lab_df, append = FALSE, col.names = TRUE)
         fullData(lab_df)
       }
@@ -1842,7 +1883,6 @@ server <- function(input, output, session) {
       wf_address <- ifelse(!is.null(df), 
              paste0(df$wind_farm_name, ", Co.", df$wind_farm_county),
              "")
-      #browser()
       wf_latlong <- ifelse(!is.null(latlong), 
              paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
              "")
@@ -1852,7 +1892,6 @@ server <- function(input, output, session) {
       wf_d2c <- ""
       if(!is.null(df))
         wf_d2c <- m2km(df$dist_to_coastline)
-      #browser()
       div(#HTML(base),
         tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
         tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
