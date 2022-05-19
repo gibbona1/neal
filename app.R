@@ -803,11 +803,13 @@ server <- function(input, output, session) {
       res <- paste0(res, "style='width: 100%;'>")
       res
     }
-    #input id="abc" type="number" class="form-control" value="0.5" min="0" max="1" step="0.1"
-    time1 <- tab_num_input(lab_df, lab_df$start_time, "start_time")
-    time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time")
-    freq1 <- tab_num_input(lab_df, lab_df$start_freq, "start_freq")
-    freq2 <- tab_num_input(lab_df, lab_df$end_freq,   "end_freq")
+    #ranges in frequencies and times from spectrogram plot
+    fs <- specplot_range$y
+    ts <- specplot_range$x
+    time1 <- tab_num_input(lab_df, lab_df$start_time, "start_time", ts[1], lab_df$end_time, diff(ts)/100)
+    time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time",   lab_df$start_time, ts[2], diff(ts)/100)
+    freq1 <- tab_num_input(lab_df, lab_df$start_freq, "start_freq", fs[1], lab_df$end_freq, diff(fs)/100)
+    freq2 <- tab_num_input(lab_df, lab_df$end_freq,   "end_freq",   lab_df$start_freq, fs[2], diff(fs)/100)
     
     lab_df$start_time <- time1
     lab_df$end_time   <- time2
