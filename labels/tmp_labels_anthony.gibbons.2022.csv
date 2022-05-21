@@ -1,1 +1,5 @@
-date_time,file_name,start_time,end_time,start_freq,end_freq,class_label,call_type,confidence,notes,labeler,id
+"date_time","file_name","start_time","end_time","start_freq","end_freq","class_label","call_type","confidence","notes","labeler","id"
+"2022-05-21 21:14:24","RICHFIELDM1_20220413_133400_start_0_14.wav",11.431590575486,13.39105662206,5.2793430362236,8.0404154973697,"Eurasian Magpie","",1,"","anthony.gibbons.2022@mumail.ie",-Inf
+"2022-05-21 21:14:24","RICHFIELDM1_20220413_133400_start_0_14.wav",11.431590575486,13.39105662206,5.2793430362236,8.0404154973697,"Eurasian Magpie","",1,"","anthony.gibbons.2022@mumail.ie",-Inf
+"2022-05-21 21:14:24","RICHFIELDM1_20220413_133400_start_0_14.wav",11.431590575486,13.39105662206,5.2793430362236,8.0404154973697,"Eurasian Magpie","",1,"","anthony.gibbons.2022@mumail.ie",-Inf
+"2022-05-21 21:14:24","RICHFIELDM1_20220413_133400_start_0_14.wav",11.431590575486,13.39105662206,5.2793430362236,8.0404154973697,"Eurasian Magpie","",1,"","anthony.gibbons.2022@mumail.ie",-Inf

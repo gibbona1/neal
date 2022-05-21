@@ -796,6 +796,13 @@ server <- function(input, output, session) {
     )
   })
   
+  input_names <- function(x){
+    lab_df <- labelsData()
+    if(is.null(lab_df))
+      return(NULL)
+    paste0('tab_',which(input$file1 == file_list()), x, lab_df$id)
+  }
+  
   output$labTable <- renderTable({
     lab_df <- labelsData()
     #columns in right order
@@ -803,7 +810,7 @@ server <- function(input, output, session) {
     lab_df <- lab_df[,1:10]
     lab_df <- lab_df[,colnames(lab_df)!="file_name"]
     tab_num_input <- function(x, val, name, minv = NULL, maxv = NULL, step = NULL){
-      res <- paste0("<input id='", name, 1:nrow(x), "' ",
+      res <- paste0("<input id='", input_names(name), "' ",
                     "class='shiny-bound-input' type='number' value='", val, "' ")
       if(!is.null(minv))
         res <- paste0(res, "min='", minv, "' ")
@@ -815,7 +822,7 @@ server <- function(input, output, session) {
       res
     }
     tab_class_input <- function(x, sel, choices, name){
-      res <- paste0("<select id='", name, 1:nrow(x), "'>")
+      res <- paste0("<select id='", input_names(name), "'>")
       optlist <- rep("", length(sel))
       for(i in 1:length(sel)){
         sel_str <- ifelse(choices == sel[i], " selected", "")
@@ -848,13 +855,6 @@ server <- function(input, output, session) {
     striped  = TRUE,
     bordered = TRUE,
     sanitize.text.function = function(x) x)
-  
-  input_names <- function(x){
-    lab_df <- labelsData()
-    if(is.null(lab_df))
-      return(NULL)
-    paste0(x, 1:nrow(lab_df))
-  }
   
   input_list <- function(x){
     a <- list()
@@ -1855,7 +1855,15 @@ server <- function(input, output, session) {
       
       full_df <- fullData()
       if(!is.null(full_df)){
-        lab_df$id <- nrow(full_df)+1
+        df_ids <- full_df[full_df$file_name == input$file1,]
+        inp_list  <- names(input)
+        tab_check <- paste0("tab_", which(file_list() == input$file1), "class_label")
+        inp_list  <- inp_list[startsWith(names(input), tab_check)]
+        max_id    <- max(as.numeric(sapply(inp_list, function(x) str_sub(x, start = str_length(tab_check)+1))))
+        if(!is.na(max_id))
+          lab_df$id <- max_id+1
+        else
+          lab_df$id <- 1
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
       } else {
