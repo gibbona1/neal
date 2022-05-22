@@ -154,6 +154,13 @@ ui_func <- function() {
       menuItem("Spectrogram Settings", 
                tabName = "spec_menu", 
                icon    = icon("chart-area"),
+        sliderInput("spec_height", 
+                    "Plot Height", 
+                    min   = 300,
+                    max   = 800,
+                    value = 300,
+                    ticks = FALSE,
+                    step  = 100),
         selectInput("freq_min", "minimum frequency in filter", 
                     choices = c(0, 2^(3:7)), selected = 0),
         selectInput("freq_max", "maximum frequency in filter", 
@@ -237,88 +244,7 @@ ui_func <- function() {
       htmlOutput("file1"),
       #Spectrogram Plot
       fluidRow({
-        div(
-          tags$head(tags$style(HTML(plot_z_style))),
-          plotOutput(
-            "specplot_front",
-            height   = 300,
-            click    = "specplot_click",
-            dblclick = "specplot_dblclick",
-            brush    = brushOpts(
-              id         = "specplot_brush",
-              resetOnNew = TRUE),
-            hover    = hoverOpts(
-              id        = "specplot_hover",
-              delay     = 10,
-              delayType = "debounce"
-            )
-          ),
-          plotOutput(
-            "specplot_time",
-            height   = 300,
-          ),
-          plotOutput(
-            "specplot_freq",
-            height   = 300,
-          ),
-          plotOutput(
-            "specplot",
-            height   = 300,
-          ),
-          #plotOutput(
-          #  "specplot_blank",
-          #  height   = 25,
-          #  ),
-          tags$head(tags$style('
-          #hover_info {
-            position: absolute;
-            width: 200px;
-            height: 30px;
-            z-index: 100;
-           }
-        ')),
-        tags$script(HTML('
-          $(document).ready(function(){
-            // id of the plot
-            $("#specplot_front").mousemove(function(e){ 
-              var hover     = $("#hover_info");
-              var winwidth  = $( window ).width();
-              var winheight = $( window ).height();
-              
-              var body = document.body,
-                  html = document.documentElement;
-
-              var height = Math.max( body.scrollHeight, 
-                                     body.offsetHeight,
-                                     html.clientHeight, 
-                                     html.scrollHeight, 
-                                     html.offsetHeight );
-                                     
-              hover.attr("style", "");
-              //stop hover info going off edge of screen
-              if(e.pageX + hover.width() <= $( window ).width()) {
-                hover.css({"left": (e.pageX + 5) + "px"});
-              } 
-              else {
-                hover.css({"right": (winwidth 
-                                     - hover.width()/4
-                                     - e.pageX - 5) + "px"});
-              }
-              if(e.pageY + hover.height() <= $(this).height()) {
-                hover.css({"top": (e.pageY + 5) + "px"});
-              } 
-              else {
-                hover.css({"bottom": (height 
-                                      + $(this).offset().top
-                                      - hover.height()
-                                      - e.pageY - 5) + "px"});
-              }
-              hover.show();
-            });     
-          });
-        ')),
-          uiOutput("hover_info")
-          )
+        uiOutput('specplot_ui')
       }),
       #Oscillogram Plot
       #fluidRow({
@@ -1232,7 +1158,7 @@ server <- function(input, output, session) {
   
   gettime <- reactive({list(x=input$get_time)})
   
-  gettime_t <- gettime %>% throttle(200)
+  gettime_t <- gettime %>% throttle(50)
   
   output$file1 <- renderUI({
     if(.is_null(input$file1))
@@ -1391,6 +1317,95 @@ server <- function(input, output, session) {
                                expand = FALSE, default = TRUE)
     
     return(p)
+  })
+  
+  output$specplot_ui <- renderUI({
+    div(
+      tags$head(tags$style(HTML(plot_z_style))),
+      plotOutput(
+        "specplot_front",
+        height   = input$spec_height,
+        width    = "100%",
+        click    = "specplot_click",
+        dblclick = "specplot_dblclick",
+        brush    = brushOpts(
+          id         = "specplot_brush",
+          resetOnNew = TRUE),
+        hover    = hoverOpts(
+          id        = "specplot_hover",
+          delay     = 10,
+          delayType = "debounce"
+        )
+      ),
+      plotOutput(
+        "specplot_time",
+        height = input$spec_height,
+        width  = "100%"
+      ),
+      plotOutput(
+        "specplot_freq",
+        height = input$spec_height,
+        width  = "100%"
+      ),
+      plotOutput(
+        "specplot",
+        height = input$spec_height,
+        width  = "100%"
+      ),
+      #plotOutput(
+      #  "specplot_blank",
+      #  height   = 25,
+      #  ),
+      tags$head(tags$style('
+            #hover_info {
+              position: absolute;
+              width: 200px;
+              height: 30px;
+              z-index: 100;
+             }
+          ')),
+      tags$script(HTML('
+            $(document).ready(function(){
+              // id of the plot
+              $("#specplot_front").mousemove(function(e){ 
+                var hover     = $("#hover_info");
+                var winwidth  = $( window ).width();
+                var winheight = $( window ).height();
+                
+                var body = document.body,
+                    html = document.documentElement;
+  
+                var height = Math.max( body.scrollHeight, 
+                                       body.offsetHeight,
+                                       html.clientHeight, 
+                                       html.scrollHeight, 
+                                       html.offsetHeight );
+                                       
+                hover.attr("style", "");
+                //stop hover info going off edge of screen
+                if(e.pageX + hover.width() <= $( window ).width()) {
+                  hover.css({"left": (e.pageX + 5) + "px"});
+                } 
+                else {
+                  hover.css({"right": (winwidth 
+                                       - hover.width()/4
+                                       - e.pageX - 5) + "px"});
+                }
+                if(e.pageY + hover.height() <= $(this).height()) {
+                  hover.css({"top": (e.pageY + 5) + "px"});
+                } 
+                else {
+                  hover.css({"bottom": (height 
+                                        + $(this).offset().top
+                                        - hover.height()
+                                        - e.pageY - 5) + "px"});
+                }
+                hover.show();
+              });     
+            });
+          ')),
+      uiOutput("hover_info")
+    )
   })
   
   output$specplot <- renderPlot({
@@ -1834,7 +1849,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$save_points, {
-    if(!is.null(input$specplot_brush)) {
+    if(!is.null(ranges_spec$x)) {
       if(is.null(input$call_type))
         call_type <- ""
       else
@@ -1855,12 +1870,15 @@ server <- function(input, output, session) {
       
       full_df <- fullData()
       if(!is.null(full_df)){
-        df_ids <- full_df[full_df$file_name == input$file1,]
         inp_list  <- names(input)
         tab_check <- paste0("tab_", which(file_list() == input$file1), "class_label")
         inp_list  <- inp_list[startsWith(names(input), tab_check)]
-        max_id    <- max(as.numeric(sapply(inp_list, function(x) str_sub(x, start = str_length(tab_check)+1))))
-        if(!is.na(max_id))
+        inp_ids   <- sapply(inp_list, function(x) str_sub(x, start = str_length(tab_check)+1))
+        if(length(inp_ids)==0)
+          max_id <- 0
+        else
+          max_id <- max(as.numeric(inp_ids))
+        if(!is.na(max_id) & !is.infinite(max_id))
           lab_df$id <- max_id+1
         else
           lab_df$id <- 1
@@ -1882,7 +1900,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$remove_points, {
-    if(!is.null(input$specplot_brush)) {
+    if(!is.null(ranges_spec$x)) {
       lab_df <- data.frame(start_time = ranges_spec$x[1],
                            end_time   = ranges_spec$x[2],
                            start_freq = ranges_spec$y[1],

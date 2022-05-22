@@ -53,7 +53,7 @@ TODOs:
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
 - [x] only show own labels. Admin can select/deselect user labels
-- [ ] Dedicated configuration page/tab (easy way to view labels per file)
+- [x] Dedicated configuration table (easy way to view labels per file)
 - [x] Transparent plots in front of spectrogram:
   - [x] Plotting Vertical line indicating timestamp while playing
   - [x] Label boxes (see above)
@@ -70,3 +70,6 @@ TODOs:
   - [ ] play/pause audio (needs JS workaround)
   - [x] label/delete
   - [x] prev/next file
+- [ ] Savable parameters 
+  - [ ] last worked on file from previous session is opening file from this sesion
+  - [ ] species list chosen
