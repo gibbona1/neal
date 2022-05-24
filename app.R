@@ -187,7 +187,7 @@ ui_func <- function() {
                  ticks = FALSE
                ),
         checkboxInput("palette_invert", "Invert color palette"),
-        actionButton("savespec", "Save Spectrogram", icon = icon('save')),
+        actionButton("savespec", "Download Spectrogram", icon = icon('save')),
         checkboxInput("include_hover", "Include spectrogram hover tooltip", 
                       value = TRUE),
         checkboxInput("spec_time", "Vertical line guide for audio current time", 
@@ -210,7 +210,7 @@ ui_func <- function() {
       ),
       menuItem("Oscillogram Settings", 
                tabName = "osc_menu", icon = icon('chart-line'),
-        actionButton("saveosc", "Save Oscilloogram", icon = icon('save')),
+        actionButton("saveosc", "Download Oscillogram", icon = icon('save')),
         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", 
                       value = FALSE),
         checkboxInput("osc_labs", "Show oscillogram labels"),
