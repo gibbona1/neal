@@ -225,7 +225,8 @@ ui_func <- function() {
         numericInput('label_columns', 'Number of Columns', 
                      value = 4, min = 1, max = 9, step = 1),
         actionButton("reset_sidebar", "Reset Sidebar"),
-        actionButton("reset_body", "Reset Body")
+        actionButton("reset_body", "Reset Body"),
+        checkboxInput("fileEditTab", "Label Edit Table", value = FALSE)
       )
       ),
       #Options for sidebar
@@ -703,7 +704,7 @@ server <- function(input, output, session) {
   })
   
   output$fileLabInfo <- renderUI({
-    if(.is_null(input$file1))
+    if(.is_null(input$file1) | !input$fileEditTab)
       return(NULL)
     lab_df <- labelsData()
     if(is.null(lab_df))
