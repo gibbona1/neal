@@ -196,6 +196,7 @@ ui_func <- function() {
                              value = TRUE),
                checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
                downloadButton("downloadSpec", "Download Spec as CSV"),
+               checkboxInput("clean_zero", "Zero Audio outside Selected", value = TRUE),
                uiOutput("spec_collapse")
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
@@ -1145,7 +1146,10 @@ server <- function(input, output, session) {
                               dB       = NULL)
       #Put zeros outside frequency range, rebuild audio file using complex_spec
       out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
-      complex_spec$amp[out_freq,] <- 0
+      if(input$clean_zero)
+        complex_spec$amp[out_freq,] <- 0
+      else
+        complex_spec$amp[out_freq,] <- complex_spec$amp[out_freq,]/100
       audio_inv <- istft(complex_spec$amp,
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width, 
