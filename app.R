@@ -561,7 +561,8 @@ server <- function(input, output, session) {
       return(NULL)
     other_c <- unique(unlist(species_list))
     other_c <- other_c[other_c != "" & !(other_c %in% class_label())]
-    other_c <- c(other_c, x$class_label[!x$class_label %in% class_label()])
+    x_cl    <- as.vector(x$class_label)
+    other_c <- c(other_c, x_cl[!x_cl %in% class_label()])
     cat_df  <- data.frame(typecol = c(rep("green", length(categories$base)),
                                       rep("orange", length(categories$misc)),
                                       rep("cyan", length(categories$xtra)),
@@ -1490,14 +1491,14 @@ server <- function(input, output, session) {
                                 xmax = end_time,
                                 ymin = start_freq, 
                                 ymax = end_freq),
-                  colour = lab_df$typecol,
+                  colour = as.vector(lab_df$typecol),
                   fill   = "lightgrey",
                   alpha  = 0.15) +
         geom_label(data = lab_df,
                    aes(x     = start_time_crop,
                        y     = end_freq_crop,
                        label = class_label),
-                   colour  = lab_df$typecol,
+                   colour  = as.vector(lab_df$typecol),
                    label.r = unit(0, units="lines"),
                    label.size = 0.5,
                    hjust  = hj,
@@ -1867,7 +1868,7 @@ server <- function(input, output, session) {
                            confidence  = input$label_confidence,
                            notes       = input$notes,
                            labeler     = labeler())
-      typecol <- cat_colours(lab_df)$typecol
+      typecol <- as.vector(cat_colours(lab_df)$typecol)
       
       full_df <- fullData()
       if(!is.null(full_df)){
