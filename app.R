@@ -73,74 +73,74 @@ plot_z_style <- "
 }"
 
 ui_func <- function() {
-    header <- {dashboardHeader(
-      title = "Audio Labeler App",
-      dropdownMenu(
-        tags$li(class = "dropdown",
-          uiOutput("start_ui")
-        ),
-        tags$li(class = "dropdown",
-          auth0::logoutButton()
-        ),
-        type = "notifications", 
-        icon = icon("user"),
-        badgeStatus = NULL,
-        headerText  = uiOutput("user_ui")
+  header <- {dashboardHeader(
+    title = "Audio Labeler App",
+    dropdownMenu(
+      tags$li(class = "dropdown",
+              uiOutput("start_ui")
       ),
-      dropdownMenu(tags$li(class = "dropdown",
-          HTML("<kbd>&#8679;</kbd>+<kbd>&#9166;</kbd> to Save Selection <br/>"),
-          HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
-          HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
-          HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>")
-        ),
-        type = "notifications", 
-        icon = icon("keyboard"),
-        badgeStatus = NULL,
-        headerText  = "Hotkeys"
+      tags$li(class = "dropdown",
+              auth0::logoutButton()
       ),
-      dropdownMenu(
-        type = "notifications", 
-        icon = icon("question-circle"),
-        badgeStatus = NULL,
-        headerText  = "Links:",
-        tags$li(
-          a(href = "https://github.com/gibbona1/audio_labeler",
-            target = "_blank",
-            tagAppendAttributes(icon("github"), class = "text-info"),
-            "GitHub")
-        ),
-        tags$li(
-          a(href = "https://github.com/gibbona1/audio_labeler/tree/master/instruction_doc",
-            target = "_blank",
-            tagAppendAttributes(icon("file"), class = "text-info"),
-            "Instructions")
-        )
+      type = "notifications", 
+      icon = icon("user"),
+      badgeStatus = NULL,
+      headerText  = uiOutput("user_ui")
+    ),
+    dropdownMenu(tags$li(class = "dropdown",
+                         HTML("<kbd>&#8679;</kbd>+<kbd>&#9166;</kbd> to Save Selection <br/>"),
+                         HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
+                         HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
+                         HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>")
+    ),
+    type = "notifications", 
+    icon = icon("keyboard"),
+    badgeStatus = NULL,
+    headerText  = "Hotkeys"
+    ),
+    dropdownMenu(
+      type = "notifications", 
+      icon = icon("question-circle"),
+      badgeStatus = NULL,
+      headerText  = "Links:",
+      tags$li(
+        a(href = "https://github.com/gibbona1/audio_labeler",
+          target = "_blank",
+          tagAppendAttributes(icon("github"), class = "text-info"),
+          "GitHub")
+      ),
+      tags$li(
+        a(href = "https://github.com/gibbona1/audio_labeler/tree/master/instruction_doc",
+          target = "_blank",
+          tagAppendAttributes(icon("file"), class = "text-info"),
+          "Instructions")
       )
-      )}
-    
-    sidebar <- {dashboardSidebar(
-      shinyjs::useShinyjs(),
-      sidebarMenu(
+    )
+  )}
+  
+  sidebar <- {dashboardSidebar(
+    shinyjs::useShinyjs(),
+    sidebarMenu(
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
-        #File/Folder selection
-        shinyDirButton('folder',
-                       label = 'Folder select',
-                       title = 'Please select a folder',
-                       icon  = icon('folder')),
-        verbatimTextOutput("folder", placeholder = TRUE),
-        selectInput(
-          "file1",
-          "Select File:",
-          choices = c(""),
-          width   = '100%'
-          ),
-        selectInput("species_list",
-                    "Species List:",
-                    choices = colnames(species_list),
-                    width   = '100%')
+               #File/Folder selection
+               shinyDirButton('folder',
+                              label = 'Folder select',
+                              title = 'Please select a folder',
+                              icon  = icon('folder')),
+               verbatimTextOutput("folder", placeholder = TRUE),
+               selectInput(
+                 "file1",
+                 "Select File:",
+                 choices = c(""),
+                 width   = '100%'
+               ),
+               selectInput("species_list",
+                           "Species List:",
+                           choices = colnames(species_list),
+                           width   = '100%')
       ),
       menuItem("Sound Settings", tabName = "sound_menu", icon = icon("music"),
-        sliderInput(
+               sliderInput(
                  "db_gain",
                  "dB Gain:",
                  min   = -96,
@@ -148,37 +148,37 @@ ui_func <- function() {
                  value = 0,
                  ticks = FALSE
                ),
-        numericInput('t_step', 'Audio length (in window)', 
-                     value = 15, min = 10, max = 60, step = 1)
+               numericInput('t_step', 'Audio length (in window)', 
+                            value = 15, min = 10, max = 60, step = 1)
       ),
       menuItem("Spectrogram Settings", 
                tabName = "spec_menu", 
                icon    = icon("chart-area"),
-        sliderInput("spec_height", 
-                    "Plot Height", 
-                    min   = 300,
-                    max   = 800,
-                    value = 300,
-                    ticks = FALSE,
-                    step  = 100),
-        selectInput("freq_min", "minimum frequency in filter", 
-                    choices = c(0, 2^(3:7)), selected = 0),
-        selectInput("freq_max", "maximum frequency in filter", 
-                    choices = 2^(4:9), selected = 32),
-        selectInput(
-          "noisereduction",
-          "Noise reduction:",
-          choices  = c("None", "Rows", "Columns"),
-          selected = "None",
-          width    = '100%'
-        ),
-        selectInput(
-          "palette_selected",
-          "Spectrogram colour palette:",
-          choices = palette_list,
-          width   = '100%'
-        ),
-        sliderInput(
+               sliderInput("spec_height", 
+                           "Plot Height", 
+                           min   = 300,
+                           max   = 800,
+                           value = 300,
+                           ticks = FALSE,
+                           step  = 100),
+               selectInput("freq_min", "minimum frequency in filter", 
+                           choices = c(0, 2^(3:7)), selected = 0),
+               selectInput("freq_max", "maximum frequency in filter", 
+                           choices = 2^(4:9), selected = 32),
+               selectInput(
+                 "noisereduction",
+                 "Noise reduction:",
+                 choices  = c("None", "Rows", "Columns"),
+                 selected = "None",
+                 width    = '100%'
+               ),
+               selectInput(
+                 "palette_selected",
+                 "Spectrogram colour palette:",
+                 choices = palette_list,
+                 width   = '100%'
+               ),
+               sliderInput(
                  "db_contrast",
                  "Contrast:",
                  min   = 0,
@@ -186,87 +186,87 @@ ui_func <- function() {
                  value = 0,
                  ticks = FALSE
                ),
-        checkboxInput("palette_invert", "Invert color palette"),
-        actionButton("savespec", "Download Spectrogram", icon = icon('save')),
-        checkboxInput("include_hover", "Include spectrogram hover tooltip", 
-                      value = TRUE),
-        checkboxInput("spec_time", "Vertical line guide for audio current time", 
-                      value = TRUE),
-        checkboxInput("include_guides", "Selected time/frequency guidelines",
-                      value = TRUE),
-        checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
-        downloadButton("downloadSpec", "Download Spec as CSV"),
-        uiOutput("spec_collapse")
+               checkboxInput("palette_invert", "Invert color palette"),
+               actionButton("savespec", "Download Spectrogram", icon = icon('save')),
+               checkboxInput("include_hover", "Include spectrogram hover tooltip", 
+                             value = TRUE),
+               checkboxInput("spec_time", "Vertical line guide for audio current time", 
+                             value = TRUE),
+               checkboxInput("include_guides", "Selected time/frequency guidelines",
+                             value = TRUE),
+               checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
+               downloadButton("downloadSpec", "Download Spec as CSV"),
+               uiOutput("spec_collapse")
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
-        numericInput('window_width', 'Window Size (number of points)', 
-                     value = 256),
-        numericInput('fft_overlap', 'FFT Overlap (%)', 
-                     value = 75, min = 0, max = 99, step = 1),
-        numericInput('window_width_disp', 'Window Size for display spectrogram', 
-                     value = 1024),
-        numericInput('fft_overlap_disp', 'FFT Overlap for display spectrogram', 
-                     value = 15, min = 0, max = 99, step = 1)
+               numericInput('window_width', 'Window Size (number of points)', 
+                            value = 256),
+               numericInput('fft_overlap', 'FFT Overlap (%)', 
+                            value = 75, min = 0, max = 99, step = 1),
+               numericInput('window_width_disp', 'Window Size for display spectrogram', 
+                            value = 1024),
+               numericInput('fft_overlap_disp', 'FFT Overlap for display spectrogram', 
+                            value = 15, min = 0, max = 99, step = 1)
       ),
       menuItem("Oscillogram Settings", 
                tabName = "osc_menu", icon = icon('chart-line'),
-        actionButton("saveosc", "Download Oscillogram", icon = icon('save')),
-        checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", 
-                      value = FALSE),
-        checkboxInput("osc_labs", "Show oscillogram labels"),
-        checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
-        uiOutput("osc_collapse")
+               actionButton("saveosc", "Download Oscillogram", icon = icon('save')),
+               checkboxInput("include_hover_osc", "Include oscillogram hover tooltip", 
+                             value = FALSE),
+               checkboxInput("osc_labs", "Show oscillogram labels"),
+               checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
+               uiOutput("osc_collapse")
       ),
       menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
                #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
                downloadButton("downloadData", "Download Labels")
-               ),
-      menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
-        numericInput('label_columns', 'Number of Columns', 
-                     value = 4, min = 1, max = 9, step = 1),
-        actionButton("reset_sidebar", "Reset Sidebar"),
-        actionButton("reset_body", "Reset Body"),
-        checkboxInput("fileEditTab", "Label Edit Table", value = FALSE)
-      )
       ),
-      #Options for sidebar
-      collapsed = TRUE,
-      minified  = FALSE,
-      id = "side-panel")}
-    
-    body <- {dashboardBody(
-      shinyjs::useShinyjs(),
-      useKeys(),
-      keysInput("keys", hotkeys),
-      id    = "main-panel",
-      theme = "blue_gradient",
-      tags$style(".content-wrapper{margin-left: 0px;}"),
-      tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
-      htmlOutput("file1"),
-      #Spectrogram Plot
-      fluidRow({
-        uiOutput('specplot_ui')
-      }),
-      #Oscillogram Plot
-      #fluidRow({
-      #  uiOutput("oscplot_ui")
-      #  }),
-      #One row of audio settings
-      fluidRow({
-        div(
+      menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
+               numericInput('label_columns', 'Number of Columns', 
+                            value = 4, min = 1, max = 9, step = 1),
+               actionButton("reset_sidebar", "Reset Sidebar"),
+               actionButton("reset_body", "Reset Body"),
+               checkboxInput("fileEditTab", "Label Edit Table", value = FALSE)
+      )
+    ),
+    #Options for sidebar
+    collapsed = TRUE,
+    minified  = FALSE,
+    id = "side-panel")}
+  
+  body <- {dashboardBody(
+    shinyjs::useShinyjs(),
+    useKeys(),
+    keysInput("keys", hotkeys),
+    id    = "main-panel",
+    theme = "blue_gradient",
+    tags$style(".content-wrapper{margin-left: 0px;}"),
+    tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
+    htmlOutput("file1"),
+    #Spectrogram Plot
+    fluidRow({
+      uiOutput('specplot_ui')
+    }),
+    #Oscillogram Plot
+    #fluidRow({
+    #  uiOutput("oscplot_ui")
+    #  }),
+    #One row of audio settings
+    fluidRow({
+      div(
         column(4,
-        #br(),
-        actionButton("save_points", 
-                     HTML("<b>Save Selection</b>"), 
-                     icon  = icon("vector-square"),
-                     style = "width: 100%; background-color: #fff491;"),
-        uiOutput("meta_text")
+               #br(),
+               actionButton("save_points", 
+                            HTML("<b>Save Selection</b>"), 
+                            icon  = icon("vector-square"),
+                            style = "width: 100%; background-color: #fff491;"),
+               uiOutput("meta_text")
         ),
         column(4,{
-               div(
-                 uiOutput('audio_title'),
-                 uiOutput('my_audio'),
-                 tags$script('
+          div(
+            uiOutput('audio_title'),
+            uiOutput('my_audio'),
+            tags$script('
                  var id = setInterval(audio_pos, 100);
                  function audio_pos() {
                  var audio = document.getElementById("my_audio_player");
@@ -274,145 +274,145 @@ ui_func <- function() {
                  console.log(audio);
                  Shiny.onInputChange("get_time", curtime);
                  };'),
-                 #actionButton("get_time", "Get Time", onclick = js),
-                 #verbatimTextOutput("audio_time")
-                 )
-          }),
+            #actionButton("get_time", "Get Time", onclick = js),
+            #verbatimTextOutput("audio_time")
+          )
+        }),
         column(2,{
-                 selectInput(
-                   "playbackrate",
-                   "Playback Speed:",
-                   choices  = playback_vals,
-                   selected = 1,
-                   width    = '100%'
-                 )
-                 }),
+          selectInput(
+            "playbackrate",
+            "Playback Speed:",
+            choices  = playback_vals,
+            selected = 1,
+            width    = '100%'
+          )
+        }),
         column(2,{
           fixedRow(style = btn_row_style,
-             div(column(6, style = "padding:0px;",
-                        tipify(
-                          actionButton("prev_file", "", 
-                                       icon  = icon("arrow-left"), 
-                                       style = file_btn_style),
-                          "Previous File"
-                        ),
-             ), 
-             #column(3, style = "padding:0px;",
-            #        tipify(
-            #          actionButton("prev_section", "", 
-            #                       icon  = icon("chevron-left"), 
-            #                       style = file_btn_style),
-            #          "previous section"
-            #        )
-            # ), 
-             #column(3, style = "padding:0px;",
-            #        tipify(
-            #          actionButton("next_section", "", 
-            #                       icon  = icon("chevron-right"), 
-            #                       style = file_btn_style),
-            #          "next section"
-            #        )
-            # ), 
-             column(6, style = "padding:0px;",
-                    tipify(actionButton("next_file", "", 
-                                        icon  = icon("arrow-right"), 
-                                        style = file_btn_style), 
-                           "Next File")
-             )
+                   div(column(6, style = "padding:0px;",
+                              tipify(
+                                actionButton("prev_file", "", 
+                                             icon  = icon("arrow-left"), 
+                                             style = file_btn_style),
+                                "Previous File"
+                              ),
+                   ), 
+                   #column(3, style = "padding:0px;",
+                   #        tipify(
+                   #          actionButton("prev_section", "", 
+                   #                       icon  = icon("chevron-left"), 
+                   #                       style = file_btn_style),
+                   #          "previous section"
+                   #        )
+                   # ), 
+                   #column(3, style = "padding:0px;",
+                   #        tipify(
+                   #          actionButton("next_section", "", 
+                   #                       icon  = icon("chevron-right"), 
+                   #                       style = file_btn_style),
+                   #          "next section"
+                   #        )
+                   # ), 
+                   column(6, style = "padding:0px;",
+                          tipify(actionButton("next_file", "", 
+                                              icon  = icon("arrow-right"), 
+                                              style = file_btn_style), 
+                                 "Next File")
+                   )
+                   ),
+                   fluidRow(style = btn_row_style,
+                            actionButton("plt_reset", "Reset Plot", 
+                                         style = file_btn_style)
+                   )
+          )
+        })
+      )
+    }),
+    #Labelling
+    fluidPage({
+      div(column(7, 
+                 fluidRow(style = btn_sel_style,
+                          uiOutput("label_ui"),
+                          textInput("otherCategory", "Type in additional category:", 
+                                    width = "100%")
+                 ),
+                 #br(),
+      ),
+      column(5,
+             fluidRow(style = btn_sel_style,
+                      selectInput(
+                        inputId    = "call_type", 
+                        label      = "Call Type:", 
+                        width      = '100%',
+                        multiple   = TRUE,
+                        choices    = call_types, 
+                        selected   = NULL)
              ),
-             fluidRow(style = btn_row_style,
-                     actionButton("plt_reset", "Reset Plot", 
-                                  style = file_btn_style)
-            )
-          )
-            })
+             #br(),
+             #TODO: Other info to label/record -
+             ## altitude of recorder (check if in metadata)
+             column(6,
+                    fixedRow(#style = btn_row_style,
+                      actionButton("addCategory", 
+                                   HTML("<b>Add category</b>"), 
+                                   icon  = icon("plus-square"),
+                                   style = "width: 100%; text-align:left;"),
+                      actionButton("remCategory", 
+                                   HTML("<b>Remove category</b>"), 
+                                   icon  = icon("minus-square"),
+                                   style = "width: 100%; text-align:left;"),
+                      actionButton("resetCategory", 
+                                   HTML("<b>Reset categories</b>"), 
+                                   icon  = icon("list"),
+                                   style = "width: 100%; text-align:left;")
+                    )),
+             column(6,
+                    fluidRow(#style = btn_row_style,
+                      disabled(actionButton("save_extra", 
+                                            HTML("<b>Save to List</b>"), 
+                                            icon  = icon("archive"),
+                                            style = "width: 100%; text-align:left;")),
+                      actionButton("remove_points", 
+                                   HTML("<b>Delete Selection</b>"), 
+                                   icon  = icon("trash-alt"),
+                                   style = "width: 100%; text-align:left"),
+                      actionButton("undo_delete_lab", 
+                                   HTML("<b>Undo Deletion</b>"), 
+                                   icon  = icon("undo-alt"),
+                                   style = "width: 100%; text-align:left;")
+                    )
+             )
+      )
+      )
+    }),
+    #notes, frequency filtering and label confidence
+    fluidRow({
+      div(
+        column(4, 
+               textAreaInput("notes", "Additional Notes:", width = "100%", resize = "vertical")
+        ),
+        column(4,
+               uiOutput("freq_ui")
+        ),
+        column(4,
+               sliderInput("label_confidence", "Label Confidence:",
+                           min   = 0,
+                           max   = 1,
+                           step  = 0.05,
+                           value = 1,
+                           ticks = FALSE,
+                           width = "100%"),
+               div(div(style='float:left;', 'low'), 
+                   div(style='float:right;', 'high')),
         )
-        }),
-      #Labelling
-      fluidPage({
-        div(column(7, 
-              fluidRow(style = btn_sel_style,
-              uiOutput("label_ui"),
-              textInput("otherCategory", "Type in additional category:", 
-                        width = "100%")
-              ),
-              #br(),
-              ),
-            column(5,
-            fluidRow(style = btn_sel_style,
-                     selectInput(
-                       inputId    = "call_type", 
-                       label      = "Call Type:", 
-                       width      = '100%',
-                       multiple   = TRUE,
-                       choices    = call_types, 
-                       selected   = NULL)
-                     ),
-            #br(),
-            #TODO: Other info to label/record -
-            ## altitude of recorder (check if in metadata)
-            column(6,
-                   fixedRow(#style = btn_row_style,
-                            actionButton("addCategory", 
-                                         HTML("<b>Add category</b>"), 
-                                         icon  = icon("plus-square"),
-                                         style = "width: 100%; text-align:left;"),
-                            actionButton("remCategory", 
-                                         HTML("<b>Remove category</b>"), 
-                                         icon  = icon("minus-square"),
-                                         style = "width: 100%; text-align:left;"),
-                            actionButton("resetCategory", 
-                                         HTML("<b>Reset categories</b>"), 
-                                         icon  = icon("list"),
-                                         style = "width: 100%; text-align:left;")
-                   )),
-            column(6,
-                   fluidRow(#style = btn_row_style,
-                            disabled(actionButton("save_extra", 
-                                         HTML("<b>Save to List</b>"), 
-                                         icon  = icon("archive"),
-                                         style = "width: 100%; text-align:left;")),
-                            actionButton("remove_points", 
-                                         HTML("<b>Delete Selection</b>"), 
-                                         icon  = icon("trash-alt"),
-                                         style = "width: 100%; text-align:left"),
-                            actionButton("undo_delete_lab", 
-                                         HTML("<b>Undo Deletion</b>"), 
-                                         icon  = icon("undo-alt"),
-                                         style = "width: 100%; text-align:left;")
-                            )
-            )
-            )
-          )
-        }),
-      #notes, frequency filtering and label confidence
-      fluidRow({
-        div(
-          column(4, 
-                 textAreaInput("notes", "Additional Notes:", width = "100%", resize = "vertical")
-          ),
-          column(4,
-                 uiOutput("freq_ui")
-          ),
-          column(4,
-                 sliderInput("label_confidence", "Label Confidence:",
-                             min   = 0,
-                             max   = 1,
-                             step  = 0.05,
-                             value = 1,
-                             ticks = FALSE,
-                             width = "100%"),
-                 div(div(style='float:left;', 'low'), 
-                     div(style='float:right;', 'high')),
-          )
-        )
-      }),
-      #label summary
-      fluidRow({
-          uiOutput("fileLabInfo")
-      })
-    )}
-    
+      )
+    }),
+    #label summary
+    fluidRow({
+      uiOutput("fileLabInfo")
+    })
+  )}
+  
   ui <- dashboardPage(
     header,
     sidebar,
@@ -462,12 +462,12 @@ server <- function(input, output, session) {
   output$files <- renderPrint(list.files(global$datapath))
   
   observeEvent(eventExpr = {input$folder}, handlerExpr = {
-                 if (!"path" %in% names(dir())) return()
-                 home <- normalizePath("~")
-                 global$datapath <-
-                   file.path(home, paste(unlist(dir()$path[-1]), 
-                                         collapse = .Platform$file.sep))
-               })
+    if (!"path" %in% names(dir())) return()
+    home <- normalizePath("~")
+    global$datapath <-
+      file.path(home, paste(unlist(dir()$path[-1]), 
+                            collapse = .Platform$file.sep))
+  })
   
   ranges_spec    <- reactiveValues(x = NULL, y = NULL)
   ranges_osc     <- reactiveValues(x = NULL)
@@ -778,10 +778,10 @@ server <- function(input, output, session) {
     lab_df$class_label <- class1
     
     return(lab_df)
-    },
-    striped  = TRUE,
-    bordered = TRUE,
-    sanitize.text.function = function(x) x)
+  },
+  striped  = TRUE,
+  bordered = TRUE,
+  sanitize.text.function = function(x) x)
   
   input_list <- function(x){
     a <- list()
@@ -874,7 +874,7 @@ server <- function(input, output, session) {
     else
       actionButton("end_labelling", "End Labelling",
                    class = "btn-danger")
-      
+    
   })
   
   output$user_ui <- renderUI({
@@ -919,46 +919,46 @@ server <- function(input, output, session) {
           x <- paste0(x, ";")
         return(x)
       }
-        x <- paste0(x, 
-        "$(", button_val_id, ").parent().css({",
-          "'color':            'white',",
-          #"'background-color': '", cols[1], "',",
-          "'border-color':     '", cols[2], "'});")
-        x <- paste0(x, "$(", button_val_id, ").hover(",
-        "function(){",
-            "originalBorder[", 
-              css_line(button_val_id, func = "index", sq=""), 
-              "]     = ", 
-              css_line('border-color'),
-            #"originalBackground[", 
-            #  css_line(button_val_id, func = "index", sq=""), 
-            #  "] = ", 
-            #  css_line('background-color'),
-            "originalColor[", 
-              css_line(button_val_id, func = "index", sq=""), 
-              "]      = ", 
-              css_line('color'),
-            css_line('border-color', 'darkblue'),
-            #css_line('background-color', 'blue'),
-            css_line('color', 'white'),
-          "},")
-        x <- paste0(x, 
-        "function(){",
-        css_line('border-color',     
-                 paste0("originalBorder[", 
-                        css_line(button_val_id, func = "index", sq=""), 
-                        "]")), 
-        #css_line('background-color', 
-        #         paste0("originalBackground[", 
-        #                css_line(button_val_id, func = "index", sq=""), 
-        #                "]")), 
-        css_line('color',            
-                 paste0("originalColor[", 
-                        css_line(button_val_id, func = "index", sq=""), 
-                        "]")),
-          "});")
-        x <- gsub("'original", "original", x)
-        x <- gsub(")]')", ")])", x)
+      x <- paste0(x, 
+                  "$(", button_val_id, ").parent().css({",
+                  "'color':            'white',",
+                  #"'background-color': '", cols[1], "',",
+                  "'border-color':     '", cols[2], "'});")
+      x <- paste0(x, "$(", button_val_id, ").hover(",
+                  "function(){",
+                  "originalBorder[", 
+                  css_line(button_val_id, func = "index", sq=""), 
+                  "]     = ", 
+                  css_line('border-color'),
+                  #"originalBackground[", 
+                  #  css_line(button_val_id, func = "index", sq=""), 
+                  #  "] = ", 
+                  #  css_line('background-color'),
+                  "originalColor[", 
+                  css_line(button_val_id, func = "index", sq=""), 
+                  "]      = ", 
+                  css_line('color'),
+                  css_line('border-color', 'darkblue'),
+                  #css_line('background-color', 'blue'),
+                  css_line('color', 'white'),
+                  "},")
+      x <- paste0(x, 
+                  "function(){",
+                  css_line('border-color',     
+                           paste0("originalBorder[", 
+                                  css_line(button_val_id, func = "index", sq=""), 
+                                  "]")), 
+                  #css_line('background-color', 
+                  #         paste0("originalBackground[", 
+                  #                css_line(button_val_id, func = "index", sq=""), 
+                  #                "]")), 
+                  css_line('color',            
+                           paste0("originalColor[", 
+                                  css_line(button_val_id, func = "index", sq=""), 
+                                  "]")),
+                  "});")
+      x <- gsub("'original", "original", x)
+      x <- gsub(")]')", ")])", x)
       return(x)
     }
     btn_col_js <- NULL
@@ -986,15 +986,15 @@ server <- function(input, output, session) {
       tags$style(paste0(".btn-group-container-sw {
                           display: grid;
                           grid-template-columns: ",
-                          paste(rep("1fr", input$label_columns), collapse=" "), 
+                        paste(rep("1fr", input$label_columns), collapse=" "), 
                         ";}
                         .radiobtn {
                           width: 100%;
                         }")),
       #might need to be wrapped in HTML
       tags$script(btn_col_js),
-      )
-    })
+    )
+  })
   
   output$freq_ui <- renderUI({
     freq_range <- as.numeric(c(input$freq_min, input$freq_max))
@@ -1081,7 +1081,7 @@ server <- function(input, output, session) {
       tc <- sort(tc) - segment_start()
       tmp_audio <- extractWave_t(tmp_audio, tc)
     }
-
+    
     if(!is.null(ranges_spec$y))
       frange <- ranges_spec$y
     else if(!is.null(dc_ranges_spec$y))
@@ -1171,10 +1171,10 @@ server <- function(input, output, session) {
       else
         seg_colour <- 'red'
       txt <- paste(txt, '<span style="color: ', seg_colour, ';"><b>(', 
-              segment_num(), '/', segment_total(), ')</b></span>')
+                   segment_num(), '/', segment_total(), ')</b></span>')
     }
     return(HTML(txt))
-    })
+  })
   
   specData <- reactive({
     if(.is_null(input$file1))     
@@ -1191,7 +1191,7 @@ server <- function(input, output, session) {
     #if(!is.null(dc_ranges_spec$x)){
     #  xr <- dc_ranges_spec$x
     #  wl <- as.integer(tmp_audio@samp.rate*(xr[2]-xr[1])/100)
-      #wl <- as.integer(wl/10) 
+    #wl <- as.integer(wl/10) 
     #}
     #wl <- wl - wl %% 2
     
@@ -1424,16 +1424,16 @@ server <- function(input, output, session) {
     if(!is.null(frange))
       if(frange_check(frange, range(df$frequency)))
         spec_plot <- spec_plot + 
-          geom_rect(aes(xmin = -Inf, 
-                        xmax = Inf, 
-                        ymin = frange[2], 
-                        ymax = Inf),
-                    fill = 'black', alpha = .5) +
-          geom_rect(aes(xmin = -Inf, 
-                        xmax = Inf, 
-                        ymin = -Inf, 
-                        ymax = frange[1]),
-                    fill = 'black', alpha = .5)
+      geom_rect(aes(xmin = -Inf, 
+                    xmax = Inf, 
+                    ymin = frange[2], 
+                    ymax = Inf),
+                fill = 'black', alpha = .5) +
+      geom_rect(aes(xmin = -Inf, 
+                    xmax = Inf, 
+                    ymin = -Inf, 
+                    ymax = frange[1]),
+                fill = 'black', alpha = .5)
     return(spec_plot)
   }, bg="transparent")
   
@@ -1450,8 +1450,8 @@ server <- function(input, output, session) {
           geom_vline(aes(xintercept = ranges_spec$x[2]), colour="yellow", linetype="dashed", alpha=0.4)
       spec_plot <- spec_plot + 
         geom_segment(aes(x=ranges_spec$x[1]+gettime_t()$x, 
-                     xend=ranges_spec$x[1]+gettime_t()$x,
-                     y=ranges_spec$y[1], yend=ranges_spec$y[2]),
+                         xend=ranges_spec$x[1]+gettime_t()$x,
+                         y=ranges_spec$y[1], yend=ranges_spec$y[2]),
                      colour = "yellow")
     } else if(!is.null(dc_ranges_spec$y))
       spec_plot <- spec_plot + geom_vline(aes(xintercept=dc_ranges_spec$x[1]+gettime_t()$x), colour = "yellow")
@@ -1502,17 +1502,17 @@ server <- function(input, output, session) {
                    label.size = 0.5,
                    hjust  = hj,
                    vjust  = vj
-                   ) +
+        ) +
         geom_label(data = lab_df,
-                  aes(x     = start_time_crop,
-                      y     = end_freq_crop,
-                      label = class_label),
-                  label.r = unit(0, units="lines"),
-                  label.size = 0,
-                  hjust  = hj,
-                  vjust  = vj,
-                  alpha  = 0,
-                  colour = "black")
+                   aes(x     = start_time_crop,
+                       y     = end_freq_crop,
+                       label = class_label),
+                   label.r = unit(0, units="lines"),
+                   label.size = 0,
+                   hjust  = hj,
+                   vjust  = vj,
+                   alpha  = 0,
+                   colour = "black")
     }
     return(spec_plot)
   }, bg="transparent")
@@ -1539,13 +1539,13 @@ server <- function(input, output, session) {
                      #          "Go to folder", target = "_blank"),
                      type = "message")
   })
-      
+  
   output$specplot_blank <- renderPlot({
     if(plots_open$spec)
       return(NULL)
     else 
       blank_plot(label = "Spectrogram (hidden)")
-    })
+  })
   
   output$oscplot_ui <- renderUI({
     if(input$include_osc)
@@ -1605,7 +1605,7 @@ server <- function(input, output, session) {
         p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE)
       else if(!is.null(dc_ranges_osc$x))
         p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE)
-     osc_name <- gsub('.wav', '_osc.png', input$file1)
+      osc_name <- gsub('.wav', '_osc.png', input$file1)
     } else 
       osc_name <- 'blank_osc.png'
     observeEvent(input$saveosc, {
@@ -1654,7 +1654,7 @@ server <- function(input, output, session) {
     
     in_label_box <- function(df, point){
       return(btw(point$time, df$start_time, df$end_time) &
-             btw(point$frequency, df$start_freq, df$end_freq))
+               btw(point$frequency, df$start_freq, df$end_freq))
     }
     #lab_df <- labelsData()
     #lab_df <- lab_df[in_label_box(lab_df, point),]
@@ -1980,8 +1980,8 @@ server <- function(input, output, session) {
                  #TODO: HTML styling (background colour, no download button,...)
                  style    = audio_style),
       tags$script(pb_script)
-      )
-    })
+    )
+  })
   
   output$audio_title <- renderUI({
     base <- "<b>Play audio:<b/>"
@@ -2003,11 +2003,11 @@ server <- function(input, output, session) {
       if(!is.null(df))
         latlong <- c(df$lat, df$long)
       wf_address <- ifelse(!is.null(df), 
-             paste0(df$wind_farm_name, ", Co.", df$wind_farm_county),
-             "")
+                           paste0(df$wind_farm_name, ", Co.", df$wind_farm_county),
+                           "")
       wf_latlong <- ifelse(!is.null(latlong), 
-             paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
-             "")
+                           paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
+                           "")
       wf_link <- ""
       if(!is.null(latlong))
         wf_link <- get_gmap_link(latlong)
@@ -2043,20 +2043,20 @@ server <- function(input, output, session) {
   
   observe({
     shinyjs::toggle(id  = "specplot",
-              anim      = TRUE,
-              animType  = "fade",
-              time      = 0.5,
-              condition = plots_open$spec)
+                    anim      = TRUE,
+                    animType  = "fade",
+                    time      = 0.5,
+                    condition = plots_open$spec)
     shinyjs::toggle(id  = "specplot_blank",
                     condition = !plots_open$spec)
   })
   
   observe({
     shinyjs::toggle(id  = "oscplot",
-              anim      = TRUE,
-              animType  = "fade",
-              time      = 0.5,
-              condition = plots_open$osc)
+                    anim      = TRUE,
+                    animType  = "fade",
+                    time      = 0.5,
+                    condition = plots_open$osc)
     shinyjs::toggle(id  = "oscplot_blank",
                     condition = !plots_open$osc)
   })
@@ -2142,13 +2142,13 @@ server <- function(input, output, session) {
     if(idx > segment_total())
       showNotification("Cannot go to next segment, at end of file", 
                        type = "error")
-      else {
-        segment_num(idx)
-        reset_ranges(ranges_spec)
-        reset_ranges(ranges_osc)
-        reset_ranges(dc_ranges_spec)
-        reset_ranges(dc_ranges_osc)
-      }
+    else {
+      segment_num(idx)
+      reset_ranges(ranges_spec)
+      reset_ranges(ranges_osc)
+      reset_ranges(dc_ranges_spec)
+      reset_ranges(dc_ranges_osc)
+    }
   })
   
   observeEvent(input$reset_sidebar, {
