@@ -795,32 +795,32 @@ server <- function(input, output, session) {
   t1Inputs <- reactive({
     x <- input_names("start_time")
     return(input_list(x))
-  })
+  }) %>% throttle(100)
   
   t2Inputs <- reactive({
     x <- input_names("end_time")
     return(input_list(x))
-  })
+  }) %>% throttle(100)
   
   f1Inputs <- reactive({
     x <- input_names("start_freq")
     return(input_list(x))
-  })
+  }) %>% throttle(100)
   
   f2Inputs <- reactive({
     x <- input_names("end_freq")
     return(input_list(x))
-  })
+  }) %>% throttle(100)
   
   confInputs <- reactive({
     x <- input_names("confidence")
     return(input_list(x))
-  })
+  }) %>% throttle(100)
   
   classInputs <- reactive({
     x <- input_names("class_label")
     return(input_list(x))
-  })
+  }) %>% throttle(100)
   
   overwriteLabData <- function(vals, col_name){
     full_df <- fullData()
