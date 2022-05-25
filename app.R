@@ -835,7 +835,8 @@ server <- function(input, output, session) {
       changed_row <- lab_df[diff_idx,]
       #change to the new edited value
       changed_row[,col_name] <- vals[diff_idx]
-      changed_idx <- which(full_df$id == changed_row$id)
+      changed_idx <- which(full_df$id == changed_row$id &
+                           full_df$file_name == changed_row$file_name)
       #change value in full data and overwrite
       full_df[changed_idx,] <- changed_row
       write_labs(full_df, append = FALSE, col.names = TRUE)
