@@ -6,10 +6,6 @@ TODOs:
   - [x] Make sure instructions say how to zoom in/out
   - [ ] Videos
 - [x] Get ~1 hour of files in 4/5 folders. 15 seconds with little overlap
-- [x] Default logged in users to their folder, if guest or can't find folder, use tmp folder
-- [x] Download labels button:
-  - [x] Only I can download all labels (admin)
-  - [x] Other users can download their own
 - [ ] Display metadata:
   - [x] Collapsible panel under play audio
   - [x] Basic collapsible panel with formatted time display
@@ -21,14 +17,6 @@ TODOs:
   - [ ] Recorder height (~1m) or altitude
 - [ ] Make File Select dropdown easier to navigate (in header)
 - [ ] File label stats (# labels) and navigation
-- [x] Label name should always be visible if box is on screen (not just top left)
-- [x] `<NULL>` option shouldn't be visible in call type, file select etc
-- [x] Change colour of save selection button
-- [x] Any box with a label not in list doesn't show
-- [x] Extra button border colour light blue
-- [x] N+E Logo on login page (in branding tab of Auth0)
-- [x] Empty space "header" above save selection
-- [x] Reset button (sidebar, body, etc) to put all inputs back to default
 - [ ] Interactive bounding boxes:
   - [ ] When clicking inside of box, open new panel
   - [ ] Show details of saved labels in list in this panel in sidebar or navbar page
@@ -38,10 +26,6 @@ TODOs:
   - [ ] editing label and other info
   - [ ] ability to click Label boxes and see info/play sound
   - [ ] delete (are you sure plus undo)
-- [x] Display logged in username in header
-- [x] More icons for buttons:
-  - [x] Body
-  - [x] Sidebar
 - [ ] navbarPage() to have distinct pages: label, verify/check, run model
   from https://shiny.rstudio.com/articles/layout-guide.html
 - [ ] Save list of added species as col in species csv (or append to a column) 
@@ -52,24 +36,25 @@ TODOs:
   (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
-- [x] only show own labels. Admin can select/deselect user labels
-- [x] Dedicated configuration table (easy way to view labels per file)
-- [x] Transparent plots in front of spectrogram:
-  - [x] Plotting Vertical line indicating timestamp while playing
-  - [x] Label boxes (see above)
-- [x] Noise removal also cleans audio.
 - [ ] 3 labeling modes: 
   - [ ] Binary classification (whole file)
   - [ ] Event detection (time/x-axis)
   - [ ] Object detection (time and frewquency bounding boxes)
 - [x] Expand call types - call, agitation/contact, flight, nocturnal, juvenile 
 - [ ] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
-- [x] Delete note after label saved
 - [ ] Order species list alphabetically, or group by family (get definitive list)
 - [ ] Hotkeys:
+  - [ ] start/end labeling
+  - [ ] open folder/file navigation
   - [ ] play/pause audio (needs JS workaround)
   - [x] label/delete
   - [x] prev/next file
-- [ ] Savable parameters 
+  - [ ] add/remove categories (maybe pressing enter in textbox adds the category)
+  - [ ] 1-9 as frst 9 labels or last 9 used
+  - [ ] undo label/any action 
+  - [ ] zoom in/out (double click already does this)
+  - [ ] scroll bounding box up/down or left/right
+- [ ] Savable parameters (everything?)
   - [ ] last worked on file from previous session is opening file from this sesion
   - [ ] species list chosen
+- [ ] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
