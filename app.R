@@ -7,6 +7,7 @@ library(shinythemes)
 library(shinydashboard)
 library(shinydashboardPlus)
 library(shinyWidgets)
+library(shinyThings)
 library(keys)
 library(imola)
 library(tuneR)
@@ -227,7 +228,11 @@ ui_func <- function() {
                             value = 4, min = 1, max = 9, step = 1),
                actionButton("reset_sidebar", "Reset Sidebar"),
                actionButton("reset_body", "Reset Body"),
-               checkboxInput("fileEditTab", "Label Edit Table", value = FALSE)
+               checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
+               # Add the Undo/Redo buttons to the UI
+               h5("Undo/Redo label save or delete"),
+               undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
+               #undoHistoryUI_debug("lab_hist")
       )
     ),
     #Options for sidebar
@@ -408,7 +413,7 @@ ui_func <- function() {
         )
       )
     }),
-    #label summary
+    #label summary and edit
     fluidRow({
       uiOutput("fileLabInfo")
     })
@@ -688,6 +693,22 @@ server <- function(input, output, session) {
       return(Sys.info()[["user"]])
     else 
       return(auth0_session$name)
+  })
+  
+  undo_app_state <- undoHistory(
+    id = "lab_hist",
+    value = reactive({
+      # Value must be a reactive, but can be any structure you want
+      fullData()
+    })
+  )
+  
+  # Use an observer to receive updates from undoHistory() and update the app.
+  observe({
+    req(!is.null(undo_app_state())) #<< Need to update app whenever not NULL
+    
+    # Manually update app UI and reactive values
+    fullData(undo_app_state())
   })
   
   # only admin can download all labels
