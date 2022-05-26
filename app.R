@@ -73,6 +73,15 @@ plot_z_style <- "
   z-index: 3;
 }"
 
+jsCode <- 'shinyjs.audiotoggle = function() {
+  var audio = document.getElementById("my_audio_player");
+  if(audio.paused){ //check audio is playing
+    audio.play();
+  } else {
+    audio.pause();
+  }
+}'
+
 ui_func <- function() {
   header <- {dashboardHeader(
     title = "Audio Labeler App",
@@ -92,7 +101,8 @@ ui_func <- function() {
                          HTML("<kbd>&#8679;</kbd>+<kbd>&#9166;</kbd> to Save Selection <br/>"),
                          HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
                          HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
-                         HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>")
+                         HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>"),
+                         HTML("<kbd>&#8679;</kbd>+<kbd>Space</kbd> to pause/play audio")
     ),
     type = "notifications", 
     icon = icon("keyboard"),
@@ -243,6 +253,7 @@ ui_func <- function() {
   
   body <- {dashboardBody(
     shinyjs::useShinyjs(),
+    extendShinyjs(text = jsCode, functions = c("audiotoggle")),
     useKeys(),
     uiOutput('loadScript'),
     keysInput("keys", hotkeys),
@@ -281,7 +292,7 @@ ui_func <- function() {
                  var curtime = audio.currentTime;
                  console.log(audio);
                  Shiny.onInputChange("get_time", curtime);
-                 };'),
+                 };')
             #actionButton("get_time", "Get Time", onclick = js),
             #verbatimTextOutput("audio_time")
           )
@@ -1729,15 +1740,9 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$keys, {
-    #if(input$keys == "shift+space")
-    #  tags$script('var audio = document.getElementById("my_audio_player");
-    #               if(audio.paused){ //check audio is playing
-    #                  audio.play();
-    #               } else {
-    #                  audio.pause();
-    #               }')
-    #else 
-    if(input$keys == "shift+enter")
+    if(input$keys == "shift+space")
+      js$audiotoggle()
+    else if(input$keys == "shift+enter")
       click("save_points")
     else if(input$keys == "shift+backspace")
       click("remove_points")
@@ -2235,8 +2240,8 @@ server <- function(input, output, session) {
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
 options(shiny.port = 8080)
-#auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+auth0::shinyAppAuth0(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog::reactlog_enable()

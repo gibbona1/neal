@@ -46,7 +46,7 @@ TODOs:
 - [ ] Hotkeys:
   - [ ] start/end labeling
   - [ ] open folder/file navigation
-  - [ ] play/pause audio (needs JS workaround)
+  - [x] play/pause audio (needed JS workaround)
   - [x] label/delete
   - [x] prev/next file
   - [ ] add/remove categories (maybe pressing enter in textbox adds the category)
@@ -55,7 +55,8 @@ TODOs:
   - [ ] undo parameter changes 
   - [ ] zoom in/out (double click already does this)
   - [ ] scroll bounding box up/down or left/right
-- [ ] Savable parameters (everything?)
-  - [ ] last worked on file from previous session is opening file from this sesion
-  - [ ] species list chosen
+- [x] Savable parameters: most things that can be tweaked, including
+  - [x] last worked on file from previous session is opening file from this sesion
+  - [x] species list chosen
+  - [x] all setings in sidebar
 - [x] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
