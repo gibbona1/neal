@@ -488,7 +488,6 @@ server <- function(input, output, session) {
   segment_total  <- reactiveVal(1)
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
-  changefileval  <- reactiveVal(NULL)
   
   extractWave_t <- function(x,tc){
     return(extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
@@ -658,9 +657,7 @@ server <- function(input, output, session) {
       disable("prev_section")
       disable("next_section")
       updateSelectInput(inputId  = "file1", 
-                        choices  = file_list(),
-                        selected = changefileval())
-      changefileval(NULL)
+                        choices  = file_list())
     } else {
       idx <- which(input$file1 == file_list())
       if(idx == 1)
@@ -910,16 +907,12 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$start_labelling, {
-    if(!input$start_labelling)
-      return(NULL)
     updateSelectInput(inputId  = "file1",
                       selected = file_list()[1],
                       choices  = file_list())
   })
   
   observeEvent(input$end_labelling, {
-    if(!input$end_labelling)
-      return(NULL)
     updateSelectInput(inputId  = "file1",
                       selected = "",
                       choices  = c(""))
@@ -1553,8 +1546,6 @@ server <- function(input, output, session) {
   }, bg="transparent")
   
   observeEvent(input$savespec, {
-    if(!input$savespec)
-      return(NULL)
     if(!.is_null(input$file1))
       spec_name <- gsub('.wav', '_spec.png', input$file1)
     else
@@ -1858,8 +1849,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$addCategory, {
-    if(!input$addCategory)
-      return(NULL)
     if(gsub(" ", "", input$otherCategory) == "")
       showNotification("Need category name to add", type = "error")
     else if(input$otherCategory %in% class_label())
@@ -1869,8 +1858,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$remCategory, {
-    if(!input$remCategory)
-      return(NULL)
     if(is.null(input$label_points))
       showNotification("Need a category selected to remove it", type = "error")
     else if(input$label_points %in% c(categories$base, categories$misc))
@@ -1886,15 +1873,11 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$resetCategory, {
-    if(!input$resetCategory)
-      return(NULL)
     categories$xtra <- NULL
     showNotification("Extra labels reset to null", type = "warning")
   })
   
   observeEvent(input$save_points, {
-    if(!input$save_points)
-      return(NULL)
     if(!is.null(ranges_spec$x)) {
       if(is.null(input$call_type))
         call_type <- ""
@@ -1946,8 +1929,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$remove_points, {
-    if(!input$remove_points)
-      return(NULL)
     if(!is.null(ranges_spec$x)) {
       lab_df <- data.frame(start_time = ranges_spec$x[1],
                            end_time   = ranges_spec$x[2],
@@ -1976,8 +1957,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$undo_delete_lab, {
-    if(!input$undo_delete_lab)
-      return(NULL)
     full_df   <- fullData()
     rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
@@ -2130,8 +2109,6 @@ server <- function(input, output, session) {
   
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
-    if(!input$prev_file)
-      return(NULL)
     idx <- which(input$file1 == file_list()) - 1
     if(idx == 0)
       showNotification("Cannot go to previous file, at beginning of folder", 
@@ -2152,8 +2129,6 @@ server <- function(input, output, session) {
   
   # move to next file (resetting zoom)
   observeEvent(input$next_file, {
-    if(!input$next_file)
-      return(NULL)
     idx <- which(input$file1 == file_list()) + 1
     if(idx > length(file_list()))
       showNotification("Cannot go to next file, at end of folder", 
@@ -2223,20 +2198,24 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$inputLoad, {
-    if(!input$inputLoad)
-      return(NULL)
     #print(input$inputLoad)
     fname <- 'input.RDS'
     if(file.exists(fname)){
       inputa <- readRDS(fname)
       #browser()
-      skips <- c("folder")
+      skips <- c("folder", "prev_file", "next_file",
+                 "lab_hist-history_back", "lab_hist-history_forward",
+                 "reset_sidebar", # this caused the delay in reloading last file
+                 "sidebarItemExpanded",  "side-panel", 
+                 "inputLoad", "._auth0logout_",
+                 "start_labelling", "end_labelling", "savespec", 
+                 "addCategory", "remCategory", "resetCategory", 
+                 "save_points", "remove_points", "undo_delete_lab")
       for(nm in names(inputa)){
         if(nm %in%skips)
           next
         session$sendCustomMessage(nm, inputa[[nm]])
       }
-      changefileval(inputa$file1)
       showNotification("Previous Settings loaded", type = "message", duration = NULL)
     } else
       showNotification("No previous settings to load", type = "warning", duration = NULL)
