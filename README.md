@@ -51,10 +51,11 @@ TODOs:
   - [x] prev/next file
   - [ ] add/remove categories (maybe pressing enter in textbox adds the category)
   - [ ] 1-9 as frst 9 labels or last 9 used
-  - [ ] undo label/any action 
+  - [x] undo label save or delete
+  - [ ] undo parameter changes 
   - [ ] zoom in/out (double click already does this)
   - [ ] scroll bounding box up/down or left/right
 - [ ] Savable parameters (everything?)
   - [ ] last worked on file from previous session is opening file from this sesion
   - [ ] species list chosen
-- [ ] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
+- [x] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
