@@ -637,6 +637,8 @@ server <- function(input, output, session) {
   
   labs_filename <- reactive({paste0("labels/tmp_labels_",lab_nickname(),".csv")})
   
+  conf_filename <- reactive({paste0("saved_configs/input_",lab_nickname(),".RDS")})
+  
   fullData   <- reactiveVal(NULL)
   
   write_labs <- function(lab_df, 
@@ -2191,18 +2193,19 @@ server <- function(input, output, session) {
     #JS code to change input val for single input
     inp_script <- function(name){
       return(paste0("Shiny.addCustomMessageHandler('",
-      name,"', function(value) { Shiny.setInputValue('",
-      name,"', value);});"))
+      name,"', function(value) { ",
+      "Shiny.setInputValue('", name,"', value);"#,
+      #"$('#",name,"').val(value);});"
+      ))
     }
     tags$script(paste0(sapply(names(input), inp_script), collapse = " "))
   })
   
   observeEvent(input$inputLoad, {
     #print(input$inputLoad)
-    fname <- 'input.RDS'
+    fname <- conf_filename()
     if(file.exists(fname)){
       inputa <- readRDS(fname)
-      #browser()
       skips <- c("folder", "prev_file", "next_file",
                  "lab_hist-history_back", "lab_hist-history_forward",
                  "reset_sidebar", # this caused the delay in reloading last file
@@ -2214,7 +2217,8 @@ server <- function(input, output, session) {
       for(nm in names(inputa)){
         if(nm %in%skips)
           next
-        session$sendCustomMessage(nm, inputa[[nm]])
+        #session$sendCustomMessage(nm, inputa[[nm]])
+        session$sendInputMessage(nm, list(value = inputa[[nm]]))
       }
       showNotification("Previous Settings loaded", type = "message", duration = NULL)
     } else
@@ -2222,7 +2226,7 @@ server <- function(input, output, session) {
   })
   
   session$onSessionEnded(function() {
-    isolate(saveRDS(input, file = 'input.RDS'))
+    isolate(saveRDS(input, file = conf_filename()))
   })
 }
 
