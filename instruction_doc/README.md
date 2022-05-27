@@ -35,3 +35,4 @@ Sometimes there is a disconnect from the server. If this happens, reload or put 
 - <kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> (<kbd>Shift</kbd>+<kbd>Left</kbd>) to move to previous file
 - <kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> (<kbd>Shift</kbd>+<kbd>Right</kbd>) to move to next file
 - <kbd>&#8679;</kbd>+<kbd>Space</kbd> to pause/play audio
+- <kbd>&#9166;</kbd> in additional category textbox to add one

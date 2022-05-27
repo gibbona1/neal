@@ -102,7 +102,8 @@ ui_func <- function() {
                          HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
                          HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
                          HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>"),
-                         HTML("<kbd>&#8679;</kbd>+<kbd>Space</kbd> to pause/play audio")
+                         HTML("<kbd>&#8679;</kbd>+<kbd>Space</kbd> to pause/play audio<br/>"),
+                         HTML("<kbd>&#9166;</kbd> in additional category textbox to add one")
     ),
     type = "notifications", 
     icon = icon("keyboard"),
@@ -353,7 +354,14 @@ ui_func <- function() {
                  fluidRow(style = btn_sel_style,
                           uiOutput("label_ui"),
                           textInput("otherCategory", "Type in additional category:", 
-                                    width = "100%")
+                                    width = "100%"),
+                          tags$script('document.getElementById("otherCategory").addEventListener("keyup", 
+                          function(event) {
+                            event.preventDefault();
+                            if (event.keyCode === 13) {
+                              document.getElementById("addCategory").click();
+                            }
+                          });')
                  ),
                  #br(),
       ),

@@ -30,6 +30,7 @@ TODOs:
   from https://shiny.rstudio.com/articles/layout-guide.html
 - [ ] Save list of added species as col in species csv (or append to a column) 
 - [ ] On clicking label in sidebar, highlights the label (option to play it)
+- [ ] modalDialog instead of edit table for editing/listen to labels
 - [ ] Unit tests (especially for plots)
 - [ ] Check soundgen pitch app https://github.com/tatters/soundgen
 - [ ] Example sound files in right sidebar 
@@ -49,7 +50,9 @@ TODOs:
   - [x] play/pause audio (needed JS workaround)
   - [x] label/delete
   - [x] prev/next file
-  - [ ] add/remove categories (maybe pressing enter in textbox adds the category)
+  - [ ] add/remove categories
+    - [x] (pressing enter in textbox adds the category)
+    - [ ] (pressing delete while selecting category deletes it)
   - [ ] 1-9 as frst 9 labels or last 9 used
   - [x] undo label save or delete
   - [ ] undo parameter changes 
