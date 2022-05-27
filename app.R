@@ -42,7 +42,8 @@ hotkeys <- c(
   "shift+backspace",
   "shift+left",
   "shift+right",
-  "shift+n", "shift+w"
+  "shift+n", "shift+w",
+  paste(1:9)
 )
 
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
@@ -1771,6 +1772,9 @@ server <- function(input, output, session) {
       click("start_labelling")
     else if(input$keys == "shift+w")
       click("end_labelling")
+    else if(input$keys %in% paste(1:9)) 
+      updateRadioGroupButtons(inputId = "label_points", 
+                              selected = class_label()[min(length(class_label()),as.integer(input$keys))])
   })
   
   output$hover_info_osc <- renderUI({
