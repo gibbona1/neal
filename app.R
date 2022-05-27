@@ -41,7 +41,8 @@ hotkeys <- c(
   "shift+enter",
   "shift+backspace",
   "shift+left",
-  "shift+right"
+  "shift+right",
+  "shift+n", "shift+w"
 )
 
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
@@ -1766,6 +1767,10 @@ server <- function(input, output, session) {
       click("prev_file")
     else if(input$keys == "shift+right")
       click("next_file")
+    else if(input$keys == "shift+n")
+      click("start_labelling")
+    else if(input$keys == "shift+w")
+      click("end_labelling")
   })
   
   output$hover_info_osc <- renderUI({
@@ -2255,9 +2260,9 @@ server <- function(input, output, session) {
 
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
-#options(shiny.port = 8080)
-#auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+options(shiny.port = 8080)
+auth0::shinyAppAuth0(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog::reactlog_enable()
