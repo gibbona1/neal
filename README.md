@@ -50,9 +50,9 @@ TODOs:
   - [x] play/pause audio (needed JS workaround)
   - [x] label/delete
   - [x] prev/next file
-  - [ ] add/remove categories
+  - [x] add/remove categories
     - [x] (pressing enter in textbox adds the category)
-    - [ ] (pressing delete while selecting category deletes it)
+    - [x] (pressing delete while selecting category deletes it)
   - [ ] 1-9 as frst 9 labels or last 9 used
   - [x] undo label save or delete
   - [ ] undo parameter changes 
