@@ -1218,7 +1218,7 @@ server <- function(input, output, session) {
   
   gettime_t <- gettime %>% throttle(50)
   
-  output$file1 <- renderUI({
+  output$file1text <- renderUI({
     if(.is_null(input$file1))
       return(NULL)
     txt <- paste0('<b>Filename: <span style="color: grey;">', input$file1, '</span></b>')
