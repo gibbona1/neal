@@ -45,7 +45,7 @@ TODOs:
 - [ ] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
 - [ ] Order species list alphabetically, or group by family (get definitive list)
 - [ ] Hotkeys:
-  - [ ] start/end labeling
+  - [ ] start/end labeling (only works when tab is open, need to move button)
   - [ ] open folder/file navigation
   - [x] play/pause audio (needed JS workaround)
   - [x] label/delete
@@ -63,3 +63,5 @@ TODOs:
   - [x] species list chosen
   - [x] all setings in sidebar
 - [x] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
+- [ ] JS in own files
+- [ ] CSS in own files

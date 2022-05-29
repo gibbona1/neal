@@ -1,4 +1,4 @@
-tmp_table <- read.table('LabelTrack.txt', sep = "\t")
+tmp_table <- read.table('misc_data/LabelTrack.txt', sep = "\t")
 tmp_table
 tmp_df <- data.frame()
 if(tmp_table[2,1] == "\\")
