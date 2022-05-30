@@ -10,7 +10,7 @@
 
 Sometimes there is a disconnect from the server. If this happens, reload or put the link https://gibbona1.shinyapps.io/audio_labeller back into the address bar and press enter.
 
-2. This is the main page. To start, click the user icon on the top left.
+2. This is the main page. To start, click the user icon on the top right.
 
 ![Main Page](https://github.com/gibbona1/audio_labeler/blob/master/images/app_1main.png)
 
