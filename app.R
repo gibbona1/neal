@@ -22,6 +22,8 @@ library(viridis)
 library(profvis) # for checking code performance
 library(dplyr)
 library(stringr)
+library(janitor)
+library(DT)
 
 source('plot_helpers.R')
 source('audio_meta.R')
@@ -238,6 +240,8 @@ ui_func <- function() {
                actionButton("reset_sidebar", "Reset Sidebar"),
                actionButton("reset_body", "Reset Body"),
                checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
+               checkboxInput("fileSummaryTab", "File Summary Table", value = FALSE),
+               checkboxInput("summaryTabGroup", "Subgroup by class", value = TRUE),
                # Add the Undo/Redo buttons to the UI
                h5("Undo/Redo label save or delete"),
                undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
@@ -467,6 +471,10 @@ ui_func <- function() {
     #label summary and edit
     fluidRow({
       uiOutput("fileLabInfo")
+    }),
+    #file summary
+    fluidRow({
+      uiOutput("fileLabSummary")
     })
   )}
   
@@ -798,6 +806,27 @@ server <- function(input, output, session) {
     )
   })
   
+  output$fileLabSummary <- renderUI({
+    if(!input$fileSummaryTab)
+      return(NULL)
+    df <- fullData()
+    if(is.null(df))
+      return(NULL)
+    if(nrow(df)==0)
+      return(NULL)
+    
+    panel_name <- paste("File Summary", 
+                         ifelse(is.null(df), "", 
+                                paste0('(',length(unique(df$file_name)),')')))
+    bsCollapse(id = "fileLabSummary",
+               open = panel_name,
+               bsCollapsePanel(panel_name,
+                               tags$style("width: 100%"),
+                               DT::dataTableOutput("labSummaryTable"),
+                               style = "info")
+    )
+  })
+  
   input_names <- function(x){
     lab_df <- labelsData()
     if(is.null(lab_df))
@@ -857,6 +886,30 @@ server <- function(input, output, session) {
   striped  = TRUE,
   bordered = TRUE,
   sanitize.text.function = function(x) x)
+  
+  output$labSummaryTable <- renderDataTable({
+    df <- fullData()
+    df <- df[df$file_name %in% file_list() & 
+             df$labeler == labeler(),]
+    
+    if(input$summaryTabGroup)
+      sum_df <- df %>%
+        tabyl(class_label, file_name) %>%
+        #adorn_totals("row") %>%
+        tidyr::gather(file_name, n, 2:ncol(.), convert = TRUE) %>%
+        select(file_name, class_label, n)
+    else
+      sum_df <- df %>%
+        tabyl(file_name) %>%
+        #adorn_totals("row") %>%
+        select(file_name, n)
+    
+    #sum_df$num_labels <- as.integer(sum_df$num_labels)
+    sum_df$n <- as.integer(sum_df$n)
+    sum_df <- sum_df %>%
+      rename(num_labels = n)
+    return(sum_df)
+  }, filter = "top")
   
   input_list <- function(x){
     a <- list()
