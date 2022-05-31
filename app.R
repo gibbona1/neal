@@ -31,7 +31,7 @@ options(shiny.maxRequestSize = 30*1024^2)
 
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
-call_types   <- c("alarm call", "begging call", "call", "contact call", "flight call", "flock", "juvenile call", "nocturnal call", "song")
+call_types   <- c("song", "alarm call", "begging call", "call", "contact call", "flight call", "flock", "juvenile call", "nocturnal call")
 
 playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
 names(playback_vals) <- paste0(playback_vals, "x")
@@ -143,12 +143,6 @@ ui_func <- function() {
                               title = 'Please select a folder',
                               icon  = icon('folder')),
                verbatimTextOutput("folder", placeholder = TRUE),
-               selectInput(
-                 "file1",
-                 "Select File:",
-                 choices = c(""),
-                 width   = '100%'
-               ),
                selectInput("species_list",
                            "Species List:",
                            choices = colnames(species_list),
@@ -265,7 +259,33 @@ ui_func <- function() {
     theme = "blue_gradient",
     tags$style(".content-wrapper{margin-left: 0px;}"),
     tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
-    uiOutput("file1text"),
+    fluidRow({
+    div(
+      column(2,
+        HTML('<b>Filename: </b>')
+      ),
+      column(8,
+        selectInput(
+          "file1",
+          label   = NULL,
+          choices = c(""),
+          width   = '100%'
+        ),
+        tags$head(tags$style(HTML('
+                            #file1+ div>.selectize-input{
+                            font-size: 14px; line-height: 14x; margin-bottom: -20px; 
+                            min-height: 0px; 
+                            }
+                            #file1+ div>.selectize-dropdown{
+                            font-size: 14px; margin-top: 20px; 
+                            }
+                            ')))
+      ),
+      column(2,
+        uiOutput("segmentNumText")
+      )
+      )
+    }),
     #Spectrogram Plot
     fluidRow({
       uiOutput('specplot_ui')
@@ -344,7 +364,7 @@ ui_func <- function() {
                    )
                    ),
                    fluidRow(style = btn_row_style,
-                            actionButton("plt_reset", "Reset Plot", 
+                            actionButton("plt_reset", "Reset Zoom", 
                                          style = file_btn_style)
                    )
           )
@@ -1220,16 +1240,16 @@ server <- function(input, output, session) {
   
   gettime_t <- gettime %>% throttle(50)
   
-  output$file1text <- renderUI({
+  output$segmentNumText <- renderUI({
     if(.is_null(input$file1))
       return(NULL)
-    txt <- paste0('<b>Filename: <span style="color: grey;">', input$file1, '</span></b>')
+    txt <- ""
     if(segment_total() > 1){
       if(segment_num() == segment_total())
         seg_colour <- 'green'
       else
         seg_colour <- 'red'
-      txt <- paste(txt, '<span style="color: ', seg_colour, ';"><b>(', 
+      txt <- paste(txt, 'Segment: <span style="color: ', seg_colour, ';"><b>(', 
                    segment_num(), '/', segment_total(), ')</b></span>')
     }
     return(HTML(txt))
