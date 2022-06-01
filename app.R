@@ -376,7 +376,7 @@ ui_func <- function() {
       )
     }),
     #Labelling
-    fluidPage({
+    fluidRow({
       div(column(7, 
                  fluidRow(style = btn_sel_style,
                           uiOutput("label_ui"), #backspace to delete
