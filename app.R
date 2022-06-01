@@ -131,6 +131,12 @@ ui_func <- function() {
           target = "_blank",
           tagAppendAttributes(icon("file"), class = "text-info"),
           "Instructions")
+      ),
+      tags$li(
+        a(href = "https://www.bto.org/sites/default/files/u16/downloads/forms_instructions/bto_bird_species_codes.pdf",
+          target = "_blank",
+          tagAppendAttributes(icon("crow"), class = "text-info"),
+          "BTO Species Codes")
       )
     )
   )}
@@ -149,6 +155,7 @@ ui_func <- function() {
                            "Species List:",
                            choices = colnames(species_list),
                            width   = '100%'),
+               checkboxInput("bto_codes", "Display as BTO codes", value = FALSE),
                actionButton('inputLoad', 'Load Settings')
       ),
       menuItem("Sound Settings", tabName = "sound_menu", icon = icon("music"),
@@ -236,7 +243,7 @@ ui_func <- function() {
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
                numericInput('label_columns', 'Number of Columns', 
-                            value = 4, min = 1, max = 9, step = 1),
+                            value = 4, min = 1, max = 15, step = 1),
                actionButton("reset_sidebar", "Reset Sidebar"),
                actionButton("reset_body", "Reset Body"),
                checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
@@ -590,10 +597,18 @@ server <- function(input, output, session) {
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
   
+  trim_start <- function(y){
+    start_list <- c("Common", "Eurasian", "European", "Northern", "Greater", "Great")
+    for(st in start_list)
+      y <- gsub(paste0("^", st, " "), "", y)
+    return(y)
+  }
+  
   get_entries <- function(x){
-    for(s_start in c("Common", "Eurasian", "European"))
-      x <- gsub(paste0("^", s_start, " "), "", x)
-    return(as.vector(sort(x[x != ""])))
+    x <- x[x != ""]
+    x <- trim_start(x)
+    x <- as.vector(sort(x))
+    return(x)
   }
   
   reset_ranges <- function(x_list){
@@ -689,6 +704,17 @@ server <- function(input, output, session) {
   
   observeEvent(input$species_list, {
     categories$base <- get_entries(species_list[,input$species_list])
+  })
+  
+  observeEvent(input$bto_codes, {
+    x <- get_entries(species_list[,input$species_list])
+    if(input$bto_codes){
+      bto_df <- read.csv("bto_codes.csv", fileEncoding = 'UTF-8-BOM')
+      bto_df$species_name <- trim_start(bto_df$species_name)
+      x_bto <- merge(data.frame(species_name = x), bto_df)$bto_code
+      x <- c(x_bto, x[!x %in% bto_df$species_name])
+    }
+    categories$base <- x
   })
   
   class_label <- reactive({
@@ -2353,9 +2379,9 @@ server <- function(input, output, session) {
 
 #auth0::use_auth0(overwrite = TRUE)
 #usethis::edit_r_environ()
-options(shiny.port = 8080)
-auth0::shinyAppAuth0(ui_func(), server)
-#shinyApp(ui_func(), server)
+#options(shiny.port = 8080)
+#auth0::shinyAppAuth0(ui_func(), server)
+shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog::reactlog_enable()
