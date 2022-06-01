@@ -590,7 +590,11 @@ server <- function(input, output, session) {
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
   
-  get_entries <- function(x) return(as.vector(x[x != ""]))
+  get_entries <- function(x){
+    for(s_start in c("Common", "Eurasian", "European"))
+      x <- gsub(paste0("^", s_start, " "), "", x)
+    return(as.vector(sort(x[x != ""])))
+  }
   
   reset_ranges <- function(x_list){
     for(nm in names(x_list))
@@ -908,6 +912,18 @@ server <- function(input, output, session) {
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
       rename(num_labels = n)
+    
+    create_btns <- function(x) {
+      x %>%
+        purrr::map_chr(~
+                         paste0(
+                           '<div class = "btn-group">
+                   <button class="btn btn-default action-button btn-info action_button" id="edit_',
+                           .x, '" type="button" onclick=get_id(this.id)><i class="fas fa-edit"></i></button>
+                   <button class="btn btn-default action-button btn-danger action_button" id="delete_',
+                           .x, '" type="button" onclick=get_id(this.id)><i class="fa fa-trash-alt"></i></button></div>'
+                         ))
+    }
     return(sum_df)
   }, filter = "top")
   
@@ -961,7 +977,7 @@ server <- function(input, output, session) {
       changed_row <- lab_df[diff_idx,]
       #change to the new edited value
       changed_row[,col_name] <- vals[diff_idx]
-      changed_idx <- which(full_df$id == changed_row$id &
+      changed_idx <- which(full_df$date_time == changed_row$date_time &
                            full_df$file_name == changed_row$file_name)
       #change value in full data and overwrite
       full_df[changed_idx,] <- changed_row
