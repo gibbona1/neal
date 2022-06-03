@@ -1363,7 +1363,7 @@ server <- function(input, output, session) {
     if(.is_null(input$file1))     
       return(data.frame(time        = 0,
                         frequency   = 0,
-                        amplitude   = -96,
+                        amplitude   = -Inf,
                         freq_select = 1))
     tmp_audio <- audioInput()
     
