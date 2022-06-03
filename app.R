@@ -643,7 +643,7 @@ server <- function(input, output, session) {
     other_c <- unique(unlist(species_list))
     other_c <- other_c[other_c != "" & !(other_c %in% class_label())]
     x_cl    <- as.vector(x$class_label)
-    other_c <- c(other_c, x_cl[!x_cl %in% class_label()])
+    other_c <- union(other_c, x_cl[!x_cl %in% class_label()])
     cat_df  <- data.frame(typecol = c(rep("green", length(categories$base)),
                                       rep("orange", length(categories$misc)),
                                       rep("cyan", length(categories$xtra)),
@@ -861,7 +861,8 @@ server <- function(input, output, session) {
     lab_df <- labelsData()
     if(is.null(lab_df))
       return(NULL)
-    paste0('tab_',which(input$file1 == file_list()), x, lab_df$id)
+    paste0('tab_',which(input$file1 == file_list()), x, 
+           format(as.POSIXct(lab_df$date_time), "%Y%m%d_%H%M%S"))
   }
   
   output$labTable <- renderTable({
@@ -908,7 +909,9 @@ server <- function(input, output, session) {
     conf <- tab_num_input(lab_df, lab_df$confidence, "confidence", 0, 1, 0.1)
     lab_df$confidence <- conf
     
-    class1 <- tab_class_input(lab_df, lab_df$class_label, class_label(), 'class_label')
+    choices <- union(class_label(), fullData()$class_label)
+    
+    class1 <- tab_class_input(lab_df, lab_df$class_label, choices, 'class_label')
     lab_df$class_label <- class1
     
     return(lab_df)
@@ -991,6 +994,8 @@ server <- function(input, output, session) {
   }) %>% throttle(100)
   
   overwriteLabData <- function(vals, col_name){
+    if(is.null(vals))
+      return(NULL)
     full_df <- fullData()
     lab_df  <- labelsData()
     #columns in right order
@@ -1157,6 +1162,10 @@ server <- function(input, output, session) {
       tags$style(paste0(".btn-group-container-sw {
                           display: grid;
                           grid-template-columns: ",
+                        #  display: flex;
+                        #  flex-flow: row wrap;
+                        #  flex: auto;
+                        #}"
                         paste(rep("1fr", input$label_columns), collapse=" "), 
                         ";}
                         .radiobtn {
@@ -2048,16 +2057,9 @@ server <- function(input, output, session) {
       if(!is.null(full_df)){
         inp_list  <- names(input)
         tab_check <- paste0("tab_", which(file_list() == input$file1), "class_label")
-        inp_list  <- inp_list[startsWith(names(input), tab_check)]
+        inp_list  <- inp_list[startsWith(inp_list, tab_check)]
         inp_ids   <- sapply(inp_list, function(x) str_sub(x, start = str_length(tab_check)+1))
-        if(length(inp_ids)==0)
-          max_id <- 0
-        else
-          max_id <- max(as.numeric(inp_ids))
-        if(!is.na(max_id) & !is.infinite(max_id))
-          lab_df$id <- max_id+1
-        else
-          lab_df$id <- 1
+        lab_df$id <- 1
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
       } else {
