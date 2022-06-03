@@ -711,7 +711,7 @@ server <- function(input, output, session) {
     if(input$bto_codes){
       bto_df <- read.csv("bto_codes.csv", fileEncoding = 'UTF-8-BOM')
       bto_df$species_name <- trim_start(bto_df$species_name)
-      x_bto <- merge(data.frame(species_name = x), bto_df)$bto_code
+      x_bto <- as.vector(merge(data.frame(species_name = x), bto_df)$bto_code)
       x <- c(x_bto, x[!x %in% bto_df$species_name])
     }
     categories$base <- x
