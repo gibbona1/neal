@@ -191,6 +191,13 @@ ui_func <- function() {
                  width    = '100%'
                ),
                selectInput(
+                 "spec_db",
+                 "dB type",
+                 choices = c('max0', 'A', 'B', 'C', 'D'),
+                 selected = 'max0',
+                 width = '100%'
+               ),
+               selectInput(
                  "palette_selected",
                  "Spectrogram colour palette:",
                  choices = palette_list,
@@ -1392,7 +1399,8 @@ server <- function(input, output, session) {
                     wl       = input$window_width_disp, 
                     ovlp     = input$fft_overlap_disp, 
                     plot     = FALSE,
-                    noisereduction = noisered)
+                    noisereduction = noisered,
+                    dB = input$spec_db)
     
     spec$amp <- spec$amp + input$db_gain
     spec$amp <- spec$amp + input$db_contrast
