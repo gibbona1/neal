@@ -518,9 +518,15 @@ server <- function(input, output, session) {
     return(nickname)
   }
   
+  filename_pre <- function(x, df)
+    return(paste0('(', nrow(df[df$file_name == x,]), ') ', x))
+  
   file_list <- reactive({
     filenames <- list.files(file.path('www', lab_nickname()))
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
+    full_df <- fullData()
+    if(!is.null(full_df))
+      names(filenames) <- sapply(filenames, function(x) filename_pre(x,full_df))
     return(filenames)
   })
   
@@ -1062,10 +1068,6 @@ server <- function(input, output, session) {
   observeEvent(input$start_labelling, {
     full_df <- fullData()
     filenms <- file_list()
-    filename_pre <- function(x, df)
-      return(paste0('(', nrow(df[df$file_name == x,]), ') ', x))
-    if(!is.null(full_df))
-      names(filenms) <- sapply(filenms, function(x) filename_pre(x,full_df))
     updateSelectInput(inputId  = "file1",
                       choices  = filenms)
   })
@@ -2069,6 +2071,11 @@ server <- function(input, output, session) {
         lab_df$id <- 1
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
+        filenames <- file_list()
+        names(filenames) <- sapply(filenames, function(x) filename_pre(x,fullData()))
+        updateSelectInput(inputId  = "file1",
+                          choices  = filenames,
+                          selected = input$file1)
       } else {
         lab_df$id <- 1
         write_labs(lab_df, append = FALSE, col.names = TRUE)
@@ -2107,6 +2114,11 @@ server <- function(input, output, session) {
         write_labs(full_df, append = FALSE, col.names = TRUE)
         showNotification("Label removed, click Undo to bring back", 
                          type = "message")
+        filenames <- file_list()
+        names(filenames) <- sapply(filenames, function(x) filename_pre(x,fullData()))
+        updateSelectInput(inputId  = "file1",
+                          choices  = filenames,
+                          selected = input$file1)
       }
     } else
       showNotification("Label not removed, nothing selected!", type = "error")
