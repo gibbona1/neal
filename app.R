@@ -700,7 +700,7 @@ server <- function(input, output, session) {
   
   categories <- reactiveValues(
     base = get_entries(species_list[,1]), 
-    misc = c("Noise", "Other"),
+    misc = c("Human", "Bird - Cannot Identify", "Anthropogenic Noise", "Geophonic Noise", "Insect Noise", "Other Noise"),
     xtra = c()
   )
   
