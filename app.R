@@ -381,77 +381,80 @@ ui_func <- function() {
         })
       )
     }),
-    #Labelling
+    #Label Buttons UI 
     fluidRow({
-      div(column(7, 
-                 fluidRow(style = btn_sel_style,
-                          uiOutput("label_ui"), #backspace to delete
-                          tags$script('document.getElementById("label_ui").addEventListener("keyup", 
-                          function(event) {
-                            event.preventDefault();
-                            if (event.keyCode === 8) {
-                              document.getElementById("remCategory").click();
-                            }
-                          });'),
-                          textInput("otherCategory", "Type in additional category:", 
-                                    width = "100%"), #enter to add category
-                          tags$script('document.getElementById("otherCategory").addEventListener("keyup", 
-                          function(event) {
-                            event.preventDefault();
-                            if (event.keyCode === 13) {
-                              document.getElementById("addCategory").click();
-                            }
-                          });')
-                 ),
-                 #br(),
-      ),
-      column(5,
-             fluidRow(style = btn_sel_style,
-                      selectInput(
-                        inputId    = "call_type", 
-                        label      = "Call Type:", 
-                        width      = '100%',
-                        multiple   = TRUE,
-                        choices    = call_types, 
-                        selected   = NULL)
-             ),
-             #br(),
-             #TODO: Other info to label/record -
-             ## altitude of recorder (check if in metadata)
-             column(6,
-                    fixedRow(#style = btn_row_style,
-                      actionButton("addCategory", 
-                                   HTML("<b>Add category</b>"), 
-                                   icon  = icon("plus-square"),
-                                   style = "width: 100%; text-align:left;"),
-                      actionButton("remCategory", 
-                                   HTML("<b>Remove category</b>"), 
-                                   icon  = icon("minus-square"),
-                                   style = "width: 100%; text-align:left;"),
-                      actionButton("resetCategory", 
-                                   HTML("<b>Reset categories</b>"), 
-                                   icon  = icon("list"),
-                                   style = "width: 100%; text-align:left;")
-                    )),
-             column(6,
-                    fluidRow(#style = btn_row_style,
-                      disabled(actionButton("save_extra", 
-                                            HTML("<b>Save to List</b>"), 
-                                            icon  = icon("archive"),
-                                            style = "width: 100%; text-align:left;")),
-                      actionButton("remove_points", 
-                                   HTML("<b>Delete Selection</b>"), 
-                                   icon  = icon("trash-alt"),
-                                   style = "width: 100%; text-align:left"),
-                      actionButton("undo_delete_lab", 
-                                   HTML("<b>Undo Deletion</b>"), 
-                                   icon  = icon("undo-alt"),
-                                   style = "width: 100%; text-align:left;")
-                    )
-             )
+      div(style = btn_sel_style,
+        uiOutput("label_ui"), #backspace to delete
+        tags$script('document.getElementById("label_ui").addEventListener("keyup", 
+        function(event) {
+          event.preventDefault();
+          if (event.keyCode === 8) {
+            document.getElementById("remCategory").click();
+          }
+        });'),
+        column(6,
+        textInput("otherCategory", "Type in additional category:", 
+                  width = "100%"), #enter to add category
+        tags$script('document.getElementById("otherCategory").addEventListener("keyup", 
+        function(event) {
+          event.preventDefault();
+          if (event.keyCode === 13) {
+            document.getElementById("addCategory").click();
+          }
+        });')
+        ),
+        column(6,
+        fluidRow(style = btn_sel_style,
+                 selectInput(
+                   inputId    = "call_type", 
+                   label      = "Call Type:", 
+                   width      = '100%',
+                   multiple   = TRUE,
+                   choices    = call_types, 
+                   selected   = NULL)
+                 )
+        )
+        )
+      }),
+    #Label buttons
+    fluidRow({
+      div(
+       #br(),
+       #TODO: Other info to label/record -
+       ## altitude of recorder (check if in metadata)
+       column(6,
+              fixedRow(#style = btn_row_style,
+                actionButton("addCategory", 
+                             HTML("<b>Add category</b>"), 
+                             icon  = icon("plus-square"),
+                             style = "width: 100%; text-align:left;"),
+                actionButton("remCategory", 
+                             HTML("<b>Remove category</b>"), 
+                             icon  = icon("minus-square"),
+                             style = "width: 100%; text-align:left;"),
+                actionButton("resetCategory", 
+                             HTML("<b>Reset categories</b>"), 
+                             icon  = icon("list"),
+                             style = "width: 100%; text-align:left;")
+              )),
+       column(6,
+              fluidRow(#style = btn_row_style,
+                disabled(actionButton("save_extra", 
+                                      HTML("<b>Save to List</b>"), 
+                                      icon  = icon("archive"),
+                                      style = "width: 100%; text-align:left;")),
+                actionButton("remove_points", 
+                             HTML("<b>Delete Selection</b>"), 
+                             icon  = icon("trash-alt"),
+                             style = "width: 100%; text-align:left"),
+                actionButton("undo_delete_lab", 
+                             HTML("<b>Undo Deletion</b>"), 
+                             icon  = icon("undo-alt"),
+                             style = "width: 100%; text-align:left;")
+              )
+       )
       )
-      )
-    }),
+      }),
     #notes, frequency filtering and label confidence
     fluidRow({
       div(
