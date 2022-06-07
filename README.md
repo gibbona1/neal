@@ -65,3 +65,4 @@ TODOs:
 - [x] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
 - [ ] JS in own files
 - [ ] CSS in own files
+- [x] Filename has number of labels in choice names

@@ -1060,9 +1060,14 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$start_labelling, {
+    full_df <- fullData()
+    filenms <- file_list()
+    filename_pre <- function(x, df)
+      return(paste0('(', nrow(df[df$file_name == x,]), ') ', x))
+    if(!is.null(full_df))
+      names(filenms) <- sapply(filenms, function(x) filename_pre(x,full_df))
     updateSelectInput(inputId  = "file1",
-                      selected = file_list()[1],
-                      choices  = file_list())
+                      choices  = filenms)
   })
   
   observeEvent(input$end_labelling, {
