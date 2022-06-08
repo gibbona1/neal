@@ -249,7 +249,7 @@ ui_func <- function() {
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
                numericInput('label_columns', 'Number of Columns', 
-                            value = 4, min = 1, max = 15, step = 1),
+                            value = 7, min = 1, max = 15, step = 1),
                actionButton("reset_sidebar", "Reset Sidebar"),
                actionButton("reset_body", "Reset Body"),
                checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
@@ -314,7 +314,7 @@ ui_func <- function() {
     #One row of audio settings
     fluidRow({
       div(
-        column(4,
+        column(4, style='padding:0px;',
                #br(),
                actionButton("save_points", 
                             HTML("<b>Save Selection</b>"), 
@@ -322,7 +322,7 @@ ui_func <- function() {
                             style = "width: 100%; background-color: #fff491;"),
                uiOutput("meta_text")
         ),
-        column(4,{
+        column(3, {
           div(
             uiOutput('audio_title'),
             uiOutput('my_audio'),
@@ -338,14 +338,21 @@ ui_func <- function() {
             #verbatimTextOutput("audio_time")
           )
         }),
-        column(2,{
-          selectInput(
-            "playbackrate",
-            "Playback Speed:",
-            choices  = playback_vals,
-            selected = 1,
-            width    = '100%'
-          )
+        column(3, {
+          fixedRow(style = btn_row_style,
+                   div(
+                     column(4, 
+                            uiOutput("downloadAudio_ui")
+                            ),
+                   column(8, 
+                          selectInput(
+                            "playbackrate",
+                            "Playback Speed:",
+                            choices  = playback_vals,
+                            selected = 1,
+                            width    = '100%'
+                          )
+                   )))
         }),
         column(2,{
           fixedRow(style = btn_row_style,
@@ -420,9 +427,9 @@ ui_func <- function() {
                    choices    = call_types, 
                    selected   = NULL)
                  )
-        )
-        )
-      }),
+          )
+      )
+    }),
     #Label buttons
     fluidRow({
       div(
@@ -461,7 +468,7 @@ ui_func <- function() {
               )
        )
       )
-      }),
+    }),
     #notes, frequency filtering and label confidence
     fluidRow({
       div(
@@ -861,8 +868,8 @@ server <- function(input, output, session) {
       return(NULL)
     
     panel_name <- paste("File Summary", 
-                         ifelse(is.null(df), "", 
-                                paste0('(',length(unique(df$file_name)),')')))
+                        ifelse(is.null(df), "", 
+                               paste0('(',length(unique(df$file_name)),')')))
     bsCollapse(id = "fileLabSummary",
                open = panel_name,
                bsCollapsePanel(panel_name,
@@ -1070,6 +1077,14 @@ server <- function(input, output, session) {
   
   output$user_ui <- renderUI({
     labeler()
+  })
+  
+  output$downloadAudio_ui <- renderUI({
+    div(
+      #style = 'padding: 0; margin:0; width: 100%;',
+      HTML("<b>Download:</b>"),br(),
+      downloadButton("downloadWav", label=NULL, block = TRUE, style = "width:100%;")
+    )
   })
   
   observeEvent(input$start_labelling, {
@@ -2280,6 +2295,15 @@ server <- function(input, output, session) {
     },
     content  = function(file) {
       write.csv(saveData(), file)
+    }
+  )
+  
+  output$downloadWav <- downloadHandler(
+    filename = function() {
+      input$file1
+    },
+    content  = function(file) {
+      savewav(audioInput(), filename = file)
     }
   )
   
