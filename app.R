@@ -942,10 +942,10 @@ server <- function(input, output, session) {
   bordered = TRUE,
   sanitize.text.function = function(x) x)
   
-  output$labSummaryTable <- renderDataTable({
+  summary_df <- reactive({
     df <- fullData()
     df <- df[df$file_name %in% file_list() & 
-             df$labeler == labeler(),]
+               df$labeler == labeler(),]
     
     if(input$summaryTabGroup)
       sum_df <- df %>%
@@ -975,8 +975,32 @@ server <- function(input, output, session) {
                            .x, '" type="button" onclick=get_id(this.id)><i class="fa fa-trash-alt"></i></button></div>'
                          ))
     }
+    
+    dtShinyInput <- function(FUN, len, id, ...) {
+      inputs <- character(len)
+      for (i in seq_len(len))
+        inputs[i] <- as.character(FUN(paste0(id, i), ...))
+      return(inputs)
+    }
+    
+    sum_df$Actions <- dtShinyInput(actionButton, nrow(sum_df), 'button_', label = "Go to File", 
+                                 onclick = 'Shiny.onInputChange("dt_select_button", this.id)')
+    
     return(sum_df)
-  }, filter = "top")
+  })
+  
+  output$labSummaryTable <- renderDataTable({
+    summary_df()
+  }, filter = "top", server = FALSE, escape = FALSE, selection = 'none')
+  
+  observeEvent(input$dt_select_button, {
+    selectedRow <- as.numeric(strsplit(input$dt_select_button, "_")[[1]][2])
+    updateSelectInput(inputId = "file1", selected = summary_df()[selectedRow,1])
+    segment_num(1)
+    segment_total(1)
+    segment_end_s(1)
+    segment_start(0)
+  })
   
   input_list <- function(x){
     a <- list()
@@ -1081,9 +1105,8 @@ server <- function(input, output, session) {
   
   output$downloadAudio_ui <- renderUI({
     div(
-      #style = 'padding: 0; margin:0; width: 100%;',
-      HTML("<b>Download:</b>"),br(),
-      downloadButton("downloadWav", label=NULL, block = TRUE, style = "width:100%;")
+      HTML("<b>Download:</b>"), 
+      downloadButton("downloadWav", label=NULL, style = "width:100%;")
     )
   })
   
