@@ -15,7 +15,7 @@ TODOs:
   - [ ] Infer weather using some API (temperature, weather, wind, percipitation)
   - [ ] Get habitat type (either hard coded or gotten from wind farm GIS files)
   - [ ] Recorder height (~1m) or altitude
-- [ ] Make File Select dropdown easier to navigate (in header)
+- [x] Make File Select dropdown easier to navigate (in header)
 - [ ] File label stats (# labels) and navigation
 - [ ] Interactive bounding boxes:
   - [ ] When clicking inside of box, open new panel
@@ -53,7 +53,9 @@ TODOs:
   - [x] add/remove categories
     - [x] (pressing enter in textbox adds the category)
     - [x] (pressing delete while selecting category deletes it)
-  - [ ] 1-9 as frst 9 labels or last 9 used
+  - [ ] 1-9 number keys:
+    - [x] First 9 labels in list
+    - [ ] custom setup of 9 hotkeys
   - [x] undo label save or delete
   - [ ] undo parameter changes 
   - [ ] zoom in/out (double click already does this)
