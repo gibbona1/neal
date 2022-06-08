@@ -254,7 +254,7 @@ ui_func <- function() {
                actionButton("reset_body", "Reset Body"),
                checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
                checkboxInput("fileSummaryTab", "File Summary Table", value = FALSE),
-               checkboxInput("summaryTabGroup", "Subgroup by class", value = TRUE),
+               checkboxInput("summaryTabGroup", "Subgroup by class", value = FALSE),
                # Add the Undo/Redo buttons to the UI
                h5("Undo/Redo label save or delete"),
                undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
@@ -869,7 +869,7 @@ server <- function(input, output, session) {
     
     panel_name <- paste("File Summary", 
                         ifelse(is.null(df), "", 
-                               paste0('(',length(unique(df$file_name)),')')))
+                               paste0('(',length(unique(df$file_name)),' labelled)')))
     bsCollapse(id = "fileLabSummary",
                open = panel_name,
                bsCollapsePanel(panel_name,
@@ -963,6 +963,21 @@ server <- function(input, output, session) {
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
       rename(num_labels = n)
+    
+    other_files <- setdiff(file_list(), sum_df$file_name)
+    
+    tmp_row <- sum_df[sum_df$file_name == sum_df$file_name[1],]
+    tmp_row$num_labels <- 0
+    for(fn in other_files){
+      new_row <- tmp_row
+      new_row$file_name <- fn
+      sum_df <- rbind(sum_df, new_row)
+    }
+    
+    if(input$summaryTabGroup)
+      sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label),]
+    else
+      sum_df <- sum_df[order(sum_df$file_name),]
     
     create_btns <- function(x) {
       x %>%
