@@ -144,7 +144,7 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
     ylab("Frequency (kHz)") + 
     scale_fill_gradientn(name     = "Amplitude\n(dB)\n",
                          colours  = sel_col,
-                         #limits   = c(-96,96), 
+                         limits   = c(-100,max(df$frequency)), 
                          na.value = sel_col[1]) +
     scale_x_continuous(expand = c(0, 0),
                        breaks = x_breaks) +
