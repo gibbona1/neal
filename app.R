@@ -1735,7 +1735,7 @@ server <- function(input, output, session) {
         lab_df$start_time_crop <- lab_df$start_time
         lab_df$end_freq_crop   <- lab_df$end_freq
         hj <- 0
-        vj <- 0
+        vj <- 1*(lab_df$end_freq > 0.95*specplot_range$y[2])
       }
       spec_plot <- spec_plot +
         geom_rect(data = lab_df, 

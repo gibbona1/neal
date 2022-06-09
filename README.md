@@ -16,7 +16,7 @@ TODOs:
   - [ ] Get habitat type (either hard coded or gotten from wind farm GIS files)
   - [ ] Recorder height (~1m) or altitude
 - [x] Make File Select dropdown easier to navigate (in header)
-- [ ] File label stats (# labels) and navigation
+- [x] File label stats (# labels) and navigation
 - [ ] Interactive bounding boxes:
   - [ ] When clicking inside of box, open new panel
   - [ ] Show details of saved labels in list in this panel in sidebar or navbar page
@@ -34,6 +34,7 @@ TODOs:
 - [ ] Unit tests (especially for plots)
 - [ ] Check soundgen pitch app https://github.com/tatters/soundgen
 - [ ] Example sound files in right sidebar 
+- [ ] Species templates
   (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
@@ -68,3 +69,4 @@ TODOs:
 - [ ] JS in own files
 - [ ] CSS in own files
 - [x] Filename has number of labels in choice names
+- [ ] Loading and saving labels to google sheets each session for persistent data storage
