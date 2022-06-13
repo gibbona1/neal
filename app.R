@@ -341,10 +341,10 @@ ui_func <- function() {
         column(3, {
           fixedRow(style = btn_row_style,
                    div(
-                     column(4, 
+                     column(5, 
                             uiOutput("downloadAudio_ui")
                             ),
-                   column(8, 
+                   column(7, 
                           selectInput(
                             "playbackrate",
                             "Playback Speed:",
@@ -1121,7 +1121,7 @@ server <- function(input, output, session) {
   output$downloadAudio_ui <- renderUI({
     div(
       HTML("<b>Download:</b>"), 
-      downloadButton("downloadWav", label=NULL, style = "width:100%;")
+      downloadButton("downloadWav", label=NULL, style = "width:100%; margin-top: 5%;")
     )
   })
   
