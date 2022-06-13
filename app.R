@@ -163,7 +163,7 @@ ui_func <- function() {
                  "dB Gain:",
                  min   = -96,
                  max   = 96,
-                 value = 0,
+                 value = -20,
                  ticks = FALSE
                ),
                numericInput('t_step', 'Audio length (in window)', 
@@ -1457,6 +1457,8 @@ server <- function(input, output, session) {
     
     spec$amp <- spec$amp + input$db_gain
     spec$amp <- spec$amp + input$db_contrast
+    
+    spec$amp[spec$amp > -20] <- -20
     
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)), 
                        frequency = rep(spec$freq, times = ncol(spec$amp)), 
