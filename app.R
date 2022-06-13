@@ -2334,7 +2334,7 @@ server <- function(input, output, session) {
       paste0("data-", Sys.Date(), ".csv")
     },
     content  = function(file) {
-      write.csv(saveData(), file)
+      write.csv(saveData(), file, row.names = FALSE)
     }
   )
   
