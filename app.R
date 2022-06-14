@@ -33,7 +33,8 @@ options(shiny.maxRequestSize = 30*1024^2)
 
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
-call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call", "flock", "juvenile call", "nocturnal call", "whisper song")
+call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call", "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
+misc_categories <- c("Human", "Bird - Cannot Identify", "Anthropogenic Noise", "Weather Noise", "Insect Noise", "Other Noise")
 playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
 names(playback_vals) <- paste0(playback_vals, "x")
 
@@ -720,7 +721,7 @@ server <- function(input, output, session) {
   
   categories <- reactiveValues(
     base = get_entries(species_list[,1]), 
-    misc = c("Human", "Bird - Cannot Identify", "Anthropogenic Noise", "Geophonic Noise", "Insect Noise", "Other Noise"),
+    misc = misc_categories,
     xtra = c()
   )
   

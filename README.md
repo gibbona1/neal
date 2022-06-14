@@ -43,8 +43,8 @@ TODOs:
   - [ ] Event detection (time/x-axis)
   - [ ] Object detection (time and frewquency bounding boxes)
 - [x] Expand call types - call, agitation/contact, flight, nocturnal, juvenile 
-- [ ] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
-- [ ] Order species list alphabetically, or group by family (get definitive list)
+- [x] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
+- [x] Order species list alphabetically, or group by family (get definitive list)
 - [ ] Hotkeys:
   - [ ] start/end labeling (only works when tab is open, need to move button)
   - [ ] open folder/file navigation
