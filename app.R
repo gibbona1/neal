@@ -327,14 +327,7 @@ ui_func <- function() {
           div(
             uiOutput('audio_title'),
             uiOutput('my_audio'),
-            tags$script('
-                 var id = setInterval(audio_pos, 100);
-                 function audio_pos() {
-                 var audio = document.getElementById("my_audio_player");
-                 var curtime = audio.currentTime;
-                 console.log(audio);
-                 Shiny.onInputChange("get_time", curtime);
-                 };')
+            tags$script(src = 'JS/audio_time.js')
             #actionButton("get_time", "Get Time", onclick = js),
             #verbatimTextOutput("audio_time")
           )
@@ -400,23 +393,11 @@ ui_func <- function() {
     fluidRow({
       div(style = btn_sel_style,
         uiOutput("label_ui"), #backspace to delete
-        tags$script('document.getElementById("label_ui").addEventListener("keyup", 
-        function(event) {
-          event.preventDefault();
-          if (event.keyCode === 8) {
-            document.getElementById("remCategory").click();
-          }
-        });'),
+        tags$script(src='JS/remove_category.js'),
         column(6,
         textInput("otherCategory", "Type in additional category:", 
                   width = "100%"), #enter to add category
-        tags$script('document.getElementById("otherCategory").addEventListener("keyup", 
-        function(event) {
-          event.preventDefault();
-          if (event.keyCode === 13) {
-            document.getElementById("addCategory").click();
-          }
-        });')
+        tags$script(src='JS/add_category.js')
         ),
         column(6,
         fluidRow(style = btn_sel_style,
@@ -1621,46 +1602,7 @@ server <- function(input, output, session) {
               z-index: 100;
              }
           ')),
-      tags$script(HTML('
-            $(document).ready(function(){
-              // id of the plot
-              $("#specplot_front").mousemove(function(e){ 
-                var hover     = $("#hover_info");
-                var winwidth  = $( window ).width();
-                var winheight = $( window ).height();
-                
-                var body = document.body,
-                    html = document.documentElement;
-  
-                var height = Math.max( body.scrollHeight, 
-                                       body.offsetHeight,
-                                       html.clientHeight, 
-                                       html.scrollHeight, 
-                                       html.offsetHeight );
-                                       
-                hover.attr("style", "");
-                //stop hover info going off edge of screen
-                if(e.pageX + hover.width() <= $( window ).width()) {
-                  hover.css({"left": (e.pageX + 5) + "px"});
-                } 
-                else {
-                  hover.css({"right": (winwidth 
-                                       - hover.width()/4
-                                       - e.pageX - 5) + "px"});
-                }
-                if(e.pageY + hover.height() <= $(this).height()) {
-                  hover.css({"top": (e.pageY + 5) + "px"});
-                } 
-                else {
-                  hover.css({"bottom": (height 
-                                        + $(this).offset().top
-                                        - hover.height()
-                                        - e.pageY - 5) + "px"});
-                }
-                hover.show();
-              });     
-            });
-          ')),
+      tags$script(src='JS/spec_hover.js'),
       uiOutput("hover_info")
     )
   })
@@ -1833,20 +1775,7 @@ server <- function(input, output, session) {
             z-index: 100;
            }
         ')),
-        tags$script('
-          $(document).ready(function(){
-            // id of the plot
-            $("#oscplot").mousemove(function(e){ 
-      
-              // ID of uiOutput
-              $("#hover_info_osc").show();         
-              $("#hover_info_osc").css({             
-                top: (e.pageY - 15) + "px",             
-                left: (e.pageX + 5) + "px"
-              });     
-            });     
-          });
-        '),
+        tags$script(src='JS/osc_hover.js'),
         uiOutput("hover_info_osc")
       )
     else

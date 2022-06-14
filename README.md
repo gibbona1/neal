@@ -66,7 +66,7 @@ TODOs:
   - [x] species list chosen
   - [x] all setings in sidebar
 - [x] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
-- [ ] JS in own files
+- [x] JS in own files
 - [ ] CSS in own files
 - [x] Filename has number of labels in choice names
 - [ ] Loading and saving labels to google sheets each session for persistent data storage
