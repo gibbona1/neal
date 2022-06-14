@@ -348,7 +348,7 @@ ui_func <- function() {
                           )
                    )))
         }),
-        column(2,{
+        column(2, {
           fixedRow(style = btn_row_style,
                    div(column(6, style = "padding:0px;",
                               tipify(
@@ -515,14 +515,14 @@ server <- function(input, output, session) {
   }
 
   filename_pre <- function(x, df)
-    return(paste0('(', nrow(df[df$file_name == x,]), ') ', x))
+    return(paste0('(', nrow(df[df$file_name == x, ]), ') ', x))
 
   file_list <- reactive({
     filenames <- list.files(file.path('www', lab_nickname()))
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     full_df <- fullData()
     if(!is.null(full_df))
-      names(filenames) <- sapply(filenames, function(x) filename_pre(x,full_df))
+      names(filenames) <- sapply(filenames, function(x) filename_pre(x, full_df))
     return(filenames)
   })
 
@@ -557,7 +557,7 @@ server <- function(input, output, session) {
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
 
-  extractWave_t <- function(x,tc){
+  extractWave_t <- function(x, tc){
     return(extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
   }
 
@@ -707,7 +707,7 @@ server <- function(input, output, session) {
   )
 
   observeEvent(input$species_list, {
-    categories$base <- get_entries(species_list[,input$species_list])
+    categories$base <- get_entries(species_list[, input$species_list])
   })
 
   observeEvent(input$bto_codes, {
@@ -771,7 +771,7 @@ server <- function(input, output, session) {
 
   labelsData <- reactive({
     lab_df <- fullData()
-    lab_df <- lab_df[lab_df$file_name == input$file1,]
+    lab_df <- lab_df[lab_df$file_name == input$file1, ]
     lab_df <- cat_colours(lab_df)
     if(is.null(lab_df))
       return(NULL)
@@ -865,7 +865,7 @@ server <- function(input, output, session) {
     lab_df <- labelsData()
     if(is.null(lab_df))
       return(NULL)
-    paste0('tab_',which(input$file1 == file_list()), x,
+    paste0('tab_', which(input$file1 == file_list()), x,
            format(as.POSIXct(lab_df$date_time), "%Y%m%d_%H%M%S"))
   }
 
@@ -927,7 +927,7 @@ server <- function(input, output, session) {
   summary_df <- reactive({
     df <- fullData()
     df <- df[df$file_name %in% file_list() &
-               df$labeler == labeler(),]
+               df$labeler == labeler(), ]
 
     if(input$summaryTabGroup)
       sum_df <- df %>%
@@ -948,7 +948,7 @@ server <- function(input, output, session) {
 
     other_files <- setdiff(file_list(), sum_df$file_name)
 
-    tmp_row <- sum_df[sum_df$file_name == sum_df$file_name[1],]
+    tmp_row <- sum_df[sum_df$file_name == sum_df$file_name[1], ]
     tmp_row$num_labels <- 0
     for(fn in other_files){
       new_row <- tmp_row
@@ -957,9 +957,9 @@ server <- function(input, output, session) {
     }
 
     if(input$summaryTabGroup)
-      sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label),]
+      sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label), ]
     else
-      sum_df <- sum_df[order(sum_df$file_name),]
+      sum_df <- sum_df[order(sum_df$file_name), ]
 
     dtShinyInput <- function(FUN, len, id, ...) {
       inputs <- character(len)
@@ -1654,11 +1654,11 @@ server <- function(input, output, session) {
       return(spec_plot)
     else if(input$spec_labs){
       #if(input$hide_other_labels)
-      #  lab_df <- lab_df[lab_df$labeler == labeler(),]
+      #  lab_df <- lab_df[lab_df$labeler == labeler(), ]
       lab_df <- lab_df %>%
         filter(between(start_time, segment_start(), segment_start() + input$t_step))
       if(!is.null(dc_ranges_spec$x)){
-        lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2],]
+        lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2], ]
         lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
         lab_df$end_freq_crop   <- sapply(lab_df$end_freq, function(y) min(y, dc_ranges_spec$y[2]))
         hj <- 0
@@ -1829,14 +1829,14 @@ server <- function(input, output, session) {
                btw(point$frequency, df$start_freq, df$end_freq))
     }
     #lab_df <- labelsData()
-    #lab_df <- lab_df[in_label_box(lab_df, point),]
+    #lab_df <- lab_df[in_label_box(lab_df, point), ]
 
     #if(is.null(lab_df))
     species_in_hover <- ''
     #else if(nrow(lab_df) == 0)
     #  species_in_hover <- ''
     #else{
-    #  lab_df <- lab_df[1,]
+    #  lab_df <- lab_df[1, ]
     #  species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
     #                             "<br/><b> Call type: </b>", lab_df$call_type)
     #}
@@ -1887,7 +1887,7 @@ server <- function(input, output, session) {
       click("end_labelling")
     else if(input$keys %in% paste(1:9))
       updateRadioGroupButtons(inputId = "label_points",
-                              selected = class_label()[min(length(class_label()),as.integer(input$keys))])
+                              selected = class_label()[min(length(class_label()), as.integer(input$keys))])
   })
 
   output$hover_info_osc <- renderUI({
@@ -1910,7 +1910,7 @@ server <- function(input, output, session) {
     if(is.null(lab_df))
       species_in_hover <- ''
     else{
-      lab_df <- lab_df[1,]
+      lab_df <- lab_df[1, ]
       species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
                                  "<br/><b> Call type: </b>", lab_df$call_type)
     }
@@ -2051,7 +2051,7 @@ server <- function(input, output, session) {
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
         filenames <- file_list()
-        names(filenames) <- sapply(filenames, function(x) filename_pre(x,fullData()))
+        names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
         updateSelectInput(inputId  = "file1",
                           choices  = filenames,
                           selected = input$file1)
@@ -2080,21 +2080,21 @@ server <- function(input, output, session) {
       full_df_rm <- c()
       for(idx in seq_len(nrow(full_df))){
         bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
-        check_df <- full_df[idx,]
-        row_iou  <- bb_iou(lab_df[,bb_cols], check_df[,bb_cols])
+        check_df <- full_df[idx, ]
+        row_iou  <- bb_iou(lab_df[, bb_cols], check_df[, bb_cols])
         if(row_iou > 0.6)
           full_df_rm <- c(full_df_rm, idx)
       }
       if(!is.null(full_df_rm)){
         deleted_lab$rows <- full_df_rm
-        deleted_lab$data <- full_df[full_df_rm,]
-        full_df <- full_df[-full_df_rm,]
+        deleted_lab$data <- full_df[full_df_rm, ]
+        full_df <- full_df[-full_df_rm, ]
         fullData(full_df)
         write_labs(full_df, append = FALSE, col.names = TRUE)
         showNotification("Label removed, click Undo to bring back",
                          type = "message")
         filenames <- file_list()
-        names(filenames) <- sapply(filenames, function(x) filename_pre(x,fullData()))
+        names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
         updateSelectInput(inputId  = "file1",
                           choices  = filenames,
                           selected = input$file1)
@@ -2110,12 +2110,12 @@ server <- function(input, output, session) {
     if(!is.null(del_df)){
       insertRow <- function(old_df, newrow, idx) {
         if(idx <= nrow(old_df))
-          old_df[seq(idx + 1,nrow(old_df) + 1),] <- old_df[seq(idx, nrow(old_df)),]
-        old_df[idx,] <- newrow
+          old_df[seq(idx + 1, nrow(old_df) + 1), ] <- old_df[seq(idx, nrow(old_df)), ]
+        old_df[idx, ] <- newrow
         return(old_df)
       }
       for(row in seq_along(rownums))
-        full_df <- insertRow(full_df, del_df[row,], rownums[row])
+        full_df <- insertRow(full_df, del_df[row, ], rownums[row])
       deleted_lab$rows <- deleted_lab$data <- NULL
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
@@ -2151,7 +2151,7 @@ server <- function(input, output, session) {
       tags$audio(id       = 'my_audio_player',
                  src      = markdown:::.b64EncodeFile(file_name),
                  type     = "audio/wav",
-                 controls = "controls",#HTML('controlsList: nodownload'),
+                 controls = "controls", #HTML('controlsList: nodownload'),
                  #TODO: HTML styling (background colour, no download button,...)
                  style    = audio_style),
       tags$script(pb_script)
@@ -2347,8 +2347,8 @@ server <- function(input, output, session) {
     #JS code to change input val for single input
     inp_script <- function(name){
       return(paste0("Shiny.addCustomMessageHandler('",
-      name,"', function(value) { ",
-      "Shiny.setInputValue('", name,"', value);"#,
+      name, "', function(value) { ",
+      "Shiny.setInputValue('", name, "', value);"#,
       #"$('#",name,"').val(value);});"
       ))
     }
