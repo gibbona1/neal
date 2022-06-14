@@ -33,8 +33,10 @@ options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
 species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM")
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
-call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call", "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
-misc_categories <- c("Human", "Bird - Cannot Identify", "Anthropogenic Noise", "Weather Noise", "Insect Noise", "Other Noise")
+call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
+                "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
+misc_categories <- c("Human", "Bird - Cannot Identify", "Anthropogenic Noise", "Weather Noise",
+                     "Insect Noise", "Other Noise")
 playback_vals <- c(0.1, 0.25, 0.5, 1, 2, 5, 10)
 names(playback_vals) <- paste0(playback_vals, "x")
 
@@ -950,7 +952,6 @@ server <- function(input, output, session) {
         #adorn_totals("row") %>%
         select(file_name, n)
 
-    #sum_df$num_labels <- as.integer(sum_df$num_labels)
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
       rename(num_labels = n)
@@ -1507,20 +1508,6 @@ server <- function(input, output, session) {
     specplot_range$x <- gb$layout$panel_params[[1]]$x.range
     specplot_range$y <- gb$layout$panel_params[[1]]$y.range
 
-    #if (!is.null(input$file1))
-    #  spec_name_raw <- gsub(".wav", "_spec_raw.png", input$file1)
-    #else
-    #  spec_name_raw <- "blank_spec_raw.png"
-    #file_nm <- file.path(getwd(), "images", spec_name_raw)
-    #
-    #width   <- session$clientData$output_specplot_width
-    #height  <- session$clientData$output_specplot_height
-    # For high-res displays, this will be greater than 1
-    #pixelratio <- session$clientData$pixelratio
-    #ggsave(file_nm, p+theme_void()+theme(legend.position = "none"),
-    #       height = height*pixelratio,
-    #       width  = width*pixelratio,
-    #       units  = "px")
     if (!is.null(x_coords()))
       p <- p + coord_cartesian(xlim = x_coords(),
                                expand = FALSE)
@@ -2191,7 +2178,6 @@ server <- function(input, output, session) {
 
   output$meta_text <- renderUI({
     if (!is.null(audioInput())) {
-      #latlong <- c(52.208330, -6.594489)
       dt <- get_audio_dt(input$file1)
       df <- get_audio_recdf(input$file1)
       latlong <- NULL
@@ -2375,7 +2361,6 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$inputLoad, {
-    #print(input$inputLoad)
     fname <- conf_filename()
     if (file.exists(fname)) {
       inputa <- readRDS(fname)
@@ -2390,7 +2375,6 @@ server <- function(input, output, session) {
       for (nm in names(inputa)){
         if (nm %in% skips)
           next
-        #session$sendCustomMessage(nm, inputa[[nm]])
         session$sendInputMessage(nm, list(value = inputa[[nm]]))
       }
       showNotification("Previous Settings loaded", type = "message", duration = NULL)
