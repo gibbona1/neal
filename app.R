@@ -29,7 +29,7 @@ source('plot_helpers.R')
 source('audio_meta.R')
 
 #change max supported audio file size to 30MB
-options(shiny.maxRequestSize = 30*1024^2)
+options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
 species_list <- read.csv("species_list.csv", fileEncoding = 'UTF-8-BOM')
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
@@ -315,7 +315,7 @@ ui_func <- function() {
     #One row of audio settings
     fluidRow({
       div(
-        column(4, style='padding:0px;',
+        column(4, style = 'padding:0px;',
                #br(),
                actionButton("save_points",
                             HTML("<b>Save Selection</b>"),
@@ -393,11 +393,11 @@ ui_func <- function() {
     fluidRow({
       div(style = btn_sel_style,
         uiOutput("label_ui"), #backspace to delete
-        tags$script(src='JS/remove_category.js'),
+        tags$script(src = 'JS/remove_category.js'),
         column(6,
         textInput("otherCategory", "Type in additional category:",
                   width = "100%"), #enter to add category
-        tags$script(src='JS/add_category.js')
+        tags$script(src = 'JS/add_category.js')
         ),
         column(6,
         fluidRow(style = btn_sel_style,
@@ -468,8 +468,8 @@ ui_func <- function() {
                            value = 1,
                            ticks = FALSE,
                            width = "100%"),
-               div(div(style='float:left;', 'low'),
-                   div(style='float:right;', 'high')),
+               div(div(style = 'float:left;', 'low'),
+                   div(style = 'float:right;', 'high')),
         )
       )
     }),
@@ -667,7 +667,7 @@ server <- function(input, output, session) {
   geometric_median <- function(X, eps = 1e-5, numIter = 200){
     mX <- matrix(c(as.vector(Re(X)),
                    as.vector(Im(X))),
-                 ncol=2, byrow = FALSE)
+                 ncol = 2, byrow = FALSE)
     y  <- colMeans(mX)
     itr <- 1
     while(TRUE){
@@ -689,8 +689,8 @@ server <- function(input, output, session) {
         if(r == 0)
           rinv <- 0
         else
-          rinv <- num_zeros/r
-        y1 <-  max(0, 1-rinv)*WT + min(1, rinv)*y
+          rinv <- num_zeros / r
+        y1 <-  max(0, 1 - rinv) * WT + min(1, rinv) * y
       }
       euclidean <- function(a, b) sqrt(sum((a - b)^2))
       if(euclidean(y, y1) < eps | itr > numIter)
@@ -701,7 +701,7 @@ server <- function(input, output, session) {
   }
 
   categories <- reactiveValues(
-    base = get_entries(species_list[,1]),
+    base = get_entries(species_list[, 1]),
     misc = misc_categories,
     xtra = c()
   )
@@ -711,7 +711,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$bto_codes, {
-    x <- get_entries(species_list[,input$species_list])
+    x <- get_entries(species_list[, input$species_list])
     if(input$bto_codes){
       bto_df <- read.csv("bto_codes.csv", fileEncoding = 'UTF-8-BOM')
       bto_df$species_name <- trim_start(bto_df$species_name)
@@ -726,9 +726,9 @@ server <- function(input, output, session) {
     c(cats$base, cats$misc, cats$xtra)
   })
 
-  labs_filename <- reactive({paste0("labels/tmp_labels_",lab_nickname(),".csv")})
+  labs_filename <- reactive({paste0("labels/tmp_labels_", lab_nickname(), ".csv")})
 
-  conf_filename <- reactive({paste0("saved_configs/input_",lab_nickname(),".RDS")})
+  conf_filename <- reactive({paste0("saved_configs/input_", lab_nickname(), ".RDS")})
 
   fullData   <- reactiveVal(NULL)
 
@@ -775,7 +775,7 @@ server <- function(input, output, session) {
     lab_df <- cat_colours(lab_df)
     if(is.null(lab_df))
       return(NULL)
-    else if(nrow(lab_df)==0)
+    else if(nrow(lab_df) == 0)
       return(NULL)
     else
       return(lab_df)
@@ -826,11 +826,11 @@ server <- function(input, output, session) {
     lab_df <- labelsData()
     if(is.null(lab_df))
       return(NULL)
-    if(nrow(lab_df)==0)
+    if(nrow(lab_df) == 0)
       return(NULL)
     panel_name <- paste0("Label Info",
                          ifelse(is.null(lab_df), " ",
-                                paste0(' (',nrow(lab_df),')')))
+                                paste0(' (', nrow(lab_df), ')')))
     bsCollapse(id = "fileLabInfo",
                open = panel_name,
                bsCollapsePanel(panel_name,
@@ -846,12 +846,12 @@ server <- function(input, output, session) {
     df <- fullData()
     if(is.null(df))
       return(NULL)
-    if(nrow(df)==0)
+    if(nrow(df) == 0)
       return(NULL)
 
     panel_name <- paste("File Summary",
                         ifelse(is.null(df), "",
-                               paste0('(',length(unique(df$file_name)),' labelled)')))
+                               paste0('(', length(unique(df$file_name)), ' labelled)')))
     bsCollapse(id = "fileLabSummary",
                open = panel_name,
                bsCollapsePanel(panel_name,
@@ -872,9 +872,9 @@ server <- function(input, output, session) {
   output$labTable <- renderTable({
     lab_df <- labelsData()
     #columns in right order
-    lab_df <- lab_df[,colnames(fullData())]
-    lab_df <- lab_df[,1:10]
-    lab_df <- lab_df[,colnames(lab_df)!="file_name"]
+    lab_df <- lab_df[, colnames(fullData())]
+    lab_df <- lab_df[, 1:10]
+    lab_df <- lab_df[, colnames(lab_df) != "file_name"]
     tab_num_input <- function(x, val, name, minv = NULL, maxv = NULL, step = NULL){
       res <- paste0("<input id='", input_names(name), "' ",
                     "class='shiny-bound-input' type='number' value='", val, "' ")
@@ -900,10 +900,10 @@ server <- function(input, output, session) {
     #ranges in frequencies and times from spectrogram plot
     fs <- specplot_range$y
     ts <- specplot_range$x
-    time1 <- tab_num_input(lab_df, lab_df$start_time, "start_time", ts[1], lab_df$end_time, diff(ts)/100)
-    time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time",   lab_df$start_time, ts[2], diff(ts)/100)
-    freq1 <- tab_num_input(lab_df, lab_df$start_freq, "start_freq", fs[1], lab_df$end_freq, diff(fs)/100)
-    freq2 <- tab_num_input(lab_df, lab_df$end_freq,   "end_freq",   lab_df$start_freq, fs[2], diff(fs)/100)
+    time1 <- tab_num_input(lab_df, lab_df$start_time, "start_time", ts[1], lab_df$end_time, diff(ts) / 100)
+    time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time",   lab_df$start_time, ts[2], diff(ts) / 100)
+    freq1 <- tab_num_input(lab_df, lab_df$start_freq, "start_freq", fs[1], lab_df$end_freq, diff(fs) / 100)
+    freq2 <- tab_num_input(lab_df, lab_df$end_freq,   "end_freq",   lab_df$start_freq, fs[2], diff(fs) / 100)
 
     lab_df$start_time <- time1
     lab_df$end_time   <- time2
@@ -1034,15 +1034,15 @@ server <- function(input, output, session) {
 
     #which inputs (in display table) differ from saved data
     #there should be at most one changed
-    diff_idx    <- which(vals!=lab_df[, col_name][seq_along(vals)])
-    if(length(diff_idx)>0){
+    diff_idx    <- which(vals != lab_df[, col_name][seq_along(vals)])
+    if(length(diff_idx) > 0){
       changed_row <- lab_df[diff_idx, ]
       #change to the new edited value
-      changed_row[,col_name] <- vals[diff_idx]
+      changed_row[, col_name] <- vals[diff_idx]
       changed_idx <- which(full_df$date_time == changed_row$date_time &
                            full_df$file_name == changed_row$file_name)
       #change value in full data and overwrite
-      full_df[changed_idx,] <- changed_row
+      full_df[changed_idx, ] <- changed_row
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
     }
@@ -1141,7 +1141,7 @@ server <- function(input, output, session) {
       x <- paste0(x, "$(", button_val_id, ").hover(",
                   "function(){",
                   "originalBorder[",
-                  css_line(button_val_id, func = "index", sq=""),
+                  css_line(button_val_id, func = "index", sq = ""),
                   "]     = ",
                   css_line('border-color'),
                   #"originalBackground[",
@@ -1149,7 +1149,7 @@ server <- function(input, output, session) {
                   #  "] = ",
                   #  css_line('background-color'),
                   "originalColor[",
-                  css_line(button_val_id, func = "index", sq=""),
+                  css_line(button_val_id, func = "index", sq = ""),
                   "]      = ",
                   css_line('color'),
                   css_line('border-color', 'darkblue'),
@@ -1160,7 +1160,7 @@ server <- function(input, output, session) {
                   "function(){",
                   css_line('border-color',
                            paste0("originalBorder[",
-                                  css_line(button_val_id, func = "index", sq=""),
+                                  css_line(button_val_id, func = "index", sq = ""),
                                   "]")),
                   #css_line('background-color',
                   #         paste0("originalBackground[",
@@ -1168,7 +1168,7 @@ server <- function(input, output, session) {
                   #                "]")),
                   css_line('color',
                            paste0("originalColor[",
-                                  css_line(button_val_id, func = "index", sq=""),
+                                  css_line(button_val_id, func = "index", sq = ""),
                                   "]")),
                   "});")
       x <- gsub("'original", "original", x)
@@ -1204,7 +1204,7 @@ server <- function(input, output, session) {
                         #  flex-flow: row wrap;
                         #  flex: auto;
                         #}"
-                        paste(rep("1fr", input$label_columns), collapse=" "),
+                        paste(rep("1fr", input$label_columns), collapse = " "),
                         ";}
                         .radiobtn {
                           width: 100%;
@@ -1238,7 +1238,7 @@ server <- function(input, output, session) {
     audio_gain     <- function(waveform, gain_db = 0){
       if(gain_db == 0)
         return(waveform)
-      return(waveform * 10^(gain_db/20))
+      return(waveform * 10^(gain_db / 20))
     }
     submean        <- function(x) x - mean(x)
     tmp_audio@left <- submean(tmp_audio@left)
@@ -1248,7 +1248,7 @@ server <- function(input, output, session) {
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
 
-    len_s <- length(tmp_audio)/tmp_audio@samp.rate
+    len_s <- length(tmp_audio) / tmp_audio@samp.rate
     segment_end_s(len_s)
     t_step <- input$t_step
     if(len_s > t_step){
@@ -1256,10 +1256,10 @@ server <- function(input, output, session) {
       tc        <- time_seq[segment_num()]
       segment_start(tc)
       segment_total(length(time_seq))
-      tmp_audio <- extractWave_t(tmp_audio, c(tc,tc+t_step))
+      tmp_audio <- extractWave_t(tmp_audio, c(tc, tc + t_step))
       x_coords(c(tc, tc + t_step))
-      if(length(tmp_audio) < t_step*tmp_audio@samp.rate)
-        tmp_audio@left <- c(tmp_audio@left, rep(1, t_step*tmp_audio@samp.rate-length(tmp_audio)))
+      if(length(tmp_audio) < t_step * tmp_audio@samp.rate)
+        tmp_audio@left <- c(tmp_audio@left, rep(1, t_step * tmp_audio@samp.rate - length(tmp_audio)))
       if(segment_num() == 1)
         disable("prev_section")
       else
@@ -1330,8 +1330,8 @@ server <- function(input, output, session) {
 
       noisered  <- noise_reduce(input$noisereduction)
       #noise is the geometric median of each row/column
-      specnoise <- t(apply(complex_spec$amp, MARGIN=noisered, geometric_median))
-      specnoise_complex <- complex(real=specnoise[,1], imaginary=specnoise[,2])
+      specnoise <- t(apply(complex_spec$amp, MARGIN = noisered, geometric_median))
+      specnoise_complex <- complex(real = specnoise[, 1], imaginary = specnoise[, 2])
       if(input$noisereduction == "Rows")
         noise_mat <- matrix(rep(specnoise_complex, ncol(complex_spec$amp)),
                             ncol = ncol(complex_spec$amp))
@@ -1363,9 +1363,9 @@ server <- function(input, output, session) {
       #Put zeros outside frequency range, rebuild audio file using complex_spec
       out_freq <- complex_spec$freq < frange[1] | complex_spec$freq > frange[2]
       if(input$clean_zero)
-        complex_spec$amp[out_freq,] <- 0
+        complex_spec$amp[out_freq, ] <- 0
       else
-        complex_spec$amp[out_freq,] <- complex_spec$amp[out_freq,]/100
+        complex_spec$amp[out_freq, ] <- complex_spec$amp[out_freq, ] / 100
       audio_inv <- istft(complex_spec$amp,
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width,
@@ -1378,7 +1378,7 @@ server <- function(input, output, session) {
     return(tmp_audio)
   })
 
-  gettime <- reactive({list(x=input$get_time)})
+  gettime <- reactive({list(x = input$get_time)})
 
   gettime_t <- gettime %>% throttle(50)
 
@@ -1452,7 +1452,7 @@ server <- function(input, output, session) {
       tmp_audio <- cleanInput()
 
     time_seq <- function(x)
-      return(seq(0, length(x@left)/x@samp.rate, length.out = length(x)))
+      return(seq(0, length(x@left) / x@samp.rate, length.out = length(x)))
     df2 <- data.frame(time      = time_seq(tmp_audio),
                       amplitude = tmp_audio@left)
     if(!is.null(dc_ranges_osc$x))
@@ -1589,7 +1589,7 @@ server <- function(input, output, session) {
               z-index: 100;
              }
           ')),
-      tags$script(src='JS/spec_hover.js'),
+      tags$script(src = 'JS/spec_hover.js'),
       uiOutput("hover_info")
     )
   })
@@ -1620,7 +1620,7 @@ server <- function(input, output, session) {
                     ymax = frange[1]),
                 fill = 'black', alpha = .5)
     return(spec_plot)
-  }, bg="transparent")
+  }, bg = "transparent")
 
   output$specplot_time <- renderPlot({
     if(.is_null(input$file1) | !input$spec_time)
@@ -1629,21 +1629,21 @@ server <- function(input, output, session) {
     if(!is.null(ranges_spec$y)){
       if(input$include_guides)
         spec_plot <- spec_plot +
-          geom_hline(aes(yintercept = ranges_spec$y[1]), colour="yellow", linetype="dashed", alpha=0.4) +
-          geom_hline(aes(yintercept = ranges_spec$y[2]), colour="yellow", linetype="dashed", alpha=0.4) +
-          geom_vline(aes(xintercept = ranges_spec$x[1]), colour="yellow", linetype="dashed", alpha=0.4) +
-          geom_vline(aes(xintercept = ranges_spec$x[2]), colour="yellow", linetype="dashed", alpha=0.4)
+          geom_hline(aes(yintercept = ranges_spec$y[1]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
+          geom_hline(aes(yintercept = ranges_spec$y[2]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
+          geom_vline(aes(xintercept = ranges_spec$x[1]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
+          geom_vline(aes(xintercept = ranges_spec$x[2]), colour = "yellow", linetype = "dashed", alpha = 0.4)
       spec_plot <- spec_plot +
-        geom_segment(aes(x=ranges_spec$x[1]+gettime_t()$x,
-                         xend=ranges_spec$x[1]+gettime_t()$x,
-                         y=ranges_spec$y[1], yend=ranges_spec$y[2]),
+        geom_segment(aes(x = ranges_spec$x[1] + gettime_t()$x,
+                         xend = ranges_spec$x[1] + gettime_t()$x,
+                         y = ranges_spec$y[1], yend = ranges_spec$y[2]),
                      colour = "yellow")
     } else if(!is.null(dc_ranges_spec$y))
-      spec_plot <- spec_plot + geom_vline(aes(xintercept=dc_ranges_spec$x[1]+gettime_t()$x), colour = "yellow")
+      spec_plot <- spec_plot + geom_vline(aes(xintercept = dc_ranges_spec$x[1] + gettime_t()$x), colour = "yellow")
     else
-      spec_plot <- spec_plot + geom_vline(aes(xintercept=gettime_t()$x), colour = "yellow")
+      spec_plot <- spec_plot + geom_vline(aes(xintercept = gettime_t()$x), colour = "yellow")
     return(spec_plot)
-  }, bg="transparent")
+  }, bg = "transparent")
 
   output$specplot_front <- renderPlot({
     if(.is_null(input$file1))
@@ -1656,7 +1656,7 @@ server <- function(input, output, session) {
       #if(input$hide_other_labels)
       #  lab_df <- lab_df[lab_df$labeler == labeler(),]
       lab_df <- lab_df %>%
-        filter(between(start_time, segment_start(), segment_start()+input$t_step))
+        filter(between(start_time, segment_start(), segment_start() + input$t_step))
       if(!is.null(dc_ranges_spec$x)){
         lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2],]
         lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
@@ -1667,7 +1667,7 @@ server <- function(input, output, session) {
         lab_df$start_time_crop <- lab_df$start_time
         lab_df$end_freq_crop   <- lab_df$end_freq
         hj <- 0
-        vj <- 1*(lab_df$end_freq > 0.95*specplot_range$y[2])
+        vj <- 1 * (lab_df$end_freq > 0.95 * specplot_range$y[2])
       }
       spec_plot <- spec_plot +
         geom_rect(data = lab_df,
@@ -1683,7 +1683,7 @@ server <- function(input, output, session) {
                        y     = end_freq_crop,
                        label = class_label),
                    colour  = as.vector(lab_df$typecol),
-                   label.r = unit(0, units="lines"),
+                   label.r = unit(0, units = "lines"),
                    label.size = 0.5,
                    hjust  = hj,
                    vjust  = vj
@@ -1692,7 +1692,7 @@ server <- function(input, output, session) {
                    aes(x     = start_time_crop,
                        y     = end_freq_crop,
                        label = class_label),
-                   label.r = unit(0, units="lines"),
+                   label.r = unit(0, units = "lines"),
                    label.size = 0,
                    hjust  = hj,
                    vjust  = vj,
@@ -1700,7 +1700,7 @@ server <- function(input, output, session) {
                    colour = "black")
     }
     return(spec_plot)
-  }, bg="transparent")
+  }, bg = "transparent")
 
   observeEvent(input$savespec, {
     if(!.is_null(input$file1))
@@ -1713,8 +1713,8 @@ server <- function(input, output, session) {
     # For high-res displays, this will be greater than 1
     pixelratio <- session$clientData$pixelratio
     ggsave(file_nm, specPlot(),
-           height = height*pixelratio,
-           width  = width*pixelratio,
+           height = height * pixelratio,
+           width  = width * pixelratio,
            units  = "px")
     showNotification(HTML(paste0("Spectrogram image <b>",
                                  spec_name,
@@ -1762,7 +1762,7 @@ server <- function(input, output, session) {
             z-index: 100;
            }
         ')),
-        tags$script(src='JS/osc_hover.js'),
+        tags$script(src = 'JS/osc_hover.js'),
         uiOutput("hover_info_osc")
       )
     else
@@ -1787,8 +1787,8 @@ server <- function(input, output, session) {
       # For high-res displays, this will be greater than 1
       pixelratio <- session$clientData$pixelratio
       ggsave(file_nm, p,
-             height = height*pixelratio,
-             width  = width*pixelratio,
+             height = height * pixelratio,
+             width  = width * pixelratio,
              units  = "px")
       showNotification(HTML(paste0("Oscillogram image <b>",
                                    osc_name,
@@ -2065,7 +2065,7 @@ server <- function(input, output, session) {
                                    input$label_points,
                                    '</b></span> successfully saved!')),
                        type = "message")
-      updateTextAreaInput(inputId = "notes", value="")
+      updateTextAreaInput(inputId = "notes", value = "")
     } else
       showNotification("Label not saved, nothing selected!", type = "error")
   })
@@ -2110,7 +2110,7 @@ server <- function(input, output, session) {
     if(!is.null(del_df)){
       insertRow <- function(old_df, newrow, idx) {
         if(idx <= nrow(old_df))
-          old_df[seq(idx+1,nrow(old_df)+1),] <- old_df[seq(idx,nrow(old_df)),]
+          old_df[seq(idx + 1,nrow(old_df) + 1),] <- old_df[seq(idx, nrow(old_df)),]
         old_df[idx,] <- newrow
         return(old_df)
       }
@@ -2369,7 +2369,7 @@ server <- function(input, output, session) {
                  "addCategory", "remCategory", "resetCategory",
                  "save_points", "remove_points", "undo_delete_lab")
       for(nm in names(inputa)){
-        if(nm %in%skips)
+        if(nm %in% skips)
           next
         #session$sendCustomMessage(nm, inputa[[nm]])
         session$sendInputMessage(nm, list(value = inputa[[nm]]))
