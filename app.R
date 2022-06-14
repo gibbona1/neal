@@ -961,18 +961,6 @@ server <- function(input, output, session) {
     else
       sum_df <- sum_df[order(sum_df$file_name),]
 
-    create_btns <- function(x) {
-      x %>%
-        purrr::map_chr(~
-                         paste0(
-                           '<div class = "btn-group">
-                   <button class="btn btn-default action-button btn-info action_button" id="edit_',
-                           .x, '" type="button" onclick=get_id(this.id)><i class="fas fa-edit"></i></button>
-                   <button class="btn btn-default action-button btn-danger action_button" id="delete_',
-                           .x, '" type="button" onclick=get_id(this.id)><i class="fa fa-trash-alt"></i></button></div>'
-                         ))
-    }
-
     dtShinyInput <- function(FUN, len, id, ...) {
       inputs <- character(len)
       for (i in seq_len(len))
@@ -2059,7 +2047,6 @@ server <- function(input, output, session) {
         inp_list  <- names(input)
         tab_check <- paste0("tab_", which(file_list() == input$file1), "class_label")
         inp_list  <- inp_list[startsWith(inp_list, tab_check)]
-        inp_ids   <- sapply(inp_list, function(x) str_sub(x, start = str_length(tab_check)+1))
         lab_df$id <- 1
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
