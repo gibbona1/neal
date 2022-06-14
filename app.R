@@ -890,7 +890,7 @@ server <- function(input, output, session) {
     tab_class_input <- function(x, sel, choices, name){
       res <- paste0("<select id='", input_names(name), "'>")
       optlist <- rep("", length(sel))
-      for(i in 1:length(sel)){
+      for(i in seq_along(sel)){
         sel_str <- ifelse(choices == sel[i], " selected", "")
         optlist[i] <- paste0("<option value='", choices, "'", sel_str, ">", choices, "</option>", collapse = "")
       }
@@ -1046,7 +1046,7 @@ server <- function(input, output, session) {
 
     #which inputs (in display table) differ from saved data
     #there should be at most one changed
-    diff_idx    <- which(vals!=lab_df[, col_name][1:length(vals)])
+    diff_idx    <- which(vals!=lab_df[, col_name][seq_along(vals)])
     if(length(diff_idx)>0){
       changed_row <- lab_df[diff_idx, ]
       #change to the new edited value
@@ -2091,7 +2091,7 @@ server <- function(input, output, session) {
                            end_freq   = ranges_spec$y[2])
       full_df    <- fullData()
       full_df_rm <- c()
-      for(idx in 1:nrow(full_df)){
+      for(idx in seq_len(nrow(full_df))){
         bb_cols  <- c('start_time', 'end_time', 'start_freq', 'end_freq')
         check_df <- full_df[idx,]
         row_iou  <- bb_iou(lab_df[,bb_cols], check_df[,bb_cols])
@@ -2127,7 +2127,7 @@ server <- function(input, output, session) {
         old_df[idx,] <- newrow
         return(old_df)
       }
-      for(row in 1:length(rownums))
+      for(row in seq_along(rownums))
         full_df <- insertRow(full_df, del_df[row,], rownums[row])
       deleted_lab$rows <- deleted_lab$data <- NULL
       write_labs(full_df, append = FALSE, col.names = TRUE)
