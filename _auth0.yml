@@ -1,5 +1,6 @@
 name: audio_labeller
-remote_url: https://gibbona1.shinyapps.io/audio_labeller/
+remote_url: ''
+#remote_url: https://gibbona1.shinyapps.io/audio_labeller/
 #remote_url: https://rstudioserver.hamilton.ie:3838/users/agibbons/audio_labeller/
 auth0_config:
   api_url: https://dev-pr9xgo6y.us.auth0.com
