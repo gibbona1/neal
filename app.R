@@ -87,7 +87,8 @@ jsCode <- "shinyjs.audiotoggle = function() {
 }"
 
 ui_func <- function() {
-  header <- {dashboardHeader(
+  header <- {
+    dashboardHeader(
     title = "Audio Labeler App",
     dropdownMenu(
       tags$li(class = "dropdown",
@@ -139,9 +140,11 @@ ui_func <- function() {
           "BTO Species Codes")
       )
     )
-  )}
+  )
+  }
 
-  sidebar <- {dashboardSidebar(
+  sidebar <- {
+    dashboardSidebar(
     shinyjs::useShinyjs(),
     sidebarMenu(
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
@@ -265,9 +268,11 @@ ui_func <- function() {
     #Options for sidebar
     collapsed = TRUE,
     minified  = FALSE,
-    id = "side-panel")}
+    id = "side-panel")
+    }
 
-  body <- {dashboardBody(
+  body <- {
+    dashboardBody(
     shinyjs::useShinyjs(),
     extendShinyjs(text = jsCode, functions = c("audiotoggle")),
     useKeys(),
@@ -481,7 +486,8 @@ ui_func <- function() {
     fluidRow({
       uiOutput("fileLabSummary")
     })
-  )}
+  )
+  }
 
   ui <- dashboardPage(
     header,
@@ -503,7 +509,7 @@ server <- function(input, output, session) {
     allowDirCreate = FALSE
   )
 
-  lab_nickname <- function(){
+  lab_nickname <- function() {
     auth0_session <- session$userData$auth0_info
     if(is.null(auth0_session))
       nickname <- Sys.info()[["user"]]
@@ -514,8 +520,9 @@ server <- function(input, output, session) {
     return(nickname)
   }
 
-  filename_pre <- function(x, df)
+  filename_pre <- function(x, df) {
     return(paste0("(", nrow(df[df$file_name == x, ]), ") ", x))
+  }
 
   file_list <- reactive({
     filenames <- list.files(file.path("www", lab_nickname()))
@@ -530,11 +537,11 @@ server <- function(input, output, session) {
 
   mydir <- reactive(input$folder)
 
-  output$folder <- renderText({global$datapath})
+  output$folder <- renderText(global$datapath)
 
   output$files <- renderPrint(list.files(global$datapath))
 
-  observeEvent(eventExpr = {input$folder}, handlerExpr = {
+  observeEvent(eventExpr = input$folder, handlerExpr = {
     if (!"path" %in% names(dir())) return()
     home <- normalizePath("~")
     global$datapath <-
@@ -557,15 +564,15 @@ server <- function(input, output, session) {
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
 
-  extractWave_t <- function(x, tc){
+  extractWave_t <- function(x, tc) {
     return(extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
   }
 
-  btw <- function(x, left, right){
+  btw <- function(x, left, right) {
     return(x >= left & x <= right)
   }
 
-  length_b10 <- function(x){
+  length_b10 <- function(x) {
     return(x %>%
              range %>%
              as.integer %>%
@@ -574,7 +581,7 @@ server <- function(input, output, session) {
              max)
   }
 
-  blank_plot <- function(label){
+  blank_plot <- function(label) {
     p <- ggplot() +
       geom_text(aes(x = 0, y = 0), label = label, colour = "white") +
       theme_void() +
@@ -584,12 +591,12 @@ server <- function(input, output, session) {
     return(p)
   }
 
-  frange_check <- function(vec, freq_range){
+  frange_check <- function(vec, freq_range) {
     return((vec[1] > freq_range[1]) | (vec[2] < freq_range[2]))
   }
 
-  plot_collapse_button <- function(name, id, top_pad = 0){
-    if(plots_open[[id]]){
+  plot_collapse_button <- function(name, id, top_pad = 0) {
+    if(plots_open[[id]]) {
       button_id    <- paste0("collapse_", id)
       button_icon  <- "chevron-up"
       button_hover <- paste("Collapse", name)
@@ -601,26 +608,26 @@ server <- function(input, output, session) {
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
 
-  trim_start <- function(y){
+  trim_start <- function(y) {
     start_list <- c("Common", "Eurasian", "European", "Northern", "Greater", "Great")
     for(st in start_list)
       y <- gsub(paste0("^", st, " "), "", y)
     return(y)
   }
 
-  get_entries <- function(x){
+  get_entries <- function(x) {
     x <- x[x != ""]
     x <- trim_start(x)
     x <- as.vector(sort(x))
     return(x)
   }
 
-  reset_ranges <- function(x_list){
+  reset_ranges <- function(x_list) {
     for(nm in names(x_list))
       x_list[[nm]] <- NULL
   }
 
-  bb_iou <- function(boxA, boxB){
+  bb_iou <- function(boxA, boxB) {
     # intersection_over_union
     # boxes have column start_time, end_time, start_freq, end_freq
     # determine the (x, y)-coordinates of the intersection rectangle
@@ -632,8 +639,9 @@ server <- function(input, output, session) {
     # compute the area of intersection rectangle
     interArea <- max(0, xB - xA) * max(0, yB - yA)
     # compute the area of both boxA and boxB
-    box_area <- function(box)
+    box_area <- function(box) {
       return((box[, 2] - box[, 1]) * (box[, 4] - box[, 3]))
+    }
     boxAArea <- box_area(boxA)
     boxBArea <- box_area(boxB)
     # compute the intersection over union
@@ -641,7 +649,7 @@ server <- function(input, output, session) {
     return(iou)
   }
 
-  cat_colours <- function(x){
+  cat_colours <- function(x) {
     if(is.null(x))
       return(NULL)
     other_c <- unique(unlist(species_list))
@@ -657,20 +665,20 @@ server <- function(input, output, session) {
     return(merge_df)
   }
 
-  noise_reduce <- function(x){
+  noise_reduce <- function(x) {
     return(switch(x,
                   None    = NULL,
                   Rows    = 1,
                   Columns = 2))
   }
 
-  geometric_median <- function(X, eps = 1e-5, numIter = 200){
+  geometric_median <- function(X, eps = 1e-5, numIter = 200) {
     mX <- matrix(c(as.vector(Re(X)),
                    as.vector(Im(X))),
                  ncol = 2, byrow = FALSE)
     y  <- colMeans(mX)
     itr <- 1
-    while(TRUE){
+    while(TRUE) {
       D <- rdist::cdist(mX, matrix(y, nrow = 1))
       nonzeros <- (D != 0)[, 1]
       Dinv  <- 1 / D[nonzeros]
@@ -679,11 +687,11 @@ server <- function(input, output, session) {
       WT    <- colSums(W * mX[nonzeros, ])
 
       num_zeros <- length(X) - sum(nonzeros)
-      if(num_zeros == 0)
+      if(num_zeros == 0) {
         y1 <- WT
-      else if(num_zeros == length(X))
+      } else if(num_zeros == length(X)) {
         return(y)
-      else {
+      } else {
         R <- (WT - y) * Dinvs
         r <- norm(R, type = "F")
         if(r == 0)
@@ -712,7 +720,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$bto_codes, {
     x <- get_entries(species_list[, input$species_list])
-    if(input$bto_codes){
+    if(input$bto_codes) {
       bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
       bto_df$species_name <- trim_start(bto_df$species_name)
       x_bto <- as.vector(merge(data.frame(species_name = x), bto_df)$bto_code)
@@ -726,16 +734,16 @@ server <- function(input, output, session) {
     c(cats$base, cats$misc, cats$xtra)
   })
 
-  labs_filename <- reactive({paste0("labels/tmp_labels_", lab_nickname(), ".csv")})
+  labs_filename <- reactive(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
 
-  conf_filename <- reactive({paste0("saved_configs/input_", lab_nickname(), ".RDS")})
+  conf_filename <- reactive(paste0("saved_configs/input_", lab_nickname(), ".RDS"))
 
   fullData   <- reactiveVal(NULL)
 
   write_labs <- function(lab_df,
                          fname     = labs_filename(),
                          append    = TRUE,
-                         col.names = FALSE){
+                         col.names = FALSE) {
     write.table(lab_df, fname,
                 append    = append,
                 col.names = col.names,
@@ -744,7 +752,7 @@ server <- function(input, output, session) {
   }
 
   observeEvent(input$file1, {
-    if(.is_null(input$file1)){
+    if(.is_null(input$file1)) {
       disable("prev_file")
       disable("next_file")
       disable("prev_section")
@@ -808,7 +816,7 @@ server <- function(input, output, session) {
   # only admin can download all labels
   # other users download only theirs
   saveData <- reactive({
-    if(labeler() == "anthony.gibbons.2022@mumail.ie"){
+    if(labeler() == "anthony.gibbons.2022@mumail.ie") {
       df <- data.frame()
       for(labfile in list.files("labels")){
         fname <- file.path("labels", labfile)
@@ -816,8 +824,9 @@ server <- function(input, output, session) {
           df <- rbind(df, read.csv(fname))
       }
       return(df)
-    } else
+    } else {
       return(fullData())
+    }
   })
 
   output$fileLabInfo <- renderUI({
@@ -861,7 +870,7 @@ server <- function(input, output, session) {
     )
   })
 
-  input_names <- function(x){
+  input_names <- function(x) {
     lab_df <- labelsData()
     if(is.null(lab_df))
       return(NULL)
@@ -875,7 +884,7 @@ server <- function(input, output, session) {
     lab_df <- lab_df[, colnames(fullData())]
     lab_df <- lab_df[, 1:10]
     lab_df <- lab_df[, colnames(lab_df) != "file_name"]
-    tab_num_input <- function(x, val, name, minv = NULL, maxv = NULL, step = NULL){
+    tab_num_input <- function(x, val, name, minv = NULL, maxv = NULL, step = NULL) {
       res <- paste0("<input id='", input_names(name), "' ",
                     "class='shiny-bound-input' type='number' value='", val, "' ")
       if(!is.null(minv))
@@ -887,7 +896,7 @@ server <- function(input, output, session) {
       res <- paste0(res, "style='width: 100%;'>")
       res
     }
-    tab_class_input <- function(x, sel, choices, name){
+    tab_class_input <- function(x, sel, choices, name) {
       res <- paste0("<select id='", input_names(name), "'>")
       optlist <- rep("", length(sel))
       for(i in seq_along(sel)){
@@ -987,7 +996,7 @@ server <- function(input, output, session) {
     segment_start(0)
   })
 
-  input_list <- function(x){
+  input_list <- function(x) {
     a <- list()
     for(name in x)
       a <- append(a, input[[name]])
@@ -1024,7 +1033,7 @@ server <- function(input, output, session) {
     return(input_list(x))
   }) %>% throttle(100)
 
-  overwriteLabData <- function(vals, col_name){
+  overwriteLabData <- function(vals, col_name) {
     if(is.null(vals))
       return(NULL)
     full_df <- fullData()
@@ -1035,7 +1044,7 @@ server <- function(input, output, session) {
     #which inputs (in display table) differ from saved data
     #there should be at most one changed
     diff_idx    <- which(vals != lab_df[, col_name][seq_along(vals)])
-    if(length(diff_idx) > 0){
+    if(length(diff_idx) > 0) {
       changed_row <- lab_df[diff_idx, ]
       #change to the new edited value
       changed_row[, col_name] <- vals[diff_idx]
@@ -1116,7 +1125,7 @@ server <- function(input, output, session) {
     cextra <- categories$xtra
     #my_gradients <- colorRampPalette(c("darkred","red"))(length(cextra))
 
-    get_jq_lines <- function(val, cols){
+    get_jq_lines <- function(val, cols) {
       x <- paste0("var ",
                   c("originalBorder", "originalColor", "originalBackground" ),
                   " = [];",
@@ -1124,7 +1133,7 @@ server <- function(input, output, session) {
       button_val_id <- paste0("'input[type=radio][name=label_points][value=\"",
                               val, "\"]'")
 
-      css_line <- function(css_class, css_val = NULL, func = "css", sq = "'"){
+      css_line <- function(css_class, css_val = NULL, func = "css", sq = "'") {
         x <- paste0("$(this).parent().", func, "(", sq, css_class, sq)
         if(!is.null(css_val))
           x <- paste0(x, ",'", css_val, "'")
@@ -1176,8 +1185,8 @@ server <- function(input, output, session) {
       return(x)
     }
     btn_col_js <- NULL
-    add_colour_js <- function(x, labs, cols){
-      if(!is.null(labs)){
+    add_colour_js <- function(x, labs, cols) {
+      if(!is.null(labs)) {
         for(lab in labs)
           x <- paste0(x, get_jq_lines(lab, cols))
       }
@@ -1235,7 +1244,7 @@ server <- function(input, output, session) {
     tmp_audio <- readWave(file.path(getwd(), "www", lab_nickname(), input$file1))
 
     #based on torchaudio::functional_gain
-    audio_gain     <- function(waveform, gain_db = 0){
+    audio_gain     <- function(waveform, gain_db = 0) {
       if(gain_db == 0)
         return(waveform)
       return(waveform * 10^(gain_db / 20))
@@ -1251,7 +1260,7 @@ server <- function(input, output, session) {
     len_s <- length(tmp_audio) / tmp_audio@samp.rate
     segment_end_s(len_s)
     t_step <- input$t_step
-    if(len_s > t_step){
+    if(len_s > t_step) {
       time_seq  <- seq(from = 0, to = len_s, by = t_step)
       tc        <- time_seq[segment_num()]
       segment_start(tc)
@@ -1282,7 +1291,7 @@ server <- function(input, output, session) {
     if(is.null(tmp_audio) | is.null(input$frequency_range))
       return(NULL)
 
-    if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)){
+    if(!is.null(ranges_osc$x) | !is.null(ranges_spec$x)) {
       #time crop
       if(!is.null(ranges_osc$x))
         tc <- ranges_osc$x
@@ -1290,7 +1299,7 @@ server <- function(input, output, session) {
         tc <- ranges_spec$x
       tc <- sort(tc) - segment_start()
       tmp_audio <- extractWave_t(tmp_audio, tc)
-    } else if(!is.null(dc_ranges_osc$x) | !is.null(dc_ranges_spec$x)){
+    } else if(!is.null(dc_ranges_osc$x) | !is.null(dc_ranges_spec$x)) {
       #time crop
       if(!is.null(dc_ranges_osc$x))
         tc <- dc_ranges_osc$x
@@ -1317,7 +1326,7 @@ server <- function(input, output, session) {
        (input$noisereduction == "None"))
       return(NULL)
 
-    if(input$noisereduction != "None"){
+    if(input$noisereduction != "None") {
       audio_clean$noisered <- TRUE
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate,
@@ -1347,10 +1356,11 @@ server <- function(input, output, session) {
                          ovlp = input$fft_overlap,
                          out  = "Wave")
       tmp_audio <- normalize(audio_inv, unit = "16")
-    } else
+    } else {
       audio_clean$noisered <- FALSE
+    }
 
-    if(frange_check(frange, range(tmp_spec$freq))){
+    if(frange_check(frange, range(tmp_spec$freq))) {
       audio_clean$select <- TRUE
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate,
@@ -1372,13 +1382,14 @@ server <- function(input, output, session) {
                          ovlp = input$fft_overlap,
                          out  = "Wave")
       tmp_audio <- normalize(audio_inv, unit = "16")
-    } else
+    } else {
       audio_clean$select <- FALSE
+    }
     writeWave(tmp_audio, file.path("www", lab_nickname(), "tmp_clean.wav"))
     return(tmp_audio)
   })
 
-  gettime <- reactive({list(x = input$get_time)})
+  gettime <- reactive(list(x = input$get_time))
 
   gettime_t <- gettime %>% throttle(50)
 
@@ -1386,7 +1397,7 @@ server <- function(input, output, session) {
     if(.is_null(input$file1))
       return(NULL)
     txt <- ""
-    if(segment_total() > 1){
+    if(segment_total() > 1) {
       if(segment_num() == segment_total())
         seg_colour <- "green"
       else
@@ -1451,8 +1462,9 @@ server <- function(input, output, session) {
     else
       tmp_audio <- cleanInput()
 
-    time_seq <- function(x)
+    time_seq <- function(x) {
       return(seq(0, length(x@left) / x@samp.rate, length.out = length(x)))
+    }
     df2 <- data.frame(time      = time_seq(tmp_audio),
                       amplitude = tmp_audio@left)
     if(!is.null(dc_ranges_osc$x))
@@ -1467,7 +1479,7 @@ server <- function(input, output, session) {
       spec_freq <- c(max(spec_freq[1], ranges_spec$y[1]),
                      min(spec_freq[2], ranges_spec$y[2]))
     strlen_spec_y <- length_b10(pretty(spec_freq, 5))
-    if(strlen_spec_y + 3 <= strlen_osc_y){
+    if(strlen_spec_y + 3 <= strlen_osc_y) {
       length_ylabs$osc  <- 0
       length_ylabs$spec <- strlen_osc_y - strlen_spec_y - 3
     } else {
@@ -1626,7 +1638,7 @@ server <- function(input, output, session) {
     if(.is_null(input$file1) | !input$spec_time)
       return(NULL)
     spec_plot <- specPlotFront()
-    if(!is.null(ranges_spec$y)){
+    if(!is.null(ranges_spec$y)) {
       if(input$include_guides)
         spec_plot <- spec_plot +
           geom_hline(aes(yintercept = ranges_spec$y[1]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
@@ -1638,10 +1650,11 @@ server <- function(input, output, session) {
                          xend = ranges_spec$x[1] + gettime_t()$x,
                          y = ranges_spec$y[1], yend = ranges_spec$y[2]),
                      colour = "yellow")
-    } else if(!is.null(dc_ranges_spec$y))
+    } else if(!is.null(dc_ranges_spec$y)) {
       spec_plot <- spec_plot + geom_vline(aes(xintercept = dc_ranges_spec$x[1] + gettime_t()$x), colour = "yellow")
-    else
+    } else {
       spec_plot <- spec_plot + geom_vline(aes(xintercept = gettime_t()$x), colour = "yellow")
+    }
     return(spec_plot)
   }, bg = "transparent")
 
@@ -1650,14 +1663,14 @@ server <- function(input, output, session) {
       return(NULL)
     spec_plot <- specPlotFront()
     lab_df    <- labelsData()
-    if(is.null(lab_df))
+    if(is.null(lab_df)) {
       return(spec_plot)
-    else if(input$spec_labs){
+    } else if(input$spec_labs) {
       #if(input$hide_other_labels)
       #  lab_df <- lab_df[lab_df$labeler == labeler(), ]
       lab_df <- lab_df %>%
         filter(between(start_time, segment_start(), segment_start() + input$t_step))
-      if(!is.null(dc_ranges_spec$x)){
+      if(!is.null(dc_ranges_spec$x)) {
         lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2], ]
         lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
         lab_df$end_freq_crop   <- sapply(lab_df$end_freq, function(y) min(y, dc_ranges_spec$y[2]))
@@ -1772,14 +1785,15 @@ server <- function(input, output, session) {
   output$oscplot <- renderPlot({
     p <- plot_oscillogram(oscData(), input, length_ylabs)
 
-    if(!.is_null(input$file1)){
+    if(!.is_null(input$file1)) {
       if(!is.null(dc_ranges_spec$x))
         p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE)
       else if(!is.null(dc_ranges_osc$x))
         p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE)
       osc_name <- gsub(".wav", "_osc.png", input$file1)
-    } else
+    } else {
       osc_name <- "blank_osc.png"
+    }
     observeEvent(input$saveosc, {
       file_nm <- file.path(getwd(), "images", osc_name)
       width   <- session$clientData$output_oscplot_width
@@ -1824,7 +1838,7 @@ server <- function(input, output, session) {
       return(NULL)
     point <- round(point, 3)
 
-    in_label_box <- function(df, point){
+    in_label_box <- function(df, point) {
       return(btw(point$time, df$start_time, df$end_time) &
                btw(point$frequency, df$start_freq, df$end_freq))
     }
@@ -1903,13 +1917,13 @@ server <- function(input, output, session) {
       return(NULL)
     point <- round(point, 3)
 
-    in_label_box <- function(df, point){
+    in_label_box <- function(df, point) {
       return(btw(point$time, df$start_time, df$end_time))
     }
     lab_df <- labelsData()
-    if(is.null(lab_df))
+    if(is.null(lab_df)) {
       species_in_hover <- ""
-    else{
+    } else {
       lab_df <- lab_df[1, ]
       species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
                                  "<br/><b> Call type: </b>", lab_df$call_type)
@@ -1952,8 +1966,9 @@ server <- function(input, output, session) {
       ranges_spec$y <- c(brush$ymin, brush$ymax)
       #showNotification("Click play to hear selected times/frequencies",
       #                  type = "warning")
-    } else
+    } else {
       reset_ranges(ranges_spec)
+    }
   })
 
   observeEvent(input$specplot_click, {
@@ -1979,11 +1994,12 @@ server <- function(input, output, session) {
 
   observeEvent(input$oscplot_dblclick, {
     brush <- input$oscplot_brush
-    if (!is.null(brush)){
+    if (!is.null(brush)) {
       ranges_osc$x <- c(brush$xmin, brush$xmax)
       showNotification("Double click plot to reset zoom", type = "default")
-    } else
+    } else {
       reset_ranges(ranges_osc)
+    }
   })
 
   observeEvent(input$plt_reset, {
@@ -2007,7 +2023,7 @@ server <- function(input, output, session) {
       showNotification("Need a category selected to remove it", type = "error")
     else if(input$label_points %in% c(categories$base, categories$misc))
       showNotification("Cannot remove main or misc category!", type = "error")
-    else if(input$label_points %in% categories$xtra){
+    else if(input$label_points %in% categories$xtra) {
       lab_rem_idx <- which(categories$xtra == input$label_points)
       categories$xtra <- categories$xtra[-lab_rem_idx]
       showNotification(HTML(paste0("Label <b>",
@@ -2043,7 +2059,7 @@ server <- function(input, output, session) {
       typecol <- as.vector(cat_colours(lab_df)$typecol)
 
       full_df <- fullData()
-      if(!is.null(full_df)){
+      if(!is.null(full_df)) {
         inp_list  <- names(input)
         tab_check <- paste0("tab_", which(file_list() == input$file1), "class_label")
         inp_list  <- inp_list[startsWith(inp_list, tab_check)]
@@ -2066,8 +2082,9 @@ server <- function(input, output, session) {
                                    "</b></span> successfully saved!")),
                        type = "message")
       updateTextAreaInput(inputId = "notes", value = "")
-    } else
+    } else {
       showNotification("Label not saved, nothing selected!", type = "error")
+    }
   })
 
   observeEvent(input$remove_points, {
@@ -2085,7 +2102,7 @@ server <- function(input, output, session) {
         if(row_iou > 0.6)
           full_df_rm <- c(full_df_rm, idx)
       }
-      if(!is.null(full_df_rm)){
+      if(!is.null(full_df_rm)) {
         deleted_lab$rows <- full_df_rm
         deleted_lab$data <- full_df[full_df_rm, ]
         full_df <- full_df[-full_df_rm, ]
@@ -2099,15 +2116,16 @@ server <- function(input, output, session) {
                           choices  = filenames,
                           selected = input$file1)
       }
-    } else
+    } else {
       showNotification("Label not removed, nothing selected!", type = "error")
+    }
   })
 
   observeEvent(input$undo_delete_lab, {
     full_df   <- fullData()
     rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
-    if(!is.null(del_df)){
+    if(!is.null(del_df)) {
       insertRow <- function(old_df, newrow, idx) {
         if(idx <= nrow(old_df))
           old_df[seq(idx + 1, nrow(old_df) + 1), ] <- old_df[seq(idx, nrow(old_df)), ]
@@ -2120,17 +2138,19 @@ server <- function(input, output, session) {
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
       showNotification("Label recovered", type = "message")
-    } else
+    } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
+    }
   })
 
   output$my_audio <- renderUI({
     audio_style <- "width: 100%;"
-    if(!is.null(cleanInput())){
+    if(!is.null(cleanInput())) {
       file_name   <- file.path("www", lab_nickname(), "tmp_clean.wav")
       audio_style <- paste(audio_style, "filter: sepia(50%);")
-    } else
+    } else {
       file_name <- file.path("www", lab_nickname(), "tmp.wav")
+    }
 
     audio_style <- HTML(audio_style)
     if(.is_null(input$file1))
@@ -2142,7 +2162,7 @@ server <- function(input, output, session) {
       ))
     pb <- input$playbackrate
     pb_script <- NULL
-    if(pb != 1){
+    if(pb != 1) {
       pb_script <- paste0(
         "var audio = document.getElementById('my_audio_player');
        audio.playbackRate = ", pb, ";")
@@ -2160,7 +2180,7 @@ server <- function(input, output, session) {
 
   output$audio_title <- renderUI({
     base <- "<b>Play audio:<b/>"
-    if(!is.null(cleanInput())){
+    if(!is.null(cleanInput())) {
       if(audio_clean$select)
         base <- paste(base, "<span style='color: red;'>(selected)</span>")
       if(audio_clean$noisered)
@@ -2170,7 +2190,7 @@ server <- function(input, output, session) {
   })
 
   output$meta_text <- renderUI({
-    if(!is.null(audioInput())){
+    if(!is.null(audioInput())) {
       #latlong <- c(52.208330, -6.594489)
       dt <- get_audio_dt(input$file1)
       df <- get_audio_recdf(input$file1)
@@ -2205,8 +2225,9 @@ server <- function(input, output, session) {
                                    #get_gmap_link(latlong),
                                    style = "info")
         ))
-    } else
+    } else {
       return(NULL)
+    }
   })
 
   output$audio_time <- renderText({
@@ -2269,10 +2290,9 @@ server <- function(input, output, session) {
     if(idx == 0)
       showNotification("Cannot go to previous file, at beginning of folder",
                        type = "error")
-    else {
+    else
       updateSelectInput(inputId  = "file1",
                         selected = file_list()[idx])
-    }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
     reset_ranges(dc_ranges_spec)
@@ -2289,10 +2309,9 @@ server <- function(input, output, session) {
     if(idx > length(file_list()))
       showNotification("Cannot go to next file, at end of folder",
                        type = "error")
-    else {
+    else
       updateSelectInput(inputId  = "file1",
                         selected = file_list()[idx])
-    }
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
     reset_ranges(dc_ranges_spec)
@@ -2307,10 +2326,10 @@ server <- function(input, output, session) {
   observeEvent(input$prev_section, {
     idx <- segment_num() - 1
 
-    if(idx < 1)
+    if(idx < 1) {
       showNotification("Cannot go to previous segment, at beginning of file",
                        type = "error")
-    else {
+    } else {
       segment_num(idx)
       reset_ranges(ranges_spec)
       reset_ranges(ranges_osc)
@@ -2323,10 +2342,10 @@ server <- function(input, output, session) {
   observeEvent(input$next_section, {
     idx <- segment_num() + 1
 
-    if(idx > segment_total())
+    if(idx > segment_total()) {
       showNotification("Cannot go to next segment, at end of file",
                        type = "error")
-    else {
+    } else {
       segment_num(idx)
       reset_ranges(ranges_spec)
       reset_ranges(ranges_osc)
@@ -2345,7 +2364,7 @@ server <- function(input, output, session) {
 
   output$loadScript <- renderUI({
     #JS code to change input val for single input
-    inp_script <- function(name){
+    inp_script <- function(name) {
       return(paste0("Shiny.addCustomMessageHandler('",
       name, "', function(value) { ",
       "Shiny.setInputValue('", name, "', value);"#,
@@ -2358,7 +2377,7 @@ server <- function(input, output, session) {
   observeEvent(input$inputLoad, {
     #print(input$inputLoad)
     fname <- conf_filename()
-    if(file.exists(fname)){
+    if(file.exists(fname)) {
       inputa <- readRDS(fname)
       skips <- c("folder", "prev_file", "next_file",
                  "lab_hist-history_back", "lab_hist-history_forward",
@@ -2375,8 +2394,9 @@ server <- function(input, output, session) {
         session$sendInputMessage(nm, list(value = inputa[[nm]]))
       }
       showNotification("Previous Settings loaded", type = "message", duration = NULL)
-    } else
+    } else {
       showNotification("No previous settings to load", type = "warning", duration = NULL)
+    }
   })
 
   session$onSessionEnded(function() {
