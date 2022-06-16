@@ -85,7 +85,7 @@ geometric_median <- function(X, eps = 1e-5, numIter = 200) {
     Dinvs <- sum(Dinv)
     W     <- Dinv / Dinvs
     WT    <- colSums(W * mX[nonzeros, ])
-    
+
     num_zeros <- length(X) - sum(nonzeros)
     if (num_zeros == 0) {
       y1 <- WT
@@ -101,7 +101,7 @@ geometric_median <- function(X, eps = 1e-5, numIter = 200) {
       y1 <-  max(0, 1 - rinv) * WT + min(1, rinv) * y
     }
     euclidean <- function(a, b) sqrt(sum((a - b)^2))
-    if (euclidean(y, y1) < eps | itr > numIter)
+    if (euclidean(y, y1) < eps || itr > numIter)
       return(y)
     y <- y1
     itr <- itr + 1
@@ -115,7 +115,7 @@ get_jq_lines <- function(val, cols) {
               collapse = " ")
   button_val_id <- paste0("'input[type=radio][name=label_points][value=\"",
                           val, "\"]'")
-  
+
   css_line <- function(css_class, css_val = NULL, func = "css", sq = "'") {
     x <- paste0("$(this).parent().", func, "(", sq, css_class, sq)
     if (!is.null(css_val))
@@ -185,4 +185,3 @@ inp_script <- function(name) {
                 "});"
   ))
 }
-
