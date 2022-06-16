@@ -229,6 +229,7 @@ ui_func <- function() {
                checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
                downloadButton("downloadSpec", "Download Spec as CSV"),
                checkboxInput("clean_zero", "Zero Audio outside Selected", value = TRUE),
+               checkboxInput("base_specplot", "Base spectrogram plot", value = FALSE),
                uiOutput("spec_collapse")
       ),
       menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
@@ -1419,7 +1420,11 @@ server <- function(input, output, session) {
   })
 
   output$specplot <- renderPlot({
-    return(specPlot())
+    if(input$base_specplot)
+      plot_spectrogram_base(specData(), input, length_ylabs, dc_ranges_spec,
+                            specplot_range)
+    else
+      return(specPlot())
   })
 
   output$specplot_freq <- renderPlot({

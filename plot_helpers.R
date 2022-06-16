@@ -56,6 +56,8 @@ virpluscols <- c("#000000", "#440154FF", "#3B528BFF", "#21908CFF", "#5DC863FF", 
 palette_list <- c("viridisplus", "greyscale", "magma", "inferno", "plasma", 
                   "viridis", "cividis", "rocket", "mako", "turbo")
 
+.is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
+
 plot_oscillogram <- function(df, input, length_ylabs){
   lim16    <- 2^15-1
   osc_plot <- ggplot(df)
@@ -119,7 +121,7 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
   
   spec_plot <- ggplot(df)
   
-  if(!is.null(input$file1) & input$file1 != '<NULL>'){
+  if(!.is_null(input$file1)){
     spec_name_raw <- paste0(gsub('.wav', '', input$file1), '_spec_raw.png')
     file_nm <- file.path(getwd(), "images", spec_name_raw)
     
@@ -155,6 +157,58 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
                        ) +
     spec_theme
   return(spec_plot)
+}
+
+plot_spectrogram_base <- function(df, input, length_ylabs, dc_ranges_spec, specplot_range){
+  if(.is_null(input$file1))
+    return(NULL)
+  
+  palette_cols <- function(pal_name, n=6){
+    if(pal_name == "viridisplus")
+      return(virpluscols)
+    else if(pal_name == "greyscale")
+      return(grey.colors(n, start = 0, end = 1))
+    else
+      return(viridis(n, option = pal_name))
+  }
+  
+  y_breaks <- pretty(df$frequency, 5)
+  if (!is.null(dc_ranges_spec$y))
+    y_breaks <- pretty(dc_ranges_spec$y, 5)
+  
+  x_breaks <- pretty(df$time, 5)
+  if (!is.null(dc_ranges_spec$x))
+    x_breaks <- pretty(dc_ranges_spec$x, 5)
+  
+  sel_col <- palette_cols(input$palette_selected)
+  if(input$palette_invert)
+    sel_col <- rev(sel_col)
+  
+  tmp_raster <- raster::rasterFromXYZ(df)
+  #pmar <- par("mar")
+  #poma <- par("oma")
+  #par(oma=c(0,0,poma[3],poma[4]),
+  #    mar=c(1.5,1.5,0,0),
+  #    bg = "black") #b,l,t,r
+  plot(raster::extent(tmp_raster), col = NA,
+       family = "mono", xaxs="i", yaxs="i", 
+       xaxt='n', yaxt='n',
+       col.axis = "grey", col.lab = "grey",
+       xlab="Time (s)",ylab=NA #"Frequency (kHz)"
+       )
+  plot(tmp_raster, add=T,
+       col = sel_col, colNA = sel_col[1],
+       xlim=range(x_breaks), 
+       col.axis = "grey", col.lab = "grey",
+       legend = FALSE,
+       breaks = seq(-100,-20, length(sel_col)),
+       interpolate = TRUE)
+  axis(side = 1, at=x_breaks)
+  axis(side = 2, at=y_breaks, 
+       las = 2, 
+       labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse=''), 
+                      y_breaks, "kHz")
+  )
 }
 
 plot_spec_front  <- function(input, length_ylabs, specplot_range, x_breaks, y_breaks){
