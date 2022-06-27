@@ -185,3 +185,16 @@ inp_script <- function(name) {
                 "});"
   ))
 }
+
+label_layout <- function(disp, n_cols){
+  if(disp == "grid")
+    x <- paste0("display: grid;
+          grid-template-columns: ",
+                paste(rep("1fr", n_cols), collapse = " "),
+                ";")
+  else if(disp == "flex")
+    x <- "display: flex;
+          flex-flow: row wrap;
+          flex: auto;"
+  return(x)
+}

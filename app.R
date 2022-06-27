@@ -256,6 +256,7 @@ ui_func <- function() {
                downloadButton("downloadData", "Download Labels")
       ),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
+               selectInput("label_display", "Label display type", c("grid", "flex")),
                numericInput("label_columns", "Number of Columns",
                             value = 7, min = 1, max = 15, step = 1),
                actionButton("reset_sidebar", "Reset Sidebar"),
@@ -1033,15 +1034,9 @@ server <- function(input, output, session) {
         choices    = class_label(),
         #selected     = "",
       ),
-      tags$style(paste0(".btn-group-container-sw {
-                          display: grid;
-                          grid-template-columns: ",
-                        #  display: flex;
-                        #  flex-flow: row wrap;
-                        #  flex: auto;
-                        #}"
-                        paste(rep("1fr", input$label_columns), collapse = " "),
-                        ";}
+      tags$style(paste0(".btn-group-container-sw {",
+                        label_layout(input$label_display, input$label_columns),
+                        "}
                         .radiobtn {
                           width: 100%;
                         }")),
