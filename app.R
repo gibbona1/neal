@@ -32,6 +32,8 @@ source("server_helpers.R")
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
+bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
+
 species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM")
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
@@ -616,10 +618,13 @@ server <- function(input, output, session) {
   observeEvent(input$bto_codes, {
     x <- get_entries(species_list[, input$species_list])
     if (input$bto_codes) {
-      bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
-      bto_df$species_name <- trim_start(bto_df$species_name)
-      x_bto <- as.vector(merge(data.frame(species_name = x), bto_df)$bto_code)
-      x <- c(x_bto, x[!x %in% bto_df$species_name])
+      df <- bto_df
+      df$species_name <- trim_start(df$species_name)
+      merge_df <- merge(data.frame(species_name = x), df)
+      x_bto <- as.vector(merge_df$bto_code)
+      x_bto <- c(x_bto, x[!x %in% df$species_name])
+      x <- c(as.vector(merge_df$species_name), x[!x %in% df$species_name])
+      names(x) <- x_bto
     }
     categories$base <- x
   })
@@ -1494,6 +1499,20 @@ server <- function(input, output, session) {
         hj <- 0
         vj <- 1 * (lab_df$end_freq > 0.95 * specplot_range$y[2])
       }
+      if(input$bto_codes){
+        x <- categories$base
+        df <- bto_df
+        df$species_name <- trim_start(df$species_name)
+        name_to_bto <- function(y, df){
+          if(y %in% df$species_name)
+            yend <- paste0(" (", df[df$species_name == y,]$bto_code, ")")
+          else
+            yend <- ""
+          return(paste0(y, yend))
+        }
+        lab_df$class_label <- as.vector(sapply(lab_df$class_label, function(y) name_to_bto(y, df)))
+      }
+      
       spec_plot <- spec_plot +
         geom_rect(data = lab_df,
                   mapping = aes(xmin = start_time,
