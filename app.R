@@ -570,6 +570,7 @@ server <- function(input, output, session) {
   segment_total  <- reactiveVal(1)
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
+  spec_preload   <- reactiveVal(FALSE)
 
   plot_collapse_button <- function(name, id, top_pad = 0) {
     if (plots_open[[id]]) {
@@ -657,6 +658,7 @@ server <- function(input, output, session) {
       disable("next_file")
       disable("prev_section")
       disable("next_section")
+      spec_preload <- FALSE
       #updateSelectInput(inputId  = "file1",
       #                  choices  = file_list())
     } else {
@@ -669,6 +671,11 @@ server <- function(input, output, session) {
         disable("next_file")
       else
         enable("next_file")
+      file1_img <- change_ext(input$file1, "wav", "png", "_spec")
+      if(file1_img %in% list.files("images"))
+        spec_preload <- TRUE
+      else
+        spec_preload <- FALSE
     }
     lab_file <- labs_filename()
     if (file.exists(lab_file))
@@ -1397,6 +1404,11 @@ server <- function(input, output, session) {
         height = input$spec_height,
         width  = "100%"
       ),
+      #imageOutput(
+      #  "specplot_img",
+      #  height = input$spec_height,
+      #  width  = "100%"
+      #),
       plotOutput(
         "specplot",
         height = input$spec_height,
@@ -1426,6 +1438,13 @@ server <- function(input, output, session) {
     else
       return(specPlot())
   })
+  
+  output$specplot_img <- renderImage({
+    list(src    = file.path("images", change_ext(input$file1, "wav", "png", "_spec")),
+         width  = session$clientData$output_specplot_width,
+         height = session$clientData$output_specplot_height
+         )
+  }, deleteFile = FALSE)
 
   output$specplot_freq <- renderPlot({
     if (.is_null(input$file1) | !input$spec_time)

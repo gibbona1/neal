@@ -198,3 +198,7 @@ label_layout <- function(disp, n_cols){
           flex: auto;"
   return(x)
 }
+
+change_ext <- function(x, ext, ext2, extra = "") {
+  return(paste0(str_match(x, paste0("(.*)\\.", ext))[,2], extra, ".", ext2))
+}
