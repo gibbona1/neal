@@ -29,7 +29,6 @@ TODOs:
 - [ ] navbarPage() to have distinct pages: label, verify/check, run model
   from https://shiny.rstudio.com/articles/layout-guide.html
 - [ ] Save list of added species as col in species csv (or append to a column) 
-- [ ] On clicking label in sidebar, highlights the label (option to play it)
 - [ ] modalDialog instead of edit table for editing/listen to labels
 - [ ] Unit tests (especially for plots)
 - [ ] Check soundgen pitch app https://github.com/tatters/soundgen
@@ -70,3 +69,8 @@ TODOs:
 - [ ] CSS in own files
 - [x] Filename has number of labels in choice names
 - [ ] Loading and saving labels to google sheets each session for persistent data storage
+- [ ] clicking label/box functionality:
+  - [ ] label becomes selectinput
+  - [ ] box is highighted (different style)
+  - [ ] option to delete (need to programmatic set brush coordinates so hotkey will work)
+  - [ ] option to play selected times/frequencies in box

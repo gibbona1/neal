@@ -20,6 +20,7 @@ tmp_df <- read.csv("location_list.csv")
 
 for(i in 1:nrow(tmp_df)){
   row <- tmp_df[i,]
+  print(row[1])
   MAD   <- readWKT(paste0("POINT(", row$lat, " ", row$long,")"),p4s=CRS(wgs.84))
   print(gDistance(MAD,coast))
 }
