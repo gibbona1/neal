@@ -1505,7 +1505,8 @@ server <- function(input, output, session) {
       #if (input$hide_other_labels)
       #  lab_df <- lab_df[lab_df$labeler == labeler(), ]
       lab_df <- lab_df %>%
-        filter(between(start_time, segment_start(), segment_start() + input$t_step))
+        filter(between(start_time, segment_start()-0.05, segment_start() + input$t_step))
+      lab_df$start_time <- sapply(lab_df$start_time, function(s) max(s,segment_start()))
       if (!is.null(dc_ranges_spec$x)) {
         lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2], ]
         lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
