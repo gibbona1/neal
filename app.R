@@ -266,6 +266,7 @@ ui_func <- function() {
                checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
                checkboxInput("fileSummaryTab", "File Summary Table", value = FALSE),
                checkboxInput("summaryTabGroup", "Subgroup by class", value = FALSE),
+               checkboxInput("summaryTabNozero", "Remove zero counts", value = FALSE),
                # Add the Undo/Redo buttons to the UI
                h5("Undo/Redo label save or delete"),
                undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
@@ -767,7 +768,7 @@ server <- function(input, output, session) {
 
     panel_name <- paste("File Summary",
                         ifelse(is.null(df), "",
-                               paste0("(", length(unique(df$file_name)), " labelled)")))
+                               paste0("(", length(unique(df$file_name)), " files labelled; ", nrow(df), " total labels)")))
     bsCollapse(id = "fileLabSummary",
                open = panel_name,
                bsCollapsePanel(panel_name,
@@ -885,7 +886,8 @@ server <- function(input, output, session) {
 
     sum_df$Actions <- dtShinyInput(actionButton, nrow(sum_df), "button_", label = "Go to File",
                                  onclick = "Shiny.onInputChange('dt_select_button', this.id)")
-
+    if(input$summaryTabNozero)
+      sum_df <- sum_df[sum_df$num_labels != 0,]
     return(sum_df)
   })
 
