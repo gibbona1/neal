@@ -12,8 +12,13 @@ get_audio_dt <- function(x) {
 }
 
 get_audio_recdf <- function(x) {
-  name_str <- stringr::str_extract(x, regex("[A-Z,0-9]{1,}_*"))
-  name_str <- substr(name_str, 1, nchar(name_str) - 1)
+  name_str <- stringr::str_extract(x, regex("[0-9]{0,9}_{0,1}[A-Z,0-9]{1,}_*"))
+  pre_str  <- stringr::str_extract(x, regex("[0-9]{0,9}_*"))
+  if(pre_str != "")
+    str_start <- nchar(pre_str)+1
+  else
+    str_start <- 1
+  name_str <- substr(name_str, str_start, nchar(name_str) - 1)
 
   loc_df <- read.csv("location_list.csv", fileEncoding = "UTF-8-BOM")
   if (name_str %in% loc_df$recorder_name)
