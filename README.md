@@ -72,5 +72,5 @@ TODOs:
 - [ ] clicking label/box functionality:
   - [ ] label becomes selectinput
   - [ ] box is highighted (different style)
-  - [ ] option to delete (need to programmatic set brush coordinates so hotkey will work)
+  - [ ] option to delete (need to programmatic set brush coordinates so hotkey/existing delete will work)
   - [ ] option to play selected times/frequencies in box

@@ -224,6 +224,7 @@ ui_func <- function() {
                actionButton("savespec", "Download Spectrogram", icon = icon("save")),
                checkboxInput("include_hover", "Include spectrogram hover tooltip",
                              value = FALSE),
+               checkboxInput("spec_time_js", "JS vertical line guide", value = FALSE),
                checkboxInput("spec_time", "Vertical line guide for audio current time",
                              value = FALSE),
                checkboxInput("include_guides", "Selected time/frequency guidelines",
@@ -1420,15 +1421,22 @@ server <- function(input, output, session) {
       #  "specplot_blank",
       #  height   = 25,
       #  ),
+      uiOutput("spec_time_js_line"),
       tags$head(tags$style("
             #hover_info {
               position: absolute;
               width: 200px;
               height: 30px;
               z-index: 100;
-             }
-          ")),
+            }")),
       tags$script(src = "JS/spec_hover.js"),
+      #tags$script("var audio = document.getElementById('my_audio_player');
+      #             var curtime = audio.currentTime;"),
+      #tags$script("$(document).on('shiny:inputchanged', function(event) {
+      #             if (event.name === 'get_time') {
+      #               document.getElementById('spec_time_js_line').style.left = event.value+'%';
+      #               }
+      #              });"),
       uiOutput("hover_info")
     )
   })
@@ -1568,6 +1576,20 @@ server <- function(input, output, session) {
     return(spec_plot)
   }, bg = "transparent")
 
+  output$spec_time_js_line <- renderUI({
+    if(!input$spec_time_js)
+      return(NULL)
+    #browser()
+    return(div(style = "background-color: #FF0000;
+                        width: 2px;
+                        height: 100%;
+                        position: absolute;
+                        left: 0%;
+                        z-index: 40;
+                        top:0;",
+               "some line"))
+  })
+  
   observeEvent(input$savespec, {
     if (!.is_null(input$file1))
       spec_name <- gsub(".wav", "_spec.png", input$file1)
