@@ -454,17 +454,17 @@ ui_func <- function() {
        column(6,
               fluidRow(#style = btn_row_style,
                 actionButton("remove_points",
-                             HTML("<b>Delete Selection</b>"),
+                             HTML("<b>Delete selection</b>"),
                              icon  = icon("trash-alt"),
                              style = "width: 100%; text-align:left"),
                 actionButton("undo_delete_lab",
-                             HTML("<b>Undo Deletion</b>"),
+                             HTML("<b>Undo deletion</b>"),
                              icon  = icon("undo-alt"),
                              style = "width: 100%; text-align:left;"),
-                disabled(actionButton("reset_labels",
-                         HTML("<b>Clear all labels for this file</b>"),
+                actionButton("reset_labels",
+                         HTML("<b>Clear labels for this file</b>"),
                          icon  = icon("eraser"),
-                         style = "width: 100%; text-align:left;"))#,
+                         style = "width: 100%; text-align:left;")#,
                 #disabled(downloadButton("downloadData", "Download Labels"))
               )
        )
@@ -2021,6 +2021,19 @@ server <- function(input, output, session) {
     } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
     }
+  })
+  
+  observeEvent(input$reset_labels, {
+    full_df <- fullData()
+    full_df <- full_df[full_df$file_name != input$file1,]
+    fullData(full_df)
+    write_labs(full_df, append = FALSE, col.names = TRUE)
+    showNotification("All labels removed for this file", type = "message")
+    filenames <- file_list()
+    names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
+    updateSelectInput(inputId  = "file1",
+                      choices  = filenames,
+                      selected = input$file1)
   })
 
   output$my_audio <- renderUI({
