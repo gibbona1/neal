@@ -242,7 +242,7 @@ ui_func <- function() {
                             value = 75, min = 0, max = 99, step = 1),
                numericInput("window_width_disp", "Window Size for display spectrogram",
                             value = 1024),
-               numericInput("fft_overlap_disp", "FFT Overlap for display spectrogram",
+               numericInput("fft_overlap_disp", "FFT Overlap for display spectrogram (%)",
                             value = 15, min = 0, max = 99, step = 1)
       ),
       menuItem("Oscillogram Settings",
@@ -445,14 +445,14 @@ ui_func <- function() {
                 actionButton("resetCategory",
                              HTML("<b>Reset categories</b>"),
                              icon  = icon("list"),
-                             style = "width: 100%; text-align:left;")
+                             style = "width: 100%; text-align:left;")#,
+                #disabled(actionButton("save_extra",
+                #                      HTML("<b>Save to List</b>"),
+                #                      icon  = icon("archive"),
+                #                      style = "width: 100%; text-align:left;"))
               )),
        column(6,
               fluidRow(#style = btn_row_style,
-                disabled(actionButton("save_extra",
-                                      HTML("<b>Save to List</b>"),
-                                      icon  = icon("archive"),
-                                      style = "width: 100%; text-align:left;")),
                 actionButton("remove_points",
                              HTML("<b>Delete Selection</b>"),
                              icon  = icon("trash-alt"),
@@ -460,7 +460,12 @@ ui_func <- function() {
                 actionButton("undo_delete_lab",
                              HTML("<b>Undo Deletion</b>"),
                              icon  = icon("undo-alt"),
-                             style = "width: 100%; text-align:left;")
+                             style = "width: 100%; text-align:left;"),
+                disabled(actionButton("reset_labels",
+                         HTML("<b>Clear all labels for this file</b>"),
+                         icon  = icon("eraser"),
+                         style = "width: 100%; text-align:left;"))#,
+                #disabled(downloadButton("downloadData", "Download Labels"))
               )
        )
       )
