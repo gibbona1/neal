@@ -2021,11 +2021,19 @@ server <- function(input, output, session) {
     } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
     }
+    filenames <- file_list()
+    names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
+    updateSelectInput(inputId  = "file1",
+                      choices  = filenames,
+                      selected = input$file1)
   })
   
   observeEvent(input$reset_labels, {
     full_df <- fullData()
-    full_df <- full_df[full_df$file_name != input$file1,]
+    delete_idx <- full_df$file_name == input$file1
+    deleted_lab$rows <- which(delete_idx)
+    deleted_lab$data <- full_df[delete_idx, ]
+    full_df <- full_df[!delete_idx,]
     fullData(full_df)
     write_labs(full_df, append = FALSE, col.names = TRUE)
     showNotification("All labels removed for this file", type = "message")
