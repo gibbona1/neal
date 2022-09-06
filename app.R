@@ -537,6 +537,14 @@ server <- function(input, output, session) {
   filename_pre <- function(x, df) {
     return(paste0("(", nrow(df[df$file_name == x, ]), ") ", x))
   }
+  
+  refresh_labcounts <- function(){
+    filenames <- file_list()
+    names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
+    updateSelectInput(inputId  = "file1",
+                      choices  = filenames,
+                      selected = input$file1)
+  }
 
   file_list <- reactive({
     filenames <- list.files(file.path("www", lab_nickname()))
@@ -1946,11 +1954,7 @@ server <- function(input, output, session) {
         lab_df$id <- 1
         write_labs(lab_df)
         fullData(rbind(full_df, lab_df))
-        filenames <- file_list()
-        names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
-        updateSelectInput(inputId  = "file1",
-                          choices  = filenames,
-                          selected = input$file1)
+        refresh_labcounts()
       } else {
         lab_df$id <- 1
         write_labs(lab_df, append = FALSE, col.names = TRUE)
@@ -1990,11 +1994,7 @@ server <- function(input, output, session) {
         write_labs(full_df, append = FALSE, col.names = TRUE)
         showNotification("Label removed, click Undo to bring back",
                          type = "message")
-        filenames <- file_list()
-        names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
-        updateSelectInput(inputId  = "file1",
-                          choices  = filenames,
-                          selected = input$file1)
+        refresh_labcounts()
       }
     } else {
       showNotification("Label not removed, nothing selected!", type = "error")
@@ -2021,11 +2021,7 @@ server <- function(input, output, session) {
     } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
     }
-    filenames <- file_list()
-    names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
-    updateSelectInput(inputId  = "file1",
-                      choices  = filenames,
-                      selected = input$file1)
+    refresh_labcounts()
   })
   
   observeEvent(input$reset_labels, {
@@ -2036,12 +2032,8 @@ server <- function(input, output, session) {
     full_df <- full_df[!delete_idx,]
     fullData(full_df)
     write_labs(full_df, append = FALSE, col.names = TRUE)
-    showNotification("All labels removed for this file", type = "message")
-    filenames <- file_list()
-    names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
-    updateSelectInput(inputId  = "file1",
-                      choices  = filenames,
-                      selected = input$file1)
+    showNotification("All labels removed for this file, click Undo to bring back", type = "message")
+    refresh_labcounts()
   })
 
   output$my_audio <- renderUI({
