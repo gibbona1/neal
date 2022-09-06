@@ -254,10 +254,10 @@ ui_func <- function() {
                checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
                uiOutput("osc_collapse")
       ),
-      menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
-               #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
-               downloadButton("downloadData", "Download Labels")
-      ),
+      #menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
+      #         #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
+      #         #downloadButton("downloadData", "Download Labels")
+      #),
       menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
                selectInput("label_display", "Label display type", c("grid", "flex")),
                numericInput("label_columns", "Number of Columns",
@@ -409,10 +409,46 @@ ui_func <- function() {
         uiOutput("label_ui"), #backspace to delete
         tags$script(src = "JS/remove_category.js"),
         column(6,
-        textInput("otherCategory", "Type in additional category:",
-                  width = "100%"), #enter to add category
-        tags$script(src = "JS/add_category.js")
+          textInput("otherCategory", "Type in additional category:",
+                    width = "100%"), #enter to add category
+          tags$script(src = "JS/add_category.js"),
+          div(HTML("<b>Category buttons</b>"),
+            actionButton("addCategory",
+                         HTML("<b>Add category</b>"),
+                         icon  = icon("plus-square"),
+                         style = "width: 100%; text-align:left;"),
+            actionButton("remCategory",
+                         HTML("<b>Remove category</b>"),
+                         icon  = icon("minus-square"),
+                         style = "width: 100%; text-align:left;"),
+            actionButton("resetCategory",
+                         HTML("<b>Reset categories</b>"),
+                         icon  = icon("list"),
+                         style = "width: 100%; text-align:left;"),
+            disabled(actionButton("save_extra",
+                                  HTML("<b>Save to List</b>"),
+                                  icon  = icon("archive"),
+                                  style = "width: 100%; text-align:left;")),
+          ),
+            #Label buttons
+          div(HTML("<b>Label buttons</b>"),
+            actionButton("remove_points",
+                         HTML("<b>Delete selection</b>"),
+                         icon  = icon("trash-alt"),
+                         style = "width: 100%; text-align:left"),
+            actionButton("undo_delete_lab",
+                         HTML("<b>Undo deletion</b>"),
+                         icon  = icon("undo-alt"),
+                         style = "width: 100%; text-align:left;"),
+            actionButton("reset_labels",
+                         HTML("<b>Clear labels for this file</b>"),
+                         icon  = icon("eraser"),
+                         style = "width: 100%; text-align:left;"),
+            disabled(downloadButton("downloadData", "Download Labels", style = "width: 100%; text-align:left;"))
+          )
         ),
+        #TODO: Other info to label/record -
+        ## altitude of recorder (check if in metadata)
         column(6,
         fluidRow(style = btn_sel_style,
                  selectInput(
@@ -422,73 +458,19 @@ ui_func <- function() {
                    multiple   = TRUE,
                    choices    = call_types,
                    selected   = NULL)
-                 )
-          )
-      )
-    }),
-    #Label buttons
-    fluidRow({
-      div(
-       #br(),
-       #TODO: Other info to label/record -
-       ## altitude of recorder (check if in metadata)
-       column(6,
-              fixedRow(#style = btn_row_style,
-                actionButton("addCategory",
-                             HTML("<b>Add category</b>"),
-                             icon  = icon("plus-square"),
-                             style = "width: 100%; text-align:left;"),
-                actionButton("remCategory",
-                             HTML("<b>Remove category</b>"),
-                             icon  = icon("minus-square"),
-                             style = "width: 100%; text-align:left;"),
-                actionButton("resetCategory",
-                             HTML("<b>Reset categories</b>"),
-                             icon  = icon("list"),
-                             style = "width: 100%; text-align:left;")#,
-                #disabled(actionButton("save_extra",
-                #                      HTML("<b>Save to List</b>"),
-                #                      icon  = icon("archive"),
-                #                      style = "width: 100%; text-align:left;"))
-              )),
-       column(6,
-              fluidRow(#style = btn_row_style,
-                actionButton("remove_points",
-                             HTML("<b>Delete selection</b>"),
-                             icon  = icon("trash-alt"),
-                             style = "width: 100%; text-align:left"),
-                actionButton("undo_delete_lab",
-                             HTML("<b>Undo deletion</b>"),
-                             icon  = icon("undo-alt"),
-                             style = "width: 100%; text-align:left;"),
-                actionButton("reset_labels",
-                         HTML("<b>Clear labels for this file</b>"),
-                         icon  = icon("eraser"),
-                         style = "width: 100%; text-align:left;")#,
-                #disabled(downloadButton("downloadData", "Download Labels"))
-              )
-       )
-      )
-    }),
-    #notes, frequency filtering and label confidence
-    fluidRow({
-      div(
-        column(4,
-               textAreaInput("notes", "Additional Notes:", width = "100%", resize = "vertical")
-        ),
-        column(4,
-               uiOutput("freq_ui")
-        ),
-        column(4,
-               sliderInput("label_confidence", "Label Confidence:",
-                           min   = 0,
-                           max   = 1,
-                           step  = 0.05,
-                           value = 1,
-                           ticks = FALSE,
-                           width = "100%"),
-               div(div(style = "float:left;", "low"),
-                   div(style = "float:right;", "high")),
+                 ),
+        #notes, frequency filtering and label confidence
+        textAreaInput("notes", "Additional Notes:", width = "100%", resize = "vertical"),
+        uiOutput("freq_ui"),
+        sliderInput("label_confidence", "Label Confidence:",
+                   min   = 0,
+                   max   = 1,
+                   step  = 0.05,
+                   value = 1,
+                   ticks = FALSE,
+                   width = "100%"),
+       div(div(style = "float:left;", "low"),
+           div(style = "float:right;", "high")),
         )
       )
     }),
@@ -1075,17 +1057,16 @@ server <- function(input, output, session) {
 
   output$freq_ui <- renderUI({
     freq_range <- as.numeric(c(input$freq_min, input$freq_max))
-    div(
-      sliderInput(
-        "frequency_range",
-        "Audio Frequency Range:",
-        min   = freq_range[1],
-        max   = freq_range[2],
-        step  = 0.2,
-        value = freq_range,
-        ticks = FALSE,
-        width = "100%"
-      ))
+    sliderInput(
+      "frequency_range",
+      "Audio Frequency Range:",
+      min   = freq_range[1],
+      max   = freq_range[2],
+      step  = 0.2,
+      value = freq_range,
+      ticks = FALSE,
+      width = "100%"
+    )
   })
 
   audioInput <- reactive({
