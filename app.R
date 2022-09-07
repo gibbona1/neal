@@ -454,27 +454,37 @@ ui_func <- function() {
         #TODO: Other info to label/record -
         ## altitude of recorder (check if in metadata)
         column(6,
-        fluidRow(style = btn_sel_style,
-                 selectInput(
-                   inputId    = "call_type",
-                   label      = "Call Type:",
-                   width      = "100%",
-                   multiple   = TRUE,
-                   choices    = call_types,
-                   selected   = NULL)
-                 ),
+        #div(#style = btn_sel_style,
+        tags$style("#call_type {padding: 0%;}"),
+        selectInput(
+          inputId    = "call_type",
+          label      = "Call Type:",
+          width      = "100%",
+          multiple   = TRUE,
+          choices    = call_types,
+          selected   = NULL#)
+       ),
         #notes, frequency filtering and label confidence
-        textAreaInput("notes", "Additional Notes:", width = "100%", resize = "vertical"),
-        uiOutput("freq_ui"),
-        sliderInput("label_confidence", "Label Confidence:",
-                   min   = 0,
-                   max   = 1,
-                   step  = 0.05,
-                   value = 1,
-                   ticks = FALSE,
-                   width = "100%"),
-       div(div(style = "float:left;", "low"),
-           div(style = "float:right;", "high")),
+        HTML("<b>Additional Notes:</b>"),
+        textAreaInput("notes", NULL, width = "100%", resize = "vertical")
+        )
+      )
+    }),
+    fluidRow({
+      div(
+        column(6,
+               sliderInput("label_confidence", "Label Confidence:",
+                           min   = 0,
+                           max   = 1,
+                           step  = 0.05,
+                           value = 1,
+                           ticks = FALSE,
+                           width = "100%"),
+               div(div(style = "float:left;", "low"),
+                   div(style = "float:right;", "high"))
+        ),
+        column(6,
+               uiOutput("freq_ui")
         )
       )
     }),
