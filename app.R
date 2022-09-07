@@ -447,8 +447,7 @@ ui_func <- function() {
                          HTML("<b>Undo</b>"),
                          icon  = icon("undo-alt"),
                          style = "width: 24%; text-align:left;"), "Undo last deleted label(s)"),
-            disabled(tipify(downloadButton("downloadData", "Download", style = "width: 24%; text-align:left;"), "Download labels for all files"))
-              )
+            tipify(downloadButton("downloadData", "Download", style = "width: 24%; text-align:left;"), "Download labels for all files"))
           )
         ),
         #TODO: Other info to label/record -
@@ -473,6 +472,9 @@ ui_func <- function() {
     fluidRow({
       div(
         column(6,
+               uiOutput("freq_ui")
+        ),
+        column(6,
                sliderInput("label_confidence", "Label Confidence:",
                            min   = 0,
                            max   = 1,
@@ -482,9 +484,6 @@ ui_func <- function() {
                            width = "100%"),
                div(div(style = "float:left;", "low"),
                    div(style = "float:right;", "high"))
-        ),
-        column(6,
-               uiOutput("freq_ui")
         )
       )
     }),
