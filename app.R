@@ -245,15 +245,15 @@ ui_func <- function() {
                numericInput("fft_overlap_disp", "FFT Overlap for display spectrogram (%)",
                             value = 15, min = 0, max = 99, step = 1)
       ),
-      menuItem("Oscillogram Settings",
-               tabName = "osc_menu", icon = icon("chart-line"),
-               actionButton("saveosc", "Download Oscillogram", icon = icon("save")),
-               checkboxInput("include_hover_osc", "Include oscillogram hover tooltip",
-                             value = FALSE),
-               checkboxInput("osc_labs", "Show oscillogram labels"),
-               checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
-               uiOutput("osc_collapse")
-      ),
+      #menuItem("Oscillogram Settings",
+      #         tabName = "osc_menu", icon = icon("chart-line"),
+      #         actionButton("saveosc", "Download Oscillogram", icon = icon("save")),
+      #         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip",
+      #                       value = FALSE),
+      #         checkboxInput("osc_labs", "Show oscillogram labels"),
+      #         checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
+      #         uiOutput("osc_collapse")
+      #),
       #menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
       #         #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
       #         #downloadButton("downloadData", "Download Labels")
