@@ -616,6 +616,7 @@ server <- function(input, output, session) {
   cat_colours <- function(x) {
     if (is.null(x))
       return(NULL)
+    x$trim_class <- trim_start(x$class_label)
     other_c <- unique(unlist(species_list))
     other_c <- other_c[other_c != "" & !(other_c %in% class_label())]
     x_cl    <- as.vector(x$class_label)
@@ -625,7 +626,7 @@ server <- function(input, output, session) {
                                       rep("cyan", length(categories$xtra)),
                                       rep("grey", length(other_c))),
                           category = c(class_label(), other_c))
-    merge_df <- merge(x, cat_df, by.x = "class_label", by.y = "category", sort = FALSE)
+    merge_df <- merge(x, cat_df, by.x = "trim_class", by.y = "category", sort = FALSE)
     return(merge_df)
   }
 
