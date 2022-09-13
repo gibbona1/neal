@@ -1075,7 +1075,7 @@ server <- function(input, output, session) {
     div(
       radioGroupButtons(
         inputId    = "label_points",
-        label      = paste("Class Label Selection:", input$species_list),
+        label      = paste("Class List:", input$species_list),
         individual = TRUE,
         width      = "100%",
         status     = "primary",
