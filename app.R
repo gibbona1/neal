@@ -159,6 +159,7 @@ ui_func <- function() {
                               title = "Please select a folder",
                               icon  = icon("folder")),
                verbatimTextOutput("folder", placeholder = TRUE),
+               fileInput("upload_files", "Upload files", multiple = TRUE, accept = c("audio/wav")),
                selectInput("species_list",
                            "Species List:",
                            choices = colnames(species_list),
@@ -522,8 +523,11 @@ server <- function(input, output, session) {
     auth0_session <- session$userData$auth0_info
     if (is.null(auth0_session))
       nickname <- Sys.info()[["user"]]
-    else
+    else {
       nickname <- auth0_session$nickname
+      if (!(nickname %in% list.files("www/")))
+        dir.create(file.path("www", nickname), showWarnings = FALSE)
+    }
     if (!(nickname %in% list.files("www/")))
       nickname <- "tmp"
     return(nickname)
@@ -541,13 +545,22 @@ server <- function(input, output, session) {
                       selected = input$file1)
   }
 
-  file_list <- reactive({
+  get_file_list <- function(){
     filenames <- list.files(file.path("www", lab_nickname()))
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
-    full_df <- fullData()
+    full_df   <- read.csv(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
     if (!is.null(full_df))
       names(filenames) <- sapply(filenames, function(x) filename_pre(x, full_df))
     return(filenames)
+  }
+  
+  # store as a reactive instead of output
+  file_list <- reactivePoll(1000, session, 
+                            checkFunc = function() unique(get_file_list()), 
+                            valueFunc = get_file_list)
+  
+  observeEvent(file_list(), ignoreInit = T, ignoreNULL = T, {
+    refresh_labcounts()
   })
 
   global <- reactiveValues(datapath = getwd())
@@ -621,6 +634,14 @@ server <- function(input, output, session) {
     misc = misc_categories,
     xtra = c()
   )
+  
+  observeEvent(input$upload_files, {
+    upFiles <- input$upload_files
+    for(i in seq_len(nrow(upFiles))){
+      file_dest <- file.path("www", lab_nickname(), upFiles[i, "name"])
+      file.copy(upFiles[i, "datapath"], file_dest)
+    }
+  })
 
   observeEvent(input$species_list, {
     categories$base <- get_entries(species_list[, input$species_list])
@@ -1025,6 +1046,10 @@ server <- function(input, output, session) {
     filenms <- file_list()
     updateSelectInput(inputId  = "file1",
                       choices  = filenms)
+    if(length(filenms)==0)
+      showNotification(HTML(paste("Could not start labelling as no files are present.
+                                  Please <b>Upload files</b> and try again.")),
+                       type = "error")
   })
 
   observeEvent(input$end_labelling, {
@@ -1586,7 +1611,6 @@ server <- function(input, output, session) {
   output$spec_time_js_line <- renderUI({
     if(!input$spec_time_js)
       return(NULL)
-    #browser()
     return(div(style = "background-color: #FF0000;
                         width: 2px;
                         height: 100%;
