@@ -295,10 +295,10 @@ ui_func <- function() {
     tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
     fluidRow({
     div(
-      column(2,
+      column(1,
         HTML("<b>Filename: </b>")
       ),
-      column(8,
+      column(7,
         selectInput(
           "file1",
           label   = NULL,
@@ -316,7 +316,41 @@ ui_func <- function() {
                             ")))
       ),
       column(2,
+        fluidRow(
+        column(6, style = "padding:0px;",
+                tipify(
+                  actionButton("prev_section", "",
+                               icon  = icon("chevron-left"),
+                               style = file_btn_style),
+                  "previous section"
+                )
+         ),
+        column(6, style = "padding:0px;",
+                tipify(
+                  actionButton("next_section", "",
+                               icon  = icon("chevron-right"),
+                               style = file_btn_style),
+                  "next section"
+                )
+         )
+        ),
         uiOutput("segmentNumText")
+      ),
+      column(2, 
+             column(6, style = "padding:0px;",
+                        tipify(
+                          actionButton("prev_file", "",
+                                       icon  = icon("arrow-left"),
+                                       style = file_btn_style),
+                          "Previous File"
+                        ),
+             ),
+             column(6, style = "padding:0px;",
+                    tipify(actionButton("next_file", "",
+                                        icon  = icon("arrow-right"),
+                                        style = file_btn_style),
+                           "Next File")
+             )
       )
       )
     }),
@@ -366,37 +400,6 @@ ui_func <- function() {
         }),
         column(2, {
           fixedRow(style = btn_row_style,
-                   div(column(6, style = "padding:0px;",
-                              tipify(
-                                actionButton("prev_file", "",
-                                             icon  = icon("arrow-left"),
-                                             style = file_btn_style),
-                                "Previous File"
-                              ),
-                   ),
-                   #column(3, style = "padding:0px;",
-                   #        tipify(
-                   #          actionButton("prev_section", "",
-                   #                       icon  = icon("chevron-left"),
-                   #                       style = file_btn_style),
-                   #          "previous section"
-                   #        )
-                   # ),
-                   #column(3, style = "padding:0px;",
-                   #        tipify(
-                   #          actionButton("next_section", "",
-                   #                       icon  = icon("chevron-right"),
-                   #                       style = file_btn_style),
-                   #          "next section"
-                   #        )
-                   # ),
-                   column(6, style = "padding:0px;",
-                          tipify(actionButton("next_file", "",
-                                              icon  = icon("arrow-right"),
-                                              style = file_btn_style),
-                                 "Next File")
-                   )
-                   ),
                    fluidRow(style = btn_row_style,
                             actionButton("plt_reset", "Reset Zoom",
                                          style = file_btn_style)
@@ -1110,6 +1113,8 @@ server <- function(input, output, session) {
   })
 
   audioInput <- reactive({
+    segment_total(1)
+    
     if (.is_null(input$file1))
       return(NULL)
     tmp_audio <- readWave(file.path(getwd(), "www", lab_nickname(), input$file1))
@@ -1266,17 +1271,19 @@ server <- function(input, output, session) {
 
   output$segmentNumText <- renderUI({
     if (.is_null(input$file1))
-      return(NULL)
-    txt <- ""
+      return(NULL) 
     if (segment_total() > 1) {
       if (segment_num() == segment_total())
         seg_colour <- "green"
       else
         seg_colour <- "red"
-      txt <- paste(txt, "Segment: <span style='color: ", seg_colour, ";'><b>(",
-                   segment_num(), "/", segment_total(), ")</b></span>")
+      txt <- HTML(paste("Segment: <span style='color: ", seg_colour, ";'><b>(",
+                   segment_num(), "/", segment_total(), ")</b></span>"))
     }
-    return(HTML(txt))
+    else {
+      txt <- tags$br()
+    }
+    return(txt)
   })
 
   specData <- reactive({
