@@ -315,8 +315,28 @@ ui_func <- function() {
                             }
                             ")))
       ),
+      column(2, 
+             HTML("File Change"),
+             fluidRow(
+             column(6, style = "padding:0px;",
+                    tipify(
+                      actionButton("prev_file", "",
+                                   icon  = icon("arrow-left"),
+                                   style = file_btn_style),
+                      "Previous File"
+                    ),
+             ),
+             column(6, style = "padding:0px;",
+                    tipify(actionButton("next_file", "",
+                                        icon  = icon("arrow-right"),
+                                        style = file_btn_style),
+                           "Next File")
+             )
+             )
+      ),
       column(2,
         fluidRow(
+          uiOutput("segmentNumText"),
         column(6, style = "padding:0px;",
                 tipify(
                   actionButton("prev_section", "",
@@ -333,24 +353,7 @@ ui_func <- function() {
                   "next section"
                 )
          )
-        ),
-        uiOutput("segmentNumText")
-      ),
-      column(2, 
-             column(6, style = "padding:0px;",
-                        tipify(
-                          actionButton("prev_file", "",
-                                       icon  = icon("arrow-left"),
-                                       style = file_btn_style),
-                          "Previous File"
-                        ),
-             ),
-             column(6, style = "padding:0px;",
-                    tipify(actionButton("next_file", "",
-                                        icon  = icon("arrow-right"),
-                                        style = file_btn_style),
-                           "Next File")
-             )
+        )
       )
       )
     }),
@@ -1270,20 +1273,18 @@ server <- function(input, output, session) {
   gettime_t <- gettime %>% throttle(50)
 
   output$segmentNumText <- renderUI({
+    txt <- "Segment: "
     if (.is_null(input$file1))
-      return(NULL) 
+      return(HTML(txt)) 
     if (segment_total() > 1) {
       if (segment_num() == segment_total())
         seg_colour <- "green"
       else
         seg_colour <- "red"
-      txt <- HTML(paste("Segment: <span style='color: ", seg_colour, ";'><b>(",
-                   segment_num(), "/", segment_total(), ")</b></span>"))
+      txt <- paste(txt, "<span style='color: ", seg_colour, ";'><b>(",
+                   segment_num(), "/", segment_total(), ")</b></span>")
     }
-    else {
-      txt <- tags$br()
-    }
-    return(txt)
+    return(HTML(txt))
   })
 
   specData <- reactive({
