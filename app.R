@@ -1930,8 +1930,12 @@ server <- function(input, output, session) {
       showNotification("Need category name to add", type = "error")
     else if (input$otherCategory %in% class_label())
       showNotification("Category already present", type = "error")
-    else
+    else {
       categories$xtra <- c(categories$xtra, input$otherCategory)
+      updateTextInput(inputId = "otherCategory", value = "")
+      updateRadioGroupButtons(inputId = "label_points",
+                              selected = input$otherCategory)
+    }
   })
 
   observeEvent(input$remCategory, {
