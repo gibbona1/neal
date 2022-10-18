@@ -91,6 +91,10 @@ jsCode <- "shinyjs.audiotoggle = function() {
   }
 }"
 
+audio_folder_str <- paste("If <b>Data-folder</b> has <code>.wav</code> files, set <b>Audio-folder</b>=<b>Data-Folder</b>.", 
+                          "Otherwise check <code>Data-Folder/www/username</code>.", 
+                          "If this directory is not found, set <b>Audio-Folder</b>=<b>Data-Folder</b>.")
+
 ui_func <- function() {
   header <- {
     dashboardHeader(
@@ -150,6 +154,7 @@ ui_func <- function() {
 
   sidebar <- {
     dashboardSidebar(
+    tags$head(tags$style(HTML('.sidebar-menu > li {white-space: normal;}'))),
     shinyjs::useShinyjs(),
     sidebarMenu(
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
@@ -158,8 +163,13 @@ ui_func <- function() {
                               label = "Folder select",
                               title = "Please select a folder",
                               icon  = icon("folder")),
+               h5("Data folder"),
                verbatimTextOutput("folder", placeholder = TRUE),
-               fileInput("upload_files", "Upload files", multiple = TRUE, accept = "audio/wav"),
+               h5("Audio location"), 
+               verbatimTextOutput("audio_folder", placeholder = TRUE),
+               wellPanel(style = "background-color: rgba(120, 120, 120, 0.25);",
+                         HTML(audio_folder_str)),
+               fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
                selectInput("species_list",
                            "Species List:",
                            choices = colnames(species_list),
@@ -528,14 +538,17 @@ server <- function(input, output, session) {
 
   lab_nickname <- function() {
     auth0_session <- session$userData$auth0_info
-    if (is.null(auth0_session))
+    audio_folder  <- "www"
+    if(!dir.exists(audio_folder))
+      return("tmp")
+    if(is.null(auth0_session))
       nickname <- Sys.info()[["user"]]
     else {
       nickname <- auth0_session$nickname
-      if (!(nickname %in% list.files("www/")))
-        dir.create(file.path("www", nickname), showWarnings = FALSE)
+      if(!(nickname %in% list.files(audio_folder)))
+        dir.create(file.path(audio_folder, nickname), showWarnings = FALSE)
     }
-    if (!(nickname %in% list.files("www/")))
+    if(!(nickname %in% list.files(audio_folder)))
       nickname <- "tmp"
     return(nickname)
   }
@@ -553,13 +566,37 @@ server <- function(input, output, session) {
   }
 
   get_file_list <- function(){
-    filenames <- list.files(file.path("www", lab_nickname()), pattern = "\\.wav$")
+    filenames <- list.files(global()$audiopath, pattern = "\\.wav$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     full_df   <- read.csv(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
     if (!is.null(full_df))
       names(filenames) <- sapply(filenames, function(x) filename_pre(x, full_df))
     return(filenames)
   }
+
+  global <- reactive({
+    datapath <- audiopath <- getwd()
+    dirinfo  <- parseDirPath(volumes, input$folder)
+    if(!identical(dirinfo, character(0)))
+      datapath  <- dirinfo
+    audiodir <- file.path(datapath, "www", lab_nickname())
+    if(dir.exists(audiodir))
+      audiopath <- audiodir
+    else
+      audiopath <- datapath
+    if(length(list.files(datapath, pattern = "\\.wav$"))>0)
+      audiopath <- datapath
+    return(list(datapath  = datapath,
+                audiopath = audiopath))
+  })
+
+  output$folder <- renderText({
+    return(global()$datapath)
+    })
+  
+  output$audio_folder <- renderText({
+    return(global()$audiopath)
+  })
   
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session, 
@@ -569,16 +606,6 @@ server <- function(input, output, session) {
   observeEvent(file_list(), ignoreInit = T, ignoreNULL = T, {
     refresh_labcounts()
   })
-
-  global  <- reactiveValues(datapath = getwd())
-
-  output$folder <- renderText({
-    dirinfo <- parseDirPath(volumes, input$folder)
-    if(identical(dirinfo, character(0)))
-      return(global$datapath)
-    else
-      return(dirinfo)
-    })
 
   ranges_spec    <- reactiveValues(x = NULL, y = NULL)
   ranges_osc     <- reactiveValues(x = NULL)
@@ -640,7 +667,7 @@ server <- function(input, output, session) {
   observeEvent(input$upload_files, {
     upFiles <- input$upload_files
     for(i in seq_len(nrow(upFiles))){
-      file_dest <- file.path(global$datapath, upFiles[i, "name"])
+      file_dest <- file.path(global()$datapath, upFiles[i, "name"])
       file.copy(upFiles[i, "datapath"], file_dest)
     }
   })
@@ -1114,7 +1141,7 @@ server <- function(input, output, session) {
     
     if (.is_null(input$file1))
       return(NULL)
-    tmp_audio <- readWave(file.path(getwd(), "www", lab_nickname(), input$file1))
+    tmp_audio <- readWave(file.path(global()$audiopath, input$file1))
 
     #based on torchaudio::functional_gain
     audio_gain     <- function(waveform, gain_db = 0) {
@@ -1155,7 +1182,7 @@ server <- function(input, output, session) {
       disable("next_section")
       x_coords(NULL)
     }
-    writeWave(tmp_audio, file.path("www", lab_nickname(), "tmp.wav"))
+    writeWave(tmp_audio, file.path(global()$audiopath, "tmp.wav"))
     return(tmp_audio)
   })
 
@@ -1258,7 +1285,7 @@ server <- function(input, output, session) {
     } else {
       audio_clean$select <- FALSE
     }
-    writeWave(tmp_audio, file.path("www", lab_nickname(), "tmp_clean.wav"))
+    writeWave(tmp_audio, file.path(global()$audiopath, "tmp_clean.wav"))
     return(tmp_audio)
   })
 
@@ -2065,10 +2092,10 @@ server <- function(input, output, session) {
   output$my_audio <- renderUI({
     audio_style <- "width: 100%;"
     if (!is.null(cleanInput())) {
-      file_name   <- file.path("www", lab_nickname(), "tmp_clean.wav")
+      file_name   <- file.path(global()$audiopath, "tmp_clean.wav")
       audio_style <- paste(audio_style, "filter: sepia(50%);")
     } else {
-      file_name <- file.path("www", lab_nickname(), "tmp.wav")
+      file_name <- file.path(global()$audiopath, "tmp.wav")
     }
 
     audio_style <- HTML(audio_style)
