@@ -159,7 +159,7 @@ ui_func <- function() {
                               title = "Please select a folder",
                               icon  = icon("folder")),
                verbatimTextOutput("folder", placeholder = TRUE),
-               fileInput("upload_files", "Upload files", multiple = TRUE, accept = c("audio/wav")),
+               fileInput("upload_files", "Upload files", multiple = TRUE, accept = "audio/wav"),
                selectInput("species_list",
                            "Species List:",
                            choices = colnames(species_list),
@@ -553,7 +553,7 @@ server <- function(input, output, session) {
   }
 
   get_file_list <- function(){
-    filenames <- list.files(file.path("www", lab_nickname()))
+    filenames <- list.files(file.path("www", lab_nickname()), pattern = "\\.wav$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     full_df   <- read.csv(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
     if (!is.null(full_df))
@@ -640,7 +640,7 @@ server <- function(input, output, session) {
   observeEvent(input$upload_files, {
     upFiles <- input$upload_files
     for(i in seq_len(nrow(upFiles))){
-      file_dest <- file.path("www", lab_nickname(), upFiles[i, "name"])
+      file_dest <- file.path(global$datapath, upFiles[i, "name"])
       file.copy(upFiles[i, "datapath"], file_dest)
     }
   })
