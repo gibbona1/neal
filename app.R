@@ -570,21 +570,15 @@ server <- function(input, output, session) {
     refresh_labcounts()
   })
 
-  global <- reactiveValues(datapath = getwd())
+  global  <- reactiveValues(datapath = getwd())
 
-  mydir <- reactive(input$folder)
-
-  output$folder <- renderText(global$datapath)
-
-  output$files <- renderPrint(list.files(global$datapath))
-
-  observeEvent(eventExpr = input$folder, handlerExpr = {
-    if (!"path" %in% names(dir())) return()
-    home <- normalizePath("~")
-    global$datapath <-
-      file.path(home, paste(unlist(dir()$path[-1]),
-                            collapse = .Platform$file.sep))
-  })
+  output$folder <- renderText({
+    dirinfo <- parseDirPath(volumes, input$folder)
+    if(identical(dirinfo, character(0)))
+      return(global$datapath)
+    else
+      return(dirinfo)
+    })
 
   ranges_spec    <- reactiveValues(x = NULL, y = NULL)
   ranges_osc     <- reactiveValues(x = NULL)
