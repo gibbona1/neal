@@ -2142,18 +2142,21 @@ server <- function(input, output, session) {
       latlong <- NULL
       if (!is.null(df))
         latlong <- c(df$lat, df$long)
-      wf_address <- ifelse(!is.null(df),
-                           paste0(df$wind_farm_name, ", Co.", df$wind_farm_county),
+      loc_address <- ifelse(!is.null(df),
+                           paste0(df$location_name, ", Co.", df$location_county),
                            "")
-      wf_latlong <- ifelse(!is.null(latlong),
+      loc_latlong <- ifelse(!is.null(latlong),
                            paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
                            "")
-      wf_link <- ""
+      loc_habitat <- ifelse(!is.null(df),
+                           df$habitat_type,
+                           "")
+      loc_link <- ""
       if (!is.null(latlong))
-        wf_link <- get_gmap_link(latlong)
-      wf_d2c <- ""
+        loc_link <- get_gmap_link(latlong)
+      loc_d2c <- ""
       if (!is.null(df))
-        wf_d2c <- m2km(df$dist_to_coastline)
+        loc_d2c <- m2km(df$dist_to_coastline)
       div(#HTML(base),
         tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
         tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
@@ -2161,11 +2164,12 @@ server <- function(input, output, session) {
                    bsCollapsePanel("Meta Information",
                                    #HTML("<b>filename: </b>"), input$file1, br(),
                                    HTML("<b>Time recorded: </b>"), as.character(dt), br(),
-                                   HTML("<b>Location: </b>"), wf_address, br(),
+                                   HTML("<b>Location: </b>"), loc_address, br(),
+                                   HTML("<b>Habitat type: </b>"), loc_habitat, br(),
                                    HTML("<b>Coordinates: </b>"),
-                                   wf_latlong, wf_link, br(),
+                                   loc_latlong, loc_link, br(),
                                    HTML("<b>Distance to coastline: </b>"),
-                                   wf_d2c,
+                                   loc_d2c,
                                    #paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
                                    #get_gmap_link(latlong),
                                    style = "info")
