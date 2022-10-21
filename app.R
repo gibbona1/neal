@@ -165,10 +165,10 @@ ui_func <- function() {
                               icon  = icon("folder")),
                h5("Data folder"),
                verbatimTextOutput("folder", placeholder = TRUE),
-               h5("Audio location"), 
-               verbatimTextOutput("audio_folder", placeholder = TRUE),
-               wellPanel(style = "background-color: rgba(120, 120, 120, 0.25);",
-                         HTML(audio_folder_str)),
+               #h5("Audio folder"), 
+               #verbatimTextOutput("audio_folder", placeholder = TRUE),
+               #wellPanel(style = "background-color: rgba(120, 120, 120, 0.25);",
+               #         HTML(audio_folder_str)),
                fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
                selectInput("species_list",
                            "Species List:",
@@ -566,7 +566,7 @@ server <- function(input, output, session) {
   }
 
   get_file_list <- function(){
-    filenames <- list.files(global()$audiopath, pattern = "\\.wav$")
+    filenames <- list.files(dataPath(), pattern = "\\.wav$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     full_df   <- read.csv(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
     if (!is.null(full_df))
@@ -574,29 +574,21 @@ server <- function(input, output, session) {
     return(filenames)
   }
 
-  global <- reactive({
-    datapath <- audiopath <- getwd()
+  dataPath <- reactive({
+    datapath <- getwd()
     dirinfo  <- parseDirPath(volumes, input$folder)
     if(!identical(dirinfo, character(0)))
-      datapath  <- dirinfo
+      return(dirinfo)
     audiodir <- file.path(datapath, "www", lab_nickname())
     if(dir.exists(audiodir))
-      audiopath <- audiodir
+      return(audiodir)
     else
-      audiopath <- datapath
-    if(length(list.files(datapath, pattern = "\\.wav$"))>0)
-      audiopath <- datapath
-    return(list(datapath  = datapath,
-                audiopath = audiopath))
+      return(datapath)
   })
 
   output$folder <- renderText({
-    return(global()$datapath)
+    return(dataPath())
     })
-  
-  output$audio_folder <- renderText({
-    return(global()$audiopath)
-  })
   
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session, 
@@ -667,7 +659,7 @@ server <- function(input, output, session) {
   observeEvent(input$upload_files, {
     upFiles <- input$upload_files
     for(i in seq_len(nrow(upFiles))){
-      file_dest <- file.path(global()$datapath, upFiles[i, "name"])
+      file_dest <- file.path(dataPath(), upFiles[i, "name"])
       file.copy(upFiles[i, "datapath"], file_dest)
     }
   })
@@ -1141,7 +1133,7 @@ server <- function(input, output, session) {
     
     if (.is_null(input$file1))
       return(NULL)
-    tmp_audio <- readWave(file.path(global()$audiopath, input$file1))
+    tmp_audio <- readWave(file.path(dataPath(), input$file1))
 
     #based on torchaudio::functional_gain
     audio_gain     <- function(waveform, gain_db = 0) {
@@ -1182,7 +1174,7 @@ server <- function(input, output, session) {
       disable("next_section")
       x_coords(NULL)
     }
-    writeWave(tmp_audio, file.path(global()$audiopath, "tmp.wav"))
+    writeWave(tmp_audio, file.path(dataPath(), "tmp.wav"))
     return(tmp_audio)
   })
 
@@ -1285,7 +1277,7 @@ server <- function(input, output, session) {
     } else {
       audio_clean$select <- FALSE
     }
-    writeWave(tmp_audio, file.path(global()$audiopath, "tmp_clean.wav"))
+    writeWave(tmp_audio, file.path(dataPath(), "tmp_clean.wav"))
     return(tmp_audio)
   })
 
@@ -2092,10 +2084,10 @@ server <- function(input, output, session) {
   output$my_audio <- renderUI({
     audio_style <- "width: 100%;"
     if (!is.null(cleanInput())) {
-      file_name   <- file.path(global()$audiopath, "tmp_clean.wav")
+      file_name   <- file.path(dataPath(), "tmp_clean.wav")
       audio_style <- paste(audio_style, "filter: sepia(50%);")
     } else {
-      file_name <- file.path(global()$audiopath, "tmp.wav")
+      file_name <- file.path(dataPath(), "tmp.wav")
     }
 
     audio_style <- HTML(audio_style)
