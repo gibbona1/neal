@@ -98,7 +98,8 @@ audio_folder_str <- paste("If <b>Data-folder</b> has <code>.wav</code> files, se
 ui_func <- function() {
   header <- {
     dashboardHeader(
-    title = "Audio Labeler App",
+    title = div(img(src="ne-logo.jpg", height = 30), "Audio Labeller"),
+    titleWidth = 300,
     dropdownMenu(
       tags$li(class = "dropdown",
               uiOutput("start_ui")
