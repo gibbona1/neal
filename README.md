@@ -15,7 +15,7 @@ TODOs:
   - [x] Distance from coastline
   - [ ] Distance from closest Special Area of Conservation (SAC) and species concerned
   - [ ] Infer weather using some API (temperature, weather, wind, percipitation)
-  - [ ] Get habitat type (either hard coded or gotten from wind farm GIS files)
+  - [x] Get habitat type (either hard coded or gotten from wind farm GIS files)
   - [ ] Recorder height (~1m) or altitude
 - [x] Make File Select dropdown easier to navigate (in header)
 - [x] File label stats (# labels) and navigation
@@ -76,3 +76,4 @@ TODOs:
   - [ ] box is highighted (different style)
   - [ ] option to delete (need to programmatic set brush coordinates so hotkey/existing delete will work)
   - [ ] option to play selected times/frequencies in box
+- [ ] flexbox alignment/fill to end of row

@@ -2133,6 +2133,9 @@ server <- function(input, output, session) {
       dt <- get_audio_dt(input$file1)
       df <- get_audio_recdf(input$file1)
       latlong <- NULL
+      main_cols <- c("recorder_name", "lat", "long",
+                     "location_name", "location_county",
+                     "habitat_type", "dist_to_coastline")
       if (!is.null(df))
         latlong <- c(df$lat, df$long)
       loc_address <- ifelse(!is.null(df),
@@ -2150,6 +2153,8 @@ server <- function(input, output, session) {
       loc_d2c <- ""
       if (!is.null(df))
         loc_d2c <- m2km(df$dist_to_coastline)
+      other_cols <- setdiff(colnames(df), main_cols)
+      other_metatxt <- purrr::map(other_cols, function(x) div(HTML(paste0("<b>", x, ": </b>")), df[,x]))
       div(#HTML(base),
         tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
         tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
@@ -2163,6 +2168,7 @@ server <- function(input, output, session) {
                                    loc_latlong, loc_link, br(),
                                    HTML("<b>Distance to coastline: </b>"),
                                    loc_d2c,
+                                   other_metatxt,
                                    #paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
                                    #get_gmap_link(latlong),
                                    style = "info")
