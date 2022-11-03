@@ -2129,53 +2129,43 @@ server <- function(input, output, session) {
   })
 
   output$meta_text <- renderUI({
-    if (!is.null(audioInput())) {
-      dt <- get_audio_dt(input$file1)
-      df <- get_audio_recdf(input$file1)
-      latlong <- NULL
-      main_cols <- c("recorder_name", "lat", "long",
-                     "location_name", "location_county",
-                     "habitat_type", "dist_to_coastline")
-      if (!is.null(df))
-        latlong <- c(df$lat, df$long)
-      loc_address <- ifelse(!is.null(df),
-                           paste0(df$location_name, ", Co.", df$location_county),
-                           "")
-      loc_latlong <- ifelse(!is.null(latlong),
-                           paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
-                           "")
-      loc_habitat <- ifelse(!is.null(df),
-                           df$habitat_type,
-                           "")
-      loc_link <- ""
-      if (!is.null(latlong))
-        loc_link <- get_gmap_link(latlong)
-      loc_d2c <- ""
-      if (!is.null(df))
-        loc_d2c <- m2km(df$dist_to_coastline)
-      other_cols <- setdiff(colnames(df), main_cols)
-      other_metatxt <- purrr::map(other_cols, function(x) div(HTML(paste0("<b>", x, ": </b>")), df[,x]))
-      div(#HTML(base),
-        tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
-        tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
-        bsCollapse(id = "collapseExample",
-                   bsCollapsePanel("Meta Information",
-                                   #HTML("<b>filename: </b>"), input$file1, br(),
-                                   HTML("<b>Time recorded: </b>"), as.character(dt), br(),
-                                   HTML("<b>Location: </b>"), loc_address, br(),
-                                   HTML("<b>Habitat type: </b>"), loc_habitat, br(),
-                                   HTML("<b>Coordinates: </b>"),
-                                   loc_latlong, loc_link, br(),
-                                   HTML("<b>Distance to coastline: </b>"),
-                                   loc_d2c,
-                                   other_metatxt,
-                                   #paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")),
-                                   #get_gmap_link(latlong),
-                                   style = "info")
-        ))
-    } else {
+    if(is.null(audioInput()))
       return(NULL)
-    }
+    dt <- get_audio_dt(input$file1)
+    df <- get_audio_recdf(input$file1)
+    latlong <- NULL
+    main_cols <- c("recorder_name", "lat", "long",
+                   "location_name", "location_county",
+                   "habitat_type", "dist_to_coastline")
+    meta_paste <- function(x, y) return(ifelse(!is.null(x), y, ""))
+    if(!is.null(df))
+      latlong <- c(df$lat, df$long)
+    loc_address <- meta_paste(df,
+                         paste0(df$location_name, ", Co.", df$location_county))
+    loc_latlong <- meta_paste(latlong,
+                         paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")))
+    loc_habitat <- meta_paste(df, df$habitat_type)
+    loc_link    <- ""
+    if(!is.null(latlong))
+      loc_link <- get_gmap_link(latlong)
+    loc_d2c     <- meta_paste(df, m2km(df$dist_to_coastline))
+    other_cols  <- setdiff(colnames(df), main_cols)
+    other_metatxt <- purrr::map(other_cols, function(x) div(HTML(paste0("<b>", x, ": </b>")), meta_paste(df[,x], df[,x])))
+    div(
+      tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
+      tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
+      bsCollapse(id = "collapseExample",
+                 bsCollapsePanel("Meta Information",
+                                 HTML("<b>Time recorded: </b>"), as.character(dt), br(),
+                                 HTML("<b>Location: </b>"), loc_address, br(),
+                                 HTML("<b>Habitat type: </b>"), loc_habitat, br(),
+                                 HTML("<b>Coordinates: </b>"),
+                                 loc_latlong, loc_link, br(),
+                                 HTML("<b>Distance to coastline: </b>"),
+                                 loc_d2c,
+                                 other_metatxt,
+                                 style = "info")
+      ))
   })
 
   output$audio_time <- renderText({
