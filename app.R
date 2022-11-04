@@ -148,6 +148,12 @@ ui_func <- function() {
           target = "_blank",
           tagAppendAttributes(icon("crow"), class = "text-info"),
           "BTO Species Codes")
+      ),
+      tags$li(
+        a(href = "https://www.marei.ie/project/natureenergy/",
+          target = "_blank",
+          tagAppendAttributes(icon("bookmark"), class = "text-info"),
+          "Nature+Energy homepage")
       )
     )
   )
