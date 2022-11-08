@@ -568,7 +568,7 @@ server <- function(input, output, session) {
   })
 
   filename_pre <- function(x, df) {
-    return(paste0("(", nrow(df[df$file_name == x, ]), ") ", x))
+    return(paste0("(", sum(df$file_name == x), ") ", x))
   }
   
   refresh_labcounts <- function(){
@@ -692,8 +692,10 @@ server <- function(input, output, session) {
   observeEvent(input$dircreate, {
     dir.create(nickname_path())
     removeModal()
-    showNotification(HTML(paste0("Directory <b>", nickname_path(), "</b> created.")),
+    showNotification(HTML(paste0("Directory <b>", nickname_path(), "</b> created. restarting...")),
                      duration = NULL, type = "message")
+    Sys.sleep(2)
+    session$reload()
   })
 
   observeEvent(input$species_list, {
