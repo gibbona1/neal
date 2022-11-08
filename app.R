@@ -91,10 +91,6 @@ jsCode <- "shinyjs.audiotoggle = function() {
   }
 }"
 
-audio_folder_str <- paste("If <b>Data-folder</b> has <code>.wav</code> files, set <b>Audio-folder</b>=<b>Data-Folder</b>.", 
-                          "Otherwise check <code>Data-Folder/www/username</code>.", 
-                          "If this directory is not found, set <b>Audio-Folder</b>=<b>Data-Folder</b>.")
-
 ui_func <- function() {
   header <- {
     dashboardHeader(
@@ -172,10 +168,6 @@ ui_func <- function() {
                               icon  = icon("folder")),
                h5("Data folder"),
                verbatimTextOutput("folder", placeholder = TRUE),
-               #h5("Audio folder"), 
-               #verbatimTextOutput("audio_folder", placeholder = TRUE),
-               #wellPanel(style = "background-color: rgba(120, 120, 120, 0.25);",
-               #         HTML(audio_folder_str)),
                fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
                selectInput("species_list",
                            "Species List:",
@@ -542,23 +534,38 @@ server <- function(input, output, session) {
     filetypes      = c("wav"),
     allowDirCreate = FALSE
   )
+  
+  nickname_path  <- reactiveVal(NULL)
+  
+  dataModal <- function(nickname, audio_folder, failed = FALSE) {
+    modalDialog(
+      h5("Create folder"),
+      HTML(paste0("Folder <b>", nickname, "</b> not found in <b>", audio_folder, "</b>. Would you like to create it?")),
+      if(failed)
+        div(tags$b("Invalid name of data object", style = "color: red;")),
+      footer = tagList(
+        modalButton("No"),
+        actionButton("dircreate", "Yes")
+      )
+    )
+  }
 
-  lab_nickname <- function() {
+  lab_nickname <- reactive({
     auth0_session <- session$userData$auth0_info
     audio_folder  <- "www"
     if(!dir.exists(audio_folder))
       return("tmp")
     if(is.null(auth0_session))
       nickname <- Sys.info()[["user"]]
-    else {
+    else
       nickname <- auth0_session$nickname
-      if(!(nickname %in% list.files(audio_folder)))
-        dir.create(file.path(audio_folder, nickname), showWarnings = FALSE)
-    }
+    nickname_path(file.path(audio_folder, nickname))
+    if(!(nickname %in% list.files(audio_folder)))
+      showModal(dataModal(nickname, audio_folder))
     if(!(nickname %in% list.files(audio_folder)))
       nickname <- "tmp"
     return(nickname)
-  }
+  })
 
   filename_pre <- function(x, df) {
     return(paste0("(", nrow(df[df$file_name == x, ]), ") ", x))
@@ -680,6 +687,13 @@ server <- function(input, output, session) {
       file_dest <- file.path(dataPath(), upFiles[i, "name"])
       file.copy(upFiles[i, "datapath"], file_dest)
     }
+  })
+  
+  observeEvent(input$dircreate, {
+    dir.create(nickname_path())
+    removeModal()
+    showNotification(HTML(paste0("Directory <b>", nickname_path(), "</b> created.")),
+                     duration = NULL, type = "message")
   })
 
   observeEvent(input$species_list, {

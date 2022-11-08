@@ -73,3 +73,6 @@ TODOs:
   - [ ] option to delete (need to programmatic set brush coordinates so hotkey/existing delete will work)
   - [ ] option to play selected times/frequencies in box
 - [ ] flexbox alignment/fill to end of row
+- [ ] action links
+  - [ ] when new folder created, action link to navigate there (change Data Folder)
+  - [ ] when image saved, link to open it
