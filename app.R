@@ -575,7 +575,7 @@ server <- function(input, output, session) {
   get_file_list <- function(){
     filenames <- list.files(dataPath(), pattern = "\\.wav$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
-    full_df   <- read.csv(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
+    full_df   <- read.csv(labs_filename())
     if (!is.null(full_df))
       names(filenames) <- sapply(filenames, function(x) filename_pre(x, full_df))
     return(filenames)
@@ -596,6 +596,17 @@ server <- function(input, output, session) {
   output$folder <- renderText({
     return(dataPath())
     })
+  
+  labs_filename <- reactive({
+    fname <- paste0("labels/tmp_labels_", lab_nickname(), ".csv")
+    if(!file.exists(fname)){
+      #creates empty dataframe
+      write.csv(read.csv("labels/tmp_labels_tmp.csv")[FALSE,], fname, row.names = FALSE)
+      showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
+                       duration = NULL, type = "message") 
+    }
+    return(fname)
+  })
   
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session, 
@@ -693,8 +704,6 @@ server <- function(input, output, session) {
     cats <- categories
     c(cats$base, cats$misc, cats$xtra)
   })
-
-  labs_filename <- reactive(paste0("labels/tmp_labels_", lab_nickname(), ".csv"))
 
   conf_filename <- reactive(paste0("saved_configs/input_", lab_nickname(), ".RDS"))
 
@@ -1076,7 +1085,7 @@ server <- function(input, output, session) {
                       choices  = filenms)
     if(length(filenms)==0)
       showNotification(HTML(paste("Could not start labelling as no files are present.
-                                  Please <b>Upload files</b> and try again.")),
+                                  Please <b>Upload files</b> or navigate to a different directory to get started.")),
                        type = "error")
   })
 
