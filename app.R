@@ -605,10 +605,10 @@ server <- function(input, output, session) {
     })
   
   labs_filename <- reactive({
-    fname <- paste0("labels/tmp_labels_", lab_nickname(), ".csv")
+    fname <- paste0("labels/labels_", lab_nickname(), ".csv")
     if(!file.exists(fname)){
       #creates empty dataframe
-      write.csv(read.csv("labels/tmp_labels_tmp.csv")[FALSE,], fname, row.names = FALSE)
+      write.csv(read.csv("labels/labels_tmp.csv")[FALSE,], fname, row.names = FALSE)
       showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
                        duration = NULL, type = "message") 
     }
@@ -2228,7 +2228,7 @@ server <- function(input, output, session) {
 
   output$downloadSpec <- downloadHandler(
     filename = function() {
-      paste0("tmp_spec-", Sys.Date(), ".csv")
+      paste0("spec-", Sys.Date(), ".csv")
     },
     content  = function(file) {
       write.csv(specData(), file, row.names = FALSE)
