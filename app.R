@@ -34,7 +34,7 @@ options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
 bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
 
-species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM")
+species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM", check.names=FALSE)
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
                 "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")

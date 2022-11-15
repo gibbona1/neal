@@ -109,6 +109,7 @@ geometric_median <- function(X, eps = 1e-5, numIter = 200) {
 }
 
 get_jq_lines <- function(val, cols) {
+  val <- gsub("'", "\\\\'", val)
   x <- paste0("var ",
               c("originalBorder", "originalColor", "originalBackground"),
               " = [];",
