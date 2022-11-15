@@ -31,8 +31,7 @@ frange_check <- function(vec, freq_range) {
 
 trim_start <- function(y) {
   start_list <- c("Common", "Eurasian", "European", "Northern", "Greater", "Great")
-  for (st in start_list)
-    y <- gsub(paste0("^", st, " "), "", y)
+  y <- gsub(paste0("^", paste0(start_list, collapse="|"), " "), "", y)
   return(y)
 }
 
@@ -170,10 +169,8 @@ get_jq_lines <- function(val, cols) {
 }
 
 add_colour_js <- function(x, labs, cols) {
-  if (!is.null(labs)) {
-    for (lab in labs)
-      x <- paste0(x, get_jq_lines(lab, cols))
-  }
+  if(!is.null(labs))
+    x <- paste0(x, sapply(labs, function(l) get_jq_lines(l, cols)), collapse="")
   return(x)
 }
 

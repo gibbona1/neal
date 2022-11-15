@@ -34,6 +34,8 @@ options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
 bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
 
+ldir   <- "labels" #label directory
+
 species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM", check.names=FALSE)
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
@@ -605,10 +607,10 @@ server <- function(input, output, session) {
     })
   
   labs_filename <- reactive({
-    fname <- paste0("labels/labels_", lab_nickname(), ".csv")
+    fname <- paste0(ldir, "/labels_", lab_nickname(), ".csv")
     if(!file.exists(fname)){
       #creates empty dataframe
-      write.csv(read.csv("labels/labels_tmp.csv")[FALSE,], fname, row.names = FALSE)
+      write.csv(read.csv(ldir, "/labels_tmp.csv")[FALSE,], fname, row.names = FALSE)
       showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
                        duration = NULL, type = "message") 
     }
@@ -807,13 +809,10 @@ server <- function(input, output, session) {
   # only admin can download all labels
   # other users download only theirs
   saveData <- reactive({
-    if (labeler() == "anthony.gibbons.2022@mumail.ie") {
-      df <- data.frame()
-      for (labfile in list.files("labels")){
-        fname <- file.path("labels", labfile)
-        if (file.exists(fname))
-          df <- rbind(df, read.csv(fname))
-      }
+    if(labeler() == "anthony.gibbons.2022@mumail.ie"){
+      lread_csv <- lapply(list.files(ldir),
+                           function(l) read.csv(file.path(ldir, l)))
+      df <- do.call(rbind, lread_csv)
       return(df)
     } else {
       return(fullData())
@@ -889,11 +888,10 @@ server <- function(input, output, session) {
     }
     tab_class_input <- function(x, sel, choices, name) {
       res <- paste0("<select id='", input_names(name), "'>")
-      optlist <- rep("", length(sel))
-      for (i in seq_along(sel)){
-        sel_str <- ifelse(choices == sel[i], " selected", "")
-        optlist[i] <- paste0("<option value='", choices, "'", sel_str, ">", choices, "</option>", collapse = "")
-      }
+      optlist <- sapply(seq_along(sel), function(i) {
+       sel_str <- ifelse(choices == sel[i], " selected", "")
+       return(paste0("<option value='", choices, "'", sel_str, ">", choices, "</option>", collapse = ""))
+      })
       res <- paste0(res, optlist, "</select>")
       return(res)
     }
@@ -988,9 +986,7 @@ server <- function(input, output, session) {
   })
 
   input_list <- function(x) {
-    a <- list()
-    for (name in x)
-      a <- append(a, input[[name]])
+    a <- lapply(x, function(name) input[[name]])
     return(a)
   }
 
