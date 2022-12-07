@@ -615,7 +615,7 @@ server <- function(input, output, session) {
     fname <- paste0(ldir, "/labels_", lab_nickname(), ".csv")
     if(!file.exists(fname)){
       #creates empty dataframe
-      write.csv(read.csv(ldir, "/labels_tmp.csv")[FALSE,], fname, row.names = FALSE)
+      write.csv(read.csv(paste0(ldir, "/labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
       showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
                        duration = NULL, type = "message") 
     }
