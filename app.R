@@ -697,15 +697,10 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$upload_files, {
-    upFiles <- input$upload_files
-    for(i in seq_len(nrow(upFiles))){
-      file_dest <- file.path(dataPath(), upFiles[i, "name"])
-      file.copy(upFiles[i, "datapath"], file_dest)
-    }
-    ### Use lapply() to apply the file.copy() function to each element in upFiles
-    #file_dest <- lapply(upFiles, function(x) {
-    #  file.copy(x["datapath"], file.path(dataPath(), x["name"]))
-    #})
+    #copy each upload file to destination folder
+    apply(input$upload_files, 1, function(x) {
+      file.copy(x["datapath"], file.path(dataPath(), x["name"]))
+    })
   })
   
   observeEvent(input$dircreate, {
@@ -961,20 +956,11 @@ server <- function(input, output, session) {
       rename(num_labels = n)
 
     other_files <- setdiff(file_list(), sum_df$file_name)
-
-    tmp_row <- sum_df[sum_df$file_name == sum_df$file_name[1], ]
-    tmp_row$num_labels <- 0
-    for (fn in other_files){
-      new_row <- tmp_row
-      new_row$file_name <- fn
-      sum_df <- rbind(sum_df, new_row)
-    }
-    # Use map() to apply a function to each element in other_files
-    #sum_df <- map(other_files, function(fn) {
-    #  new_row <- tmp_row
-    #  new_row$file_name <- fn
-    #  return(rbind(sum_df, new_row))
-    #})
+    
+    #dataframe of zeros for each file without labels
+    new_df <- data.frame(file_name  = other_files,
+                         num_labels = 0)
+    sum_df <- rbind(sum_df, new_df)
 
     if (input$summaryTabGroup)
       sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label), ]
@@ -2080,15 +2066,12 @@ server <- function(input, output, session) {
                            start_freq = ranges_spec$y[1],
                            end_freq   = ranges_spec$y[2])
       full_df    <- fullData()
-      full_df_rm <- c()
-      for (idx in seq_len(nrow(full_df))){
-        bb_cols  <- c("start_time", "end_time", "start_freq", "end_freq")
-        check_df <- full_df[idx, ]
-        row_iou  <- bb_iou(lab_df[, bb_cols], check_df[, bb_cols])
-        if (row_iou > 0.6)
-          full_df_rm <- c(full_df_rm, idx)
-      }
-      if (!is.null(full_df_rm)) {
+      bb_cols    <- c("start_time", "end_time", "start_freq", "end_freq")
+      #compare the selected box with all labels
+      row_iou    <- sapply(seq_len(nrow(full_df)), 
+                           function(i) bb_iou(lab_df[, bb_cols], full_df[i, bb_cols]))
+      full_df_rm <- which(row_iou > 0.6)
+      if (!is.null(full_df_rm) & length(full_df_rm) > 0) {
         deleted_lab$rows <- full_df_rm
         deleted_lab$data <- full_df[full_df_rm, ]
         full_df <- full_df[-full_df_rm, ]
@@ -2108,18 +2091,13 @@ server <- function(input, output, session) {
     rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
     if (!is.null(del_df)) {
-      insertRow <- function(old_df, newrow, idx) {
-        if (idx <= nrow(old_df))
-          old_df[seq(idx + 1, nrow(old_df) + 1), ] <- old_df[seq(idx, nrow(old_df)), ]
-        old_df[idx, ] <- newrow
-        return(old_df)
-      }
-      for (row in seq_along(rownums))
-        full_df <- insertRow(full_df, del_df[row, ], rownums[row])
+      #add old df to the end, it has the old rownumbers
+      full_df <- rbind(full_df, del_df)
+      full_df <- full_df[order(row.names(full_df)),]
       deleted_lab$rows <- deleted_lab$data <- NULL
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
-      showNotification("Label recovered", type = "message")
+      showNotification("Label(s) recovered", type = "message")
     } else {
       showNotification("Nothing undone, no deletions detected!", type = "error")
     }
