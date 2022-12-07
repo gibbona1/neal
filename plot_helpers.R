@@ -148,8 +148,7 @@ plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, sp
                        breaks = y_breaks,
                        labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse = ""),
                                        y_breaks, "kHz")
-                       ) +
-    spec_theme
+                       ) 
   return(spec_plot)
 }
 

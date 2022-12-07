@@ -1435,7 +1435,8 @@ server <- function(input, output, session) {
   specCanvas <- reactive({return(ggplot(specData(), 
                                         aes(x    = time,
                                             y    = frequency,
-                                            fill = amplitude)))})
+                                            fill = amplitude)) +
+                                   spec_theme)})
 
   specPlot <- reactive({
     df <- specData()
