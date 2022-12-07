@@ -171,6 +171,9 @@ ui_func <- function() {
                h5("Data folder"),
                verbatimTextOutput("folder", placeholder = TRUE),
                fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
+               selectInput("mode", "Label Mode", 
+                           choices = c("Bats"="bats", "Birds (default)"="birds"),
+                           selected = "birds"),
                selectInput("species_list",
                            "Species List:",
                            choices = colnames(species_list),
@@ -200,6 +203,8 @@ ui_func <- function() {
                            value = 300,
                            ticks = FALSE,
                            step  = 100),
+               selectInput("spec_interpolate", "Plot Interpolation", 
+                           choices = c("Yes"=TRUE, "No"=FALSE)),
                selectInput("freq_min", "minimum frequency in filter",
                            choices = c(0, 2^(3:7)), selected = 0),
                selectInput("freq_max", "maximum frequency in filter",
@@ -683,12 +688,24 @@ server <- function(input, output, session) {
     xtra = c()
   )
   
+  observeEvent(input$mode, {
+    if(input$mode == "bats"){
+      updateSelectInput(inputId = "spec_interpolate", selected = FALSE)
+    } else {
+      shinyjs::reset("spec_interpolate")
+    }
+  })
+  
   observeEvent(input$upload_files, {
     upFiles <- input$upload_files
     for(i in seq_len(nrow(upFiles))){
       file_dest <- file.path(dataPath(), upFiles[i, "name"])
       file.copy(upFiles[i, "datapath"], file_dest)
     }
+    ### Use lapply() to apply the file.copy() function to each element in upFiles
+    #file_dest <- lapply(upFiles, function(x) {
+    #  file.copy(x["datapath"], file.path(dataPath(), x["name"]))
+    #})
   })
   
   observeEvent(input$dircreate, {
@@ -952,6 +969,12 @@ server <- function(input, output, session) {
       new_row$file_name <- fn
       sum_df <- rbind(sum_df, new_row)
     }
+    # Use map() to apply a function to each element in other_files
+    #sum_df <- map(other_files, function(fn) {
+    #  new_row <- tmp_row
+    #  new_row$file_name <- fn
+    #  return(rbind(sum_df, new_row))
+    #})
 
     if (input$summaryTabGroup)
       sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label), ]
@@ -1408,6 +1431,11 @@ server <- function(input, output, session) {
     }
     return(df2)
   })
+  
+  specCanvas <- reactive({return(ggplot(specData(), 
+                                        aes(x    = time,
+                                            y    = frequency,
+                                            fill = amplitude)))})
 
   specPlot <- reactive({
     df <- specData()
@@ -1420,7 +1448,7 @@ server <- function(input, output, session) {
     if (!is.null(dc_ranges_spec$x))
       x_breaks <- pretty(dc_ranges_spec$x, 5)
 
-    p <- plot_spectrogram(df, input, length_ylabs, dc_ranges_spec,
+    p <- plot_spectrogram(df, specCanvas(), input, length_ylabs, dc_ranges_spec,
                           specplot_range, x_breaks, y_breaks)
 
     gb   <- ggplot_build(p)

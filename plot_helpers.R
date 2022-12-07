@@ -104,7 +104,7 @@ plot_oscillogram <- function(df, input, length_ylabs) {
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks) {
+plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks) {
   palette_cols <- function(pal_name, n = 6) {
     if (pal_name == "viridisplus")
       return(virpluscols)
@@ -117,8 +117,6 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
   sel_col <- palette_cols(input$palette_selected)
   if (input$palette_invert)
     sel_col <- rev(sel_col)
-
-  spec_plot <- ggplot(df)
 
   if (!.is_null(input$file1)) {
     spec_name_raw <- paste0(gsub(".wav", "", input$file1), "_spec_raw.png")
@@ -134,12 +132,9 @@ plot_spectrogram <- function(df, input, length_ylabs, dc_ranges_spec, specplot_r
     #                height=unit(1,"npc"))
     #spec_plot <- spec_plot + annotation_custom(g)
   }
-
-  spec_plot <- spec_plot +
-    geom_raster(aes(x    = time,
-                    y    = frequency,
-                    fill = amplitude),
-                interpolate = TRUE
+  
+  spec_plot <- canvas +
+    geom_raster(interpolate = as.logical(input$spec_interpolate)
                 ) +
     xlab("Time (s)") +
     ylab("Frequency (kHz)") +
