@@ -203,6 +203,8 @@ ui_func <- function() {
                            value = 300,
                            ticks = FALSE,
                            step  = 100),
+               sliderInput("spec_samp", "Spectrogram Sampling proportion", 
+                           min=0.1, max=1, value=1, step=0.05),
                selectInput("spec_interpolate", "Plot Interpolation", 
                            choices = c("Yes"=TRUE, "No"=FALSE)),
                selectInput("freq_min", "minimum frequency in filter",
@@ -1380,7 +1382,7 @@ server <- function(input, output, session) {
     #else if (!is.null(dc_ranges_spec$x))
     #  df$time <- df$time + dc_ranges_spec$x[1]
 
-    return(df)
+    return(df %>% sample_frac(input$spec_samp))
   })
 
   oscData <- reactive({
