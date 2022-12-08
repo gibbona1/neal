@@ -36,7 +36,7 @@ bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
 
 ldir   <- "labels" #label directory
 
-species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM", check.names=FALSE)
+species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM", check.names = FALSE)
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
                 "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
@@ -96,7 +96,7 @@ jsCode <- "shinyjs.audiotoggle = function() {
 ui_func <- function() {
   header <- {
     dashboardHeader(
-    title = div(img(src="ne-logo.jpg", height = 30), "Audio Labeller"),
+    title = div(img(src = "ne-logo.jpg", height = 30), "Audio Labeller"),
     titleWidth = 300,
     dropdownMenu(
       tags$li(class = "dropdown",
@@ -159,7 +159,7 @@ ui_func <- function() {
 
   sidebar <- {
     dashboardSidebar(
-    tags$head(tags$style(HTML('.sidebar-menu > li {white-space: normal;}'))),
+    tags$head(tags$style(HTML(".sidebar-menu > li {white-space: normal;}"))),
     shinyjs::useShinyjs(),
     sidebarMenu(
       menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
@@ -171,8 +171,8 @@ ui_func <- function() {
                h5("Data folder"),
                verbatimTextOutput("folder", placeholder = TRUE),
                fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
-               selectInput("mode", "Label Mode", 
-                           choices = c("Bats"="bats", "Birds (default)"="birds"),
+               selectInput("mode", "Label Mode",
+                           choices = c("Bats" = "bats", "Birds (default)" = "birds"),
                            selected = "birds"),
                selectInput("species_list",
                            "Species List:",
@@ -203,10 +203,10 @@ ui_func <- function() {
                            value = 300,
                            ticks = FALSE,
                            step  = 100),
-               sliderInput("spec_samp", "Spectrogram Sampling proportion", 
-                           min=0.1, max=1, value=1, step=0.05),
-               selectInput("spec_interpolate", "Plot Interpolation", 
-                           choices = c("Yes"=TRUE, "No"=FALSE)),
+               sliderInput("spec_samp", "Spectrogram Sampling proportion",
+                           min = 0.1, max = 1, value = 1, step = 0.05),
+               selectInput("spec_interpolate", "Plot Interpolation",
+                           choices = c("Yes" = TRUE, "No" = FALSE)),
                selectInput("freq_min", "minimum frequency in filter",
                            choices = c(0, 2^(3:7)), selected = 0),
                selectInput("freq_max", "maximum frequency in filter",
@@ -550,7 +550,7 @@ server <- function(input, output, session) {
     modalDialog(
       h5("Create folder"),
       HTML(paste0("Folder <b>", nickname, "</b> not found in <b>", audio_folder, "</b>. Would you like to create it?")),
-      if(failed)
+      if (failed)
         div(tags$b("Invalid name of data object", style = "color: red;")),
       footer = tagList(
         modalButton("No"),
@@ -562,16 +562,16 @@ server <- function(input, output, session) {
   lab_nickname <- reactive({
     auth0_session <- session$userData$auth0_info
     audio_folder  <- "www"
-    if(!dir.exists(audio_folder))
+    if (!dir.exists(audio_folder))
       return("tmp")
-    if(is.null(auth0_session))
+    if (is.null(auth0_session))
       nickname <- Sys.info()[["user"]]
     else
       nickname <- auth0_session$nickname
     nickname_path(file.path(audio_folder, nickname))
-    if(!(nickname %in% list.files(audio_folder)))
+    if (!(nickname %in% list.files(audio_folder)))
       showModal(dataModal(nickname, audio_folder))
-    if(!(nickname %in% list.files(audio_folder)))
+    if (!(nickname %in% list.files(audio_folder)))
       nickname <- "tmp"
     return(nickname)
   })
@@ -579,8 +579,8 @@ server <- function(input, output, session) {
   filename_pre <- function(x, df) {
     return(paste0("(", sum(df$file_name == x), ") ", x))
   }
-  
-  refresh_labcounts <- function(){
+
+  refresh_labcounts <- function() {
     filenames <- file_list()
     names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
     updateSelectInput(inputId  = "file1",
@@ -588,7 +588,7 @@ server <- function(input, output, session) {
                       selected = input$file1)
   }
 
-  get_file_list <- function(){
+  get_file_list <- function() {
     filenames <- list.files(dataPath(), pattern = "\\.wav$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     full_df   <- read.csv(labs_filename())
@@ -600,10 +600,10 @@ server <- function(input, output, session) {
   dataPath <- reactive({
     datapath <- getwd()
     dirinfo  <- parseDirPath(volumes, input$folder)
-    if(!identical(dirinfo, character(0)))
+    if (!identical(dirinfo, character(0)))
       return(dirinfo)
     audiodir <- file.path(datapath, "www", lab_nickname())
-    if(dir.exists(audiodir))
+    if (dir.exists(audiodir))
       return(audiodir)
     else
       return(datapath)
@@ -619,17 +619,17 @@ server <- function(input, output, session) {
       #creates empty dataframe
       write.csv(read.csv(paste0(ldir, "/labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
       showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
-                       duration = NULL, type = "message") 
+                       duration = NULL, type = "message")
     }
     return(fname)
   })
-  
+
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session, 
                             checkFunc = function() unique(get_file_list()), 
                             valueFunc = get_file_list)
-  
-  observeEvent(file_list(), ignoreInit = T, ignoreNULL = T, {
+
+  observeEvent(file_list(), ignoreInit = TRUE, ignoreNULL = TRUE, {
     refresh_labcounts()
   })
 
@@ -638,7 +638,7 @@ server <- function(input, output, session) {
   dc_ranges_spec <- reactiveValues(x = NULL, y = NULL)
   dc_ranges_osc  <- reactiveValues(x = NULL)
   length_ylabs   <- reactiveValues(osc  = 4,    spec = 0)
-  deleted_lab    <- reactiveValues(rows = NULL, data = NULL)
+  deleted_lab    <- reactiveValues(data = NULL)
   plots_open     <- reactiveValues(osc  = TRUE, spec = TRUE)
   specplot_range <- reactiveValues(x = NULL, y = NULL)
   audio_clean    <- reactiveValues(select = FALSE, noisered = FALSE)
@@ -823,7 +823,7 @@ server <- function(input, output, session) {
   # only admin can download all labels
   # other users download only theirs
   saveData <- reactive({
-    if(labeler() == "anthony.gibbons.2022@mumail.ie"){
+    if (labeler() == "anthony.gibbons.2022@mumail.ie") {
       lread_csv <- lapply(list.files(ldir),
                            function(l) read.csv(file.path(ldir, l)))
       df <- do.call(rbind, lread_csv)
@@ -1419,12 +1419,13 @@ server <- function(input, output, session) {
     }
     return(df2)
   })
-  
-  specCanvas <- reactive({return(ggplot(specData(), 
-                                        aes(x    = time,
-                                            y    = frequency,
-                                            fill = amplitude)) +
-                                   spec_theme)})
+
+  specCanvas <- reactive({
+    return(ggplot(specData(),
+            aes(x    = time,
+                y    = frequency,
+                fill = amplitude)) +
+            spec_theme)})
 
   specPlot <- reactive({
     df <- specData()
@@ -1542,13 +1543,13 @@ server <- function(input, output, session) {
   })
 
   output$specplot <- renderPlot({
-    if(input$base_specplot)
+    if (input$base_specplot)
       plot_spectrogram_base(specData(), input, length_ylabs, dc_ranges_spec,
                             specplot_range)
     else
       return(specPlot())
   })
-  
+
   output$specplot_img <- renderImage({
     list(src    = file.path("images", change_ext(input$file1, "wav", "png", "_spec")),
          width  = session$clientData$output_specplot_width,
@@ -1615,8 +1616,8 @@ server <- function(input, output, session) {
       #if (input$hide_other_labels)
       #  lab_df <- lab_df[lab_df$labeler == labeler(), ]
       lab_df <- lab_df %>%
-        filter(between(start_time, segment_start()-0.05, segment_start() + input$t_step))
-      lab_df$start_time <- sapply(lab_df$start_time, function(s) max(s,segment_start()))
+        filter(between(start_time, segment_start() - 0.05, segment_start() + input$t_step))
+      lab_df$start_time <- sapply(lab_df$start_time, function(s) max(s, segment_start()))
       if (!is.null(dc_ranges_spec$x)) {
         lab_df <- lab_df[lab_df$end_time >= dc_ranges_spec$x[1] & lab_df$start_freq < dc_ranges_spec$y[2], ]
         lab_df$start_time_crop <- sapply(lab_df$start_time, function(x) max(x, dc_ranges_spec$x[1]))
@@ -1633,16 +1634,16 @@ server <- function(input, output, session) {
         x <- categories$base
         df <- bto_df
         df$species_name <- trim_start(df$species_name)
-        name_to_bto <- function(y, df){
-          if(y %in% df$species_name)
-            yend <- paste0(" (", df[df$species_name == y,]$bto_code, ")")
+        name_to_bto <- function(y, df) {
+          if (y %in% df$species_name)
+            yend <- paste0(" (", df[df$species_name == y, ]$bto_code, ")")
           else
             yend <- ""
           return(paste0(y, yend))
         }
         lab_df$class_label <- as.vector(sapply(lab_df$class_label, function(y) name_to_bto(y, df)))
       }
-      
+
       spec_plot <- spec_plot +
         geom_rect(data = lab_df,
                   mapping = aes(xmin = start_time,
@@ -1677,7 +1678,7 @@ server <- function(input, output, session) {
   }, bg = "transparent")
 
   output$spec_time_js_line <- renderUI({
-    if(!input$spec_time_js)
+    if (!input$spec_time_js)
       return(NULL)
     return(div(style = "background-color: #FF0000;
                         width: 2px;
@@ -1688,7 +1689,7 @@ server <- function(input, output, session) {
                         top:0;",
                "some line"))
   })
-  
+
   observeEvent(input$savespec, {
     if (!.is_null(input$file1))
       spec_name <- gsub(".wav", "_spec.png", input$file1)
@@ -1984,11 +1985,11 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$addCategory, {
-    if (gsub(" ", "", input$otherCategory) == "")
+    if (gsub(" ", "", input$otherCategory) == "") {
       showNotification("Need category name to add", type = "error")
-    else if (input$otherCategory %in% class_label())
+    } else if (input$otherCategory %in% class_label()) {
       showNotification("Category already present", type = "error")
-    else {
+    } else {
       categories$xtra <- c(categories$xtra, input$otherCategory)
       updateTextInput(inputId = "otherCategory", value = "")
       updateRadioGroupButtons(inputId = "label_points",
@@ -2070,11 +2071,10 @@ server <- function(input, output, session) {
       full_df    <- fullData()
       bb_cols    <- c("start_time", "end_time", "start_freq", "end_freq")
       #compare the selected box with all labels
-      row_iou    <- sapply(seq_len(nrow(full_df)), 
+      row_iou    <- sapply(seq_len(nrow(full_df)),
                            function(i) bb_iou(lab_df[, bb_cols], full_df[i, bb_cols]))
       full_df_rm <- which(row_iou > 0.6)
       if (!is.null(full_df_rm) & length(full_df_rm) > 0) {
-        deleted_lab$rows <- full_df_rm
         deleted_lab$data <- full_df[full_df_rm, ]
         full_df <- full_df[-full_df_rm, ]
         fullData(full_df)
@@ -2090,13 +2090,12 @@ server <- function(input, output, session) {
 
   observeEvent(input$undo_delete_lab, {
     full_df   <- fullData()
-    rownums   <- deleted_lab$rows
     del_df    <- deleted_lab$data
     if (!is.null(del_df)) {
       #add old df to the end, it has the old rownumbers
       full_df <- rbind(full_df, del_df)
-      full_df <- full_df[order(row.names(full_df)),]
-      deleted_lab$rows <- deleted_lab$data <- NULL
+      full_df <- full_df[order(row.names(full_df)), ]
+      deleted_lab$data <- NULL
       write_labs(full_df, append = FALSE, col.names = TRUE)
       fullData(full_df)
       showNotification("Label(s) recovered", type = "message")
@@ -2105,13 +2104,12 @@ server <- function(input, output, session) {
     }
     refresh_labcounts()
   })
-  
+
   observeEvent(input$reset_labels, {
     full_df <- fullData()
     delete_idx <- full_df$file_name == input$file1
-    deleted_lab$rows <- which(delete_idx)
     deleted_lab$data <- full_df[delete_idx, ]
-    full_df <- full_df[!delete_idx,]
+    full_df <- full_df[!delete_idx, ]
     fullData(full_df)
     write_labs(full_df, append = FALSE, col.names = TRUE)
     showNotification("All labels removed for this file, click Undo to bring back", type = "message")
@@ -2165,7 +2163,7 @@ server <- function(input, output, session) {
   })
 
   output$meta_text <- renderUI({
-    if(is.null(audioInput()))
+    if (is.null(audioInput()))
       return(NULL)
     dt <- get_audio_dt(input$file1)
     df <- get_audio_recdf(input$file1)
@@ -2174,7 +2172,7 @@ server <- function(input, output, session) {
                    "location_name", "location_county",
                    "habitat_type", "dist_to_coastline")
     meta_paste <- function(x, y) return(ifelse(!is.null(x), y, ""))
-    if(!is.null(df))
+    if (!is.null(df))
       latlong <- c(df$lat, df$long)
     loc_address <- meta_paste(df,
                          paste0(df$location_name, ", Co.", df$location_county))
@@ -2182,11 +2180,11 @@ server <- function(input, output, session) {
                          paste(dd2dms(latlong[1], "lat"), dd2dms(latlong[2], "long")))
     loc_habitat <- meta_paste(df, df$habitat_type)
     loc_link    <- ""
-    if(!is.null(latlong))
+    if (!is.null(latlong))
       loc_link <- get_gmap_link(latlong)
     loc_d2c     <- meta_paste(df, m2km(df$dist_to_coastline))
     other_cols  <- setdiff(colnames(df), main_cols)
-    other_metatxt <- purrr::map(other_cols, function(x) div(HTML(paste0("<b>", x, ": </b>")), meta_paste(df[,x], df[,x])))
+    other_metatxt <- purrr::map(other_cols, function(x) div(HTML(paste0("<b>", x, ": </b>")), meta_paste(df[, x], df[, x])))
     div(
       tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
       tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
