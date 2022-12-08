@@ -824,10 +824,8 @@ server <- function(input, output, session) {
   # other users download only theirs
   saveData <- reactive({
     if (labeler() == "anthony.gibbons.2022@mumail.ie") {
-      lread_csv <- lapply(list.files(ldir),
-                           function(l) read.csv(file.path(ldir, l)))
-      df <- do.call(rbind, lread_csv)
-      return(df)
+      lread_csv <- lapply(file.path(ldir, list.files(ldir)), read.csv)
+      return(do.call(rbind, lread_csv))
     } else {
       return(fullData())
     }
