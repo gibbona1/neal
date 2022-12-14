@@ -3,18 +3,10 @@ TODOs:
   - [x] Open in adjacent tab
   - [x] Make sure instructions say how to zoom in/out
   - [ ] Videos
-- [x] Get ~1 hour of files in 4/5 folders. 15 seconds with little overlap
 - [ ] Display metadata:
-  - [x] Collapsible panel under play audio
-  - [x] Basic collapsible panel with formatted time display
-  - [x] Get location from recorder filename
-  - [x] Distance from coastline
   - [ ] Distance from closest Special Area of Conservation (SAC) and species concerned
   - [ ] Infer weather using some API (temperature, weather, wind, percipitation)
-  - [x] Get habitat type (either hard coded or gotten from wind farm GIS files)
   - [ ] Recorder height (~1m) or altitude
-- [x] Make File Select dropdown easier to navigate (in header)
-- [x] File label stats (# labels) and navigation
 - [ ] Interactive bounding boxes:
   - [ ] When clicking inside of box, open new panel
   - [ ] Show details of saved labels in list in this panel in sidebar or navbar page
@@ -39,18 +31,9 @@ TODOs:
   - [ ] Binary classification (whole file)
   - [ ] Event detection (time/x-axis)
   - [ ] Object detection (time and frewquency bounding boxes)
-- [x] Expand call types - call, agitation/contact, flight, nocturnal, juvenile 
-- [x] Expand noise groups - anthropogenic (machinery, vehicles), biogenic (insects, farm animals, etc.), geophony (weather, rain)
-- [x] Order species list alphabetically, or group by family (get definitive list)
 - [ ] Hotkeys:
   - [ ] start/end labeling (only works when tab is open, need to move button)
   - [ ] open folder/file navigation
-  - [x] play/pause audio (needed JS workaround)
-  - [x] label/delete
-  - [x] prev/next file
-  - [x] add/remove categories
-    - [x] (pressing enter in textbox adds the category)
-    - [x] (pressing delete while selecting category deletes it)
   - [ ] 1-9 number keys:
     - [x] First 9 labels in list
     - [ ] custom setup of 9 hotkeys
@@ -58,12 +41,6 @@ TODOs:
   - [ ] undo parameter changes 
   - [ ] zoom in/out (double click already does this)
   - [ ] scroll bounding box up/down or left/right
-- [x] Savable parameters: most things that can be tweaked, including
-  - [x] last worked on file from previous session is opening file from this sesion
-  - [x] species list chosen
-  - [x] all setings in sidebar
-- [x] Label edit table needs throttle/delay (changing label multiple times too quickly causes infinite loop)
-- [x] JS in own files
 - [ ] CSS in own files
 - [x] Filename has number of labels in choice names
 - [ ] Loading and saving labels to google sheets each session for persistent data storage
@@ -76,3 +53,11 @@ TODOs:
 - [ ] action links
   - [ ] when new folder created, action link to navigate there (change Data Folder)
   - [ ] when image saved, link to open it
+- [ ] `tuneR::downsample` for spectrogram speedup or playback speed
+- [ ] Upload labels from other sources and convert to our style:
+  - [ ] Other apps e.g. Audacity
+  - [ ] ML model predictions (e.g. coco object).
+- [ ] Ability to see similar shapes to selected spectrogram to give suggestions for classes.
+- [ ] Faster rendering of plots using some (`C++`) plugin
+- [ ] Module for teaching bird calls, enhancing the speed and proficiency of citizen scientists.
+- [ ] Accessibility via mobile devices, allowing for annotations on the field.
