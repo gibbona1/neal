@@ -32,6 +32,7 @@ frange_check <- function(vec, freq_range) {
 trim_start <- function(y) {
   start_list <- c("Common", "Eurasian", "European", "Northern", "Greater", "Great")
   y <- gsub(paste0("^", paste0(start_list, collapse="|"), " "), "", y)
+  y <- trimws(y)
   return(y)
 }
 

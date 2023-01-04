@@ -680,7 +680,8 @@ server <- function(input, output, session) {
                                       rep("cyan", length(categories$xtra)),
                                       rep("grey", length(other_c))),
                           category = c(class_label(), other_c))
-    merge_df <- merge(x, cat_df, by.x = "trim_class", by.y = "category", sort = FALSE)
+    cat_df$trim_class <- trim_start(cat_df$category)
+    merge_df <- merge(x, cat_df, by = "trim_class", sort = FALSE)
     return(merge_df)
   }
 
@@ -1985,7 +1986,7 @@ server <- function(input, output, session) {
   observeEvent(input$addCategory, {
     if (gsub(" ", "", input$otherCategory) == "") {
       showNotification("Need category name to add", type = "error")
-    } else if (input$otherCategory %in% class_label()) {
+    } else if (trim_start(input$otherCategory) %in% trim_start(class_label())) {
       showNotification("Category already present", type = "error")
     } else {
       categories$xtra <- c(categories$xtra, input$otherCategory)
