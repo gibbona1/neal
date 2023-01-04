@@ -1812,10 +1812,6 @@ server <- function(input, output, session) {
       return(NULL)
     point <- round(point, 3)
 
-    in_label_box <- function(df, point) {
-      return(btw(point$time, df$start_time, df$end_time) &
-               btw(point$frequency, df$start_freq, df$end_freq))
-    }
     #lab_df <- labelsData()
     #lab_df <- lab_df[in_label_box(lab_df, point), ]
 
@@ -1947,6 +1943,18 @@ server <- function(input, output, session) {
 
   observeEvent(input$specplot_click, {
     reset_ranges(ranges_spec)
+    #if(is.null(input$specplot_brush) & !is.null(labelsData())){
+    #  cpoint <- input$specplot_click
+    #  cpoint_xy <- list(time      = cpoint$x,
+    #                    frequency = cpoint$y)
+    #  lab_df <- labelsData()
+      #browser()
+      #c_in_box <- in_label_box(lab_df, cpoint_xy)
+      #if(any(c_in_box))
+      #  lab_df[which(c_in_box)[1],]
+      #cpoint_xy
+    #TODO: click could possibly navigate time in clip, or activate a label (for editing/deleting)
+    #}
   })
 
   observeEvent(input$specplot_dblclick, {
