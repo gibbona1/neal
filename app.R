@@ -1239,6 +1239,7 @@ server <- function(input, output, session) {
       tmp_audio <- extractWave_t(tmp_audio, tc)
     }
 
+    select_zoom <- is.null(c(ranges_spec$y, dc_ranges_spec$y))
     if (!is.null(ranges_spec$y))
       frange <- ranges_spec$y
     else if (!is.null(dc_ranges_spec$y))
@@ -1253,6 +1254,7 @@ server <- function(input, output, session) {
                         plot     = FALSE)
 
     if (!frange_check(frange, range(tmp_spec$freq)) &
+        !select_zoom &
        (input$noisereduction == "None"))
       return(NULL)
 
@@ -1290,7 +1292,7 @@ server <- function(input, output, session) {
       audio_clean$noisered <- FALSE
     }
 
-    if (frange_check(frange, range(tmp_spec$freq))) {
+    if (frange_check(frange, range(tmp_spec$freq)) | select_zoom) {
       audio_clean$select <- TRUE
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate,
