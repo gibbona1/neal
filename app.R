@@ -246,7 +246,7 @@ ui_func <- function() {
                checkboxInput("spec_time_js", "JS vertical line guide", value = FALSE),
                checkboxInput("spec_time", "Vertical line guide for audio current time",
                              value = FALSE),
-               checkboxInput("spec_freq_bounds", "Show grey boxes over filtered out audio", value = FALSE),
+               checkboxInput("spec_freq_bounds", "Show grey boxes over filtered out audio", value = TRUE),
                checkboxInput("include_guides", "Selected time/frequency guidelines",
                              value = FALSE),
                checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
