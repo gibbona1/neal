@@ -1239,7 +1239,7 @@ server <- function(input, output, session) {
       tmp_audio <- extractWave_t(tmp_audio, tc)
     }
 
-    select_zoom <- is.null(c(ranges_spec$y, dc_ranges_spec$y))
+    select_zoom <- !is.null(ranges_spec$y) | !is.null(dc_ranges_spec$y)
     if (!is.null(ranges_spec$y))
       frange <- ranges_spec$y
     else if (!is.null(dc_ranges_spec$y))
@@ -1252,9 +1252,10 @@ server <- function(input, output, session) {
                         wl       = input$window_width,
                         ovlp     = input$fft_overlap,
                         plot     = FALSE)
+    
+    do_spec_crop <- frange_check(frange, range(tmp_spec$freq)) | select_zoom
 
-    if (!frange_check(frange, range(tmp_spec$freq)) &
-        !select_zoom &
+    if (!do_spec_crop &
        (input$noisereduction == "None"))
       return(NULL)
 
@@ -1292,7 +1293,7 @@ server <- function(input, output, session) {
       audio_clean$noisered <- FALSE
     }
 
-    if (frange_check(frange, range(tmp_spec$freq)) | select_zoom) {
+    if (do_spec_crop) {
       audio_clean$select <- TRUE
       complex_spec <- spectro(tmp_audio,
                               f        = tmp_audio@samp.rate,
@@ -1942,15 +1943,16 @@ server <- function(input, output, session) {
       reset_ranges(ranges_spec)
     }
   })
+  
+  spec_click <- reactive({input$specplot_click}) %>% throttle(1000)
 
-  observeEvent(input$specplot_click, {
+  observeEvent(spec_click(), {
     reset_ranges(ranges_spec)
     #if(is.null(input$specplot_brush) & !is.null(labelsData())){
     #  cpoint <- input$specplot_click
     #  cpoint_xy <- list(time      = cpoint$x,
     #                    frequency = cpoint$y)
     #  lab_df <- labelsData()
-      #browser()
       #c_in_box <- in_label_box(lab_df, cpoint_xy)
       #if(any(c_in_box))
       #  lab_df[which(c_in_box)[1],]
