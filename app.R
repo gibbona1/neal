@@ -968,15 +968,19 @@ server <- function(input, output, session) {
     else
       sum_df <- sum_df[order(sum_df$file_name), ]
 
-    dtShinyInput <- function(FUN, len, id, ...) {
-      inputs <- character(len)
-      for (i in seq_len(len))
-        inputs[i] <- as.character(FUN(paste0(id, i), ...))
+    dtShinyInput <- function(FUN, nms, id, ...) {
+      inputs <- character(length(nms))
+      for(i in seq_along(nms))
+        inputs[i] <- as.character(FUN(paste0(id, nms[i]), ...))
       return(inputs)
     }
 
-    sum_df$Actions <- dtShinyInput(actionButton, nrow(sum_df), "button_", label = "Go to File",
-                                 onclick = "Shiny.onInputChange('dt_select_button', this.id)")
+    sum_df$Actions <- paste0(dtShinyInput(actionButton, sum_df$file_name, "button_", label = "Go to File",
+                                 onclick = "Shiny.onInputChange('dt_select_button', this.id)"),
+                          dtShinyInput(actionButton, sum_df$file_name, "delbutton_", label = "",
+                                       icon = icon("trash-alt"), class = "btn-danger",
+                                       onclick = "Shiny.onInputChange('dt_delete_button', this.id)")
+                          )
     if(input$summaryTabNozero)
       sum_df <- sum_df[sum_df$num_labels != 0,]
     return(sum_df)
@@ -987,12 +991,24 @@ server <- function(input, output, session) {
   }, filter = "top", server = FALSE, escape = FALSE, selection = "none")
 
   observeEvent(input$dt_select_button, {
-    selectedRow <- as.numeric(strsplit(input$dt_select_button, "_")[[1]][2])
-    updateSelectInput(inputId = "file1", selected = summary_df()[selectedRow, 1])
+    sum_df <- summary_df()
+    btn_extract <- str_locate(input$dt_select_button, "button_")[,"end"]
+    sel_name    <- str_sub(input$dt_select_button, btn_extract+1)
+    selectedRow <- which(sum_df$file_name == sel_name)
+    updateSelectInput(inputId = "file1", selected = sum_df[selectedRow, 1])
     segment_num(1)
     segment_total(1)
     segment_end_s(1)
     segment_start(0)
+  })
+  
+  observeEvent(input$dt_delete_button, {
+    sum_df <- summary_df()
+    btn_extract  <- str_locate(input$dt_delete_button, "delbutton_")[,"end"]
+    del_filename <- str_sub(input$dt_delete_button, btn_extract+1)
+    file.remove(file.path(dataPath(), del_filename))
+    showNotification(HTML(paste0("File <b>", del_filename, "</b> deleted")),
+                     type = "warning")
   })
 
   input_list <- function(x) {
