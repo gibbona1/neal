@@ -138,10 +138,13 @@ ui_func <- function() {
           "GitHub")
       ),
       tags$li(
+        actionButton("instruction_modal", "Instructions")
+      ),
+      tags$li(
         a(href = "https://github.com/gibbona1/neal/tree/master/instruction_doc",
           target = "_blank",
           tagAppendAttributes(icon("file"), class = "text-info"),
-          "Instructions")
+          "Instructions link")
       ),
       tags$li(
         a(href = "https://www.bto.org/sites/default/files/u16/downloads/forms_instructions/bto_bird_species_codes.pdf",
@@ -1130,6 +1133,17 @@ server <- function(input, output, session) {
     updateSelectInput(inputId  = "file1",
                       selected = "",
                       choices  = c(""))
+  })
+  
+  observeEvent(input$instruction_modal, {
+    showModal(modalDialog(
+      title = "instructions",
+      img(src="sample.gif", align = "left",height='250px',width='500px'),
+      "abc",
+      div(actionButton("instructions_prev", "Prev"), actionButton("instructions_next", "Next")),
+      easyClose = TRUE,
+      footer = NULL
+    ))
   })
 
   output$label_ui <- renderUI({
