@@ -28,6 +28,7 @@ library(DT)
 source("plot_helpers.R")
 source("audio_meta.R")
 source("server_helpers.R")
+source("instruction_list.R")
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30 * 1024 ^ 2)
@@ -653,6 +654,7 @@ server <- function(input, output, session) {
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
   spec_preload   <- reactiveVal(FALSE)
+  instr_page     <- reactiveVal(1)
 
   plot_collapse_button <- function(name, id, top_pad = 0) {
     if (plots_open[[id]]) {
@@ -1136,15 +1138,44 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$instruction_modal, {
-    showModal(modalDialog(
+    showModal(uiOutput("instruction_modal_box"))
+  })
+  
+  output$instruction_modal_box <- renderUI({
+    tmp_lst <- instruction_list[[instr_page()]]
+    modal_img <- function(x)
+      img(src=x, height = "100%", width = "100%", style = "max-height: 100%; max-width: 100%;")
+    modal_fill <- function(x){
+      if(is.character(x))
+        img_fill <- modal_img(x)
+      else
+        img_fill <- div(x$str,  modal_img(x$img))
+      return(img_fill)
+    }
+    
+    modalDialog(
+      id = "instruction_modal_box",
       title = "instructions",
-      img(src="sample.gif", align = "left",height='250px',width='500px'),
-      "abc",
+      instr_page(), tmp_lst$str,br(),
+      purrr::map(tmp_lst[-1], modal_fill),br(),
       div(actionButton("instructions_prev", "Prev"), actionButton("instructions_next", "Next")),
+      size = "l",
       easyClose = TRUE,
       footer = NULL
-    ))
+    )
   })
+  
+  observe({
+    toggleState(id = "instructions_prev", condition = instr_page() > 1)
+    toggleState(id = "instructions_next", condition = instr_page() < length(instruction_list))
+  })
+  
+  navPage <- function(direction) {
+    instr_page(instr_page()+direction)
+  }
+  
+  observeEvent(input$instructions_prev, navPage(-1))
+  observeEvent(input$instructions_next, navPage(1))
 
   output$label_ui <- renderUI({
     base_cols  <- c("darkgreen", "limegreen")
