@@ -1147,6 +1147,7 @@ server <- function(input, output, session) {
       return(img_fill)
     }
     showModal(modalDialog(
+      titlePanel("Instructions"),
       do.call(tabsetPanel,
               c(
                 purrr::imap(instruction_list,
@@ -1156,8 +1157,7 @@ server <- function(input, output, session) {
                    x$str,
                    purrr::map(x[-1], modal_fill)
                  )
-                ),
-                header = "Instructions"
+                )
                 )
               ),
       easyClose = TRUE,
