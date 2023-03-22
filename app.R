@@ -141,12 +141,12 @@ ui_func <- function() {
       tags$li(
         actionButton("instruction_modal", "Instructions")
       ),
-      tags$li(
-        a(href = "https://github.com/gibbona1/neal/tree/master/instruction_doc",
-          target = "_blank",
-          tagAppendAttributes(icon("file"), class = "text-info"),
-          "Instructions link")
-      ),
+      #tags$li(
+      #  a(href = "https://github.com/gibbona1/neal/tree/master/instruction_doc",
+      #    target = "_blank",
+      #    tagAppendAttributes(icon("file"), class = "text-info"),
+      #    "Instructions link")
+      #),
       tags$li(
         a(href = "https://www.bto.org/sites/default/files/u16/downloads/forms_instructions/bto_bird_species_codes.pdf",
           target = "_blank",
@@ -1147,7 +1147,7 @@ server <- function(input, output, session) {
       return(img_fill)
     }
     showModal(modalDialog(
-      titlePanel("Instructions"),
+      h4("Instructions"), 
       do.call(tabsetPanel,
               c(
                 purrr::imap(instruction_list,
