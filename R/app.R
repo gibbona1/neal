@@ -24,6 +24,7 @@ library(dplyr)
 library(stringr)
 library(janitor)
 library(DT)
+library(here)
 
 source("plot_helpers.R")
 source("audio_meta.R")
@@ -33,13 +34,13 @@ source("instruction_list.R")
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
-bto_df <- read.csv("bto_codes.csv", fileEncoding = "UTF-8-BOM")
+bto_df <- read.csv(here("data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM")
 
 ldir   <- "labels" #label directory
 
-empty_lab_df <- read.csv(paste0(ldir, "/labels_tmp.csv"))[FALSE, ]
+empty_lab_df <- read.csv(here(ldir, "labels_tmp.csv"))[FALSE, ]
 
-species_list <- read.csv("species_list.csv", fileEncoding = "UTF-8-BOM", check.names = FALSE)
+species_list <- read.csv(here("data", "species_list.csv"), fileEncoding = "UTF-8-BOM", check.names = FALSE)
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
                 "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
@@ -99,237 +100,237 @@ jsCode <- "shinyjs.audiotoggle = function() {
 ui_func <- function() {
   header <- {
     dashboardHeader(
-    title = div(img(src = "ne-logo.jpg", height = 30), "Audio Labeller"),
-    titleWidth = 300,
-    dropdownMenu(
-      tags$li(class = "dropdown",
-              uiOutput("start_ui")
+      title = div(img(src = "ne-logo.jpg", height = 30), "Audio Labeller"),
+      titleWidth = 300,
+      dropdownMenu(
+        tags$li(class = "dropdown",
+                uiOutput("start_ui")
+        ),
+        tags$li(class = "dropdown",
+                auth0::logoutButton()
+        ),
+        type = "notifications",
+        icon = icon("user"),
+        badgeStatus = NULL,
+        headerText  = uiOutput("user_ui")
       ),
-      tags$li(class = "dropdown",
-              auth0::logoutButton()
+      dropdownMenu(tags$li(class = "dropdown",
+                           HTML("<kbd>&#8679;</kbd>+<kbd>&#9166;</kbd> to Save Selection <br/>"),
+                           HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
+                           HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
+                           HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>"),
+                           HTML("<kbd>&#8679;</kbd>+<kbd>Space</kbd> to pause/play audio<br/>"),
+                           HTML("<kbd>&#9166;</kbd> in additional category textbox to add one"),
+                           HTML("<kbd>&#9003;</kbd> in category list to delete one")
       ),
       type = "notifications",
-      icon = icon("user"),
+      icon = icon("keyboard"),
       badgeStatus = NULL,
-      headerText  = uiOutput("user_ui")
-    ),
-    dropdownMenu(tags$li(class = "dropdown",
-                         HTML("<kbd>&#8679;</kbd>+<kbd>&#9166;</kbd> to Save Selection <br/>"),
-                         HTML("<kbd>&#8679;</kbd>+<kbd>&#9003;</kbd> to Delete Selection <br/>"),
-                         HTML("<kbd>&#8679;</kbd>+<kbd>&#8592;</kbd> to move to previous file <br/>"),
-                         HTML("<kbd>&#8679;</kbd>+<kbd>&#8594;</kbd> to move to next file <br/>"),
-                         HTML("<kbd>&#8679;</kbd>+<kbd>Space</kbd> to pause/play audio<br/>"),
-                         HTML("<kbd>&#9166;</kbd> in additional category textbox to add one"),
-                         HTML("<kbd>&#9003;</kbd> in category list to delete one")
-    ),
-    type = "notifications",
-    icon = icon("keyboard"),
-    badgeStatus = NULL,
-    headerText  = "Hotkeys"
-    ),
-    dropdownMenu(
-      type = "notifications",
-      icon = icon("question-circle"),
-      badgeStatus = NULL,
-      headerText  = "Links:",
-      tags$li(
-        a(href = "https://github.com/gibbona1/neal",
-          target = "_blank",
-          tagAppendAttributes(icon("github"), class = "text-info"),
-          "GitHub")
+      headerText  = "Hotkeys"
       ),
-      tags$li(
-        actionButton("instruction_modal", "Instructions")
-      ),
-      #tags$li(
-      #  a(href = "https://github.com/gibbona1/neal/tree/master/instruction_doc",
-      #    target = "_blank",
-      #    tagAppendAttributes(icon("file"), class = "text-info"),
-      #    "Instructions link")
-      #),
-      tags$li(
-        a(href = "https://www.bto.org/sites/default/files/u16/downloads/forms_instructions/bto_bird_species_codes.pdf",
-          target = "_blank",
-          tagAppendAttributes(icon("crow"), class = "text-info"),
-          "BTO Species Codes")
-      ),
-      tags$li(
-        a(href = "https://www.marei.ie/project/natureenergy/",
-          target = "_blank",
-          tagAppendAttributes(icon("bookmark"), class = "text-info"),
-          "Nature+Energy homepage")
+      dropdownMenu(
+        type = "notifications",
+        icon = icon("question-circle"),
+        badgeStatus = NULL,
+        headerText  = "Links:",
+        tags$li(
+          a(href = "https://github.com/gibbona1/neal",
+            target = "_blank",
+            tagAppendAttributes(icon("github"), class = "text-info"),
+            "GitHub")
+        ),
+        tags$li(
+          actionButton("instruction_modal", "Instructions")
+        ),
+        #tags$li(
+        #  a(href = "https://github.com/gibbona1/neal/tree/master/instruction_doc",
+        #    target = "_blank",
+        #    tagAppendAttributes(icon("file"), class = "text-info"),
+        #    "Instructions link")
+        #),
+        tags$li(
+          a(href = "https://www.bto.org/sites/default/files/u16/downloads/forms_instructions/bto_bird_species_codes.pdf",
+            target = "_blank",
+            tagAppendAttributes(icon("crow"), class = "text-info"),
+            "BTO Species Codes")
+        ),
+        tags$li(
+          a(href = "https://www.marei.ie/project/natureenergy/",
+            target = "_blank",
+            tagAppendAttributes(icon("bookmark"), class = "text-info"),
+            "Nature+Energy homepage")
+        )
       )
     )
-  )
   }
-
+  
   sidebar <- {
     dashboardSidebar(
-    tags$head(tags$style(HTML(".sidebar-menu > li {white-space: normal;}"))),
-    shinyjs::useShinyjs(),
-    sidebarMenu(
-      menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
-               #File/Folder selection
-               shinyDirButton("folder",
-                              label = "Folder select",
-                              title = "Please select a folder",
-                              icon  = icon("folder")),
-               h5("Data folder"),
-               verbatimTextOutput("folder", placeholder = TRUE),
-               fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
-               selectInput("mode", "Label Mode",
-                           choices = c("Bats" = "bats", "Birds (default)" = "birds"),
-                           selected = "birds"),
-               selectInput("species_list",
-                           "Species List:",
-                           choices = colnames(species_list),
-                           width   = "100%"),
-               checkboxInput("bto_codes", "Display as BTO codes", value = FALSE),
-               actionButton("inputLoad", "Load Settings")
+      tags$head(tags$style(HTML(".sidebar-menu > li {white-space: normal;}"))),
+      shinyjs::useShinyjs(),
+      sidebarMenu(
+        menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
+                 #File/Folder selection
+                 shinyDirButton("folder",
+                                label = "Folder select",
+                                title = "Please select a folder",
+                                icon  = icon("folder")),
+                 h5("Data folder"),
+                 verbatimTextOutput("folder", placeholder = TRUE),
+                 fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
+                 selectInput("mode", "Label Mode",
+                             choices = c("Bats" = "bats", "Birds (default)" = "birds"),
+                             selected = "birds"),
+                 selectInput("species_list",
+                             "Species List:",
+                             choices = colnames(species_list),
+                             width   = "100%"),
+                 checkboxInput("bto_codes", "Display as BTO codes", value = FALSE),
+                 actionButton("inputLoad", "Load Settings")
+        ),
+        menuItem("Sound Settings", tabName = "sound_menu", icon = icon("music"),
+                 sliderInput(
+                   "db_gain",
+                   "dB Gain:",
+                   min   = -96,
+                   max   = 96,
+                   value = -20,
+                   ticks = FALSE
+                 ),
+                 numericInput("t_step", "Audio length (in window)",
+                              value = 15, min = 10, max = 60, step = 1)
+        ),
+        menuItem("Spectrogram Settings",
+                 tabName = "spec_menu",
+                 icon    = icon("chart-area"),
+                 sliderInput("spec_height",
+                             "Plot Height",
+                             min   = 300,
+                             max   = 800,
+                             value = 300,
+                             ticks = FALSE,
+                             step  = 100),
+                 sliderInput("spec_samp", "Spectrogram Sampling proportion",
+                             min = 0.1, max = 1, value = 1, step = 0.05),
+                 selectInput("spec_interpolate", "Plot Interpolation",
+                             choices = c("Yes" = TRUE, "No" = FALSE)),
+                 selectInput("freq_min", "minimum frequency in filter",
+                             choices = c(0, 2^(3:7)), selected = 0),
+                 selectInput("freq_max", "maximum frequency in filter",
+                             choices = 2^(4:9), selected = 32),
+                 selectInput(
+                   "noisereduction",
+                   "Noise reduction:",
+                   choices  = c("None", "Rows", "Columns"),
+                   selected = "None",
+                   width    = "100%"
+                 ),
+                 selectInput(
+                   "spec_db",
+                   "dB type",
+                   choices = c("max0", "A", "B", "C", "D"),
+                   selected = "max0",
+                   width = "100%"
+                 ),
+                 selectInput(
+                   "palette_selected",
+                   "Spectrogram colour palette:",
+                   choices = palette_list,
+                   width   = "100%"
+                 ),
+                 sliderInput(
+                   "db_contrast",
+                   "Contrast:",
+                   min   = 0,
+                   max   = 96,
+                   value = 0,
+                   ticks = FALSE
+                 ),
+                 checkboxInput("palette_invert", "Invert color palette"),
+                 actionButton("savespec", "Download Spectrogram", icon = icon("save")),
+                 checkboxInput("include_hover", "Include spectrogram hover tooltip",
+                               value = FALSE),
+                 checkboxInput("spec_time_js", "JS vertical line guide", value = FALSE),
+                 checkboxInput("spec_time", "Vertical line guide for audio current time",
+                               value = FALSE),
+                 checkboxInput("spec_freq_bounds", "Show grey boxes over filtered out audio", value = TRUE),
+                 checkboxInput("include_guides", "Selected time/frequency guidelines",
+                               value = FALSE),
+                 checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
+                 downloadButton("downloadSpec", "Download Spec as CSV"),
+                 checkboxInput("clean_zero", "Zero Audio outside Selected", value = TRUE),
+                 checkboxInput("base_specplot", "Base spectrogram plot", value = FALSE),
+                 uiOutput("spec_collapse")
+        ),
+        menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
+                 numericInput("window_width", "Window Size (number of points)",
+                              value = 256),
+                 numericInput("fft_overlap", "FFT Overlap (%)",
+                              value = 75, min = 0, max = 99, step = 1),
+                 numericInput("window_width_disp", "Window Size for display spectrogram",
+                              value = 1024),
+                 numericInput("fft_overlap_disp", "FFT Overlap for display spectrogram (%)",
+                              value = 15, min = 0, max = 99, step = 1)
+        ),
+        #menuItem("Oscillogram Settings",
+        #         tabName = "osc_menu", icon = icon("chart-line"),
+        #         actionButton("saveosc", "Download Oscillogram", icon = icon("save")),
+        #         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip",
+        #                       value = FALSE),
+        #         checkboxInput("osc_labs", "Show oscillogram labels"),
+        #         checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
+        #         uiOutput("osc_collapse")
+        #),
+        #menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
+        #         #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
+        #         #downloadButton("downloadData", "Download Labels")
+        #),
+        menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
+                 selectInput("label_display", "Label display type", c("grid", "flex")),
+                 numericInput("label_columns", "Number of Columns",
+                              value = 7, min = 1, max = 15, step = 1),
+                 actionButton("reset_sidebar", "Reset Sidebar"),
+                 actionButton("reset_body", "Reset Body"),
+                 checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
+                 checkboxInput("fileSummaryTab", "File Summary Table", value = FALSE),
+                 checkboxInput("summaryTabGroup", "Subgroup by class", value = FALSE),
+                 checkboxInput("summaryTabNozero", "Remove zero counts", value = FALSE),
+                 # Add the Undo/Redo buttons to the UI
+                 h5("Undo/Redo label save or delete"),
+                 undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
+                 #undoHistoryUI_debug("lab_hist")
+        )
       ),
-      menuItem("Sound Settings", tabName = "sound_menu", icon = icon("music"),
-               sliderInput(
-                 "db_gain",
-                 "dB Gain:",
-                 min   = -96,
-                 max   = 96,
-                 value = -20,
-                 ticks = FALSE
-               ),
-               numericInput("t_step", "Audio length (in window)",
-                            value = 15, min = 10, max = 60, step = 1)
-      ),
-      menuItem("Spectrogram Settings",
-               tabName = "spec_menu",
-               icon    = icon("chart-area"),
-               sliderInput("spec_height",
-                           "Plot Height",
-                           min   = 300,
-                           max   = 800,
-                           value = 300,
-                           ticks = FALSE,
-                           step  = 100),
-               sliderInput("spec_samp", "Spectrogram Sampling proportion",
-                           min = 0.1, max = 1, value = 1, step = 0.05),
-               selectInput("spec_interpolate", "Plot Interpolation",
-                           choices = c("Yes" = TRUE, "No" = FALSE)),
-               selectInput("freq_min", "minimum frequency in filter",
-                           choices = c(0, 2^(3:7)), selected = 0),
-               selectInput("freq_max", "maximum frequency in filter",
-                           choices = 2^(4:9), selected = 32),
-               selectInput(
-                 "noisereduction",
-                 "Noise reduction:",
-                 choices  = c("None", "Rows", "Columns"),
-                 selected = "None",
-                 width    = "100%"
-               ),
-               selectInput(
-                 "spec_db",
-                 "dB type",
-                 choices = c("max0", "A", "B", "C", "D"),
-                 selected = "max0",
-                 width = "100%"
-               ),
-               selectInput(
-                 "palette_selected",
-                 "Spectrogram colour palette:",
-                 choices = palette_list,
-                 width   = "100%"
-               ),
-               sliderInput(
-                 "db_contrast",
-                 "Contrast:",
-                 min   = 0,
-                 max   = 96,
-                 value = 0,
-                 ticks = FALSE
-               ),
-               checkboxInput("palette_invert", "Invert color palette"),
-               actionButton("savespec", "Download Spectrogram", icon = icon("save")),
-               checkboxInput("include_hover", "Include spectrogram hover tooltip",
-                             value = FALSE),
-               checkboxInput("spec_time_js", "JS vertical line guide", value = FALSE),
-               checkboxInput("spec_time", "Vertical line guide for audio current time",
-                             value = FALSE),
-               checkboxInput("spec_freq_bounds", "Show grey boxes over filtered out audio", value = TRUE),
-               checkboxInput("include_guides", "Selected time/frequency guidelines",
-                             value = FALSE),
-               checkboxInput("spec_labs", "Show spectrogram labels", value = TRUE),
-               downloadButton("downloadSpec", "Download Spec as CSV"),
-               checkboxInput("clean_zero", "Zero Audio outside Selected", value = TRUE),
-               checkboxInput("base_specplot", "Base spectrogram plot", value = FALSE),
-               uiOutput("spec_collapse")
-      ),
-      menuItem("FFT Settings", tabName = "fft_menu", icon = icon("barcode"),
-               numericInput("window_width", "Window Size (number of points)",
-                            value = 256),
-               numericInput("fft_overlap", "FFT Overlap (%)",
-                            value = 75, min = 0, max = 99, step = 1),
-               numericInput("window_width_disp", "Window Size for display spectrogram",
-                            value = 1024),
-               numericInput("fft_overlap_disp", "FFT Overlap for display spectrogram (%)",
-                            value = 15, min = 0, max = 99, step = 1)
-      ),
-      #menuItem("Oscillogram Settings",
-      #         tabName = "osc_menu", icon = icon("chart-line"),
-      #         actionButton("saveosc", "Download Oscillogram", icon = icon("save")),
-      #         checkboxInput("include_hover_osc", "Include oscillogram hover tooltip",
-      #                       value = FALSE),
-      #         checkboxInput("osc_labs", "Show oscillogram labels"),
-      #         checkboxInput("include_osc", "Show Oscillogram", value = FALSE),
-      #         uiOutput("osc_collapse")
-      #),
-      #menuItem("Data Settings", tabName = "data_menu", icon = icon("database"),
-      #         #checkboxInput("hide_other_labels", "Hide other users' labels", value = TRUE),
-      #         #downloadButton("downloadData", "Download Labels")
-      #),
-      menuItem("Other Settings", tabName = "other_menu", icon = icon("cog"),
-               selectInput("label_display", "Label display type", c("grid", "flex")),
-               numericInput("label_columns", "Number of Columns",
-                            value = 7, min = 1, max = 15, step = 1),
-               actionButton("reset_sidebar", "Reset Sidebar"),
-               actionButton("reset_body", "Reset Body"),
-               checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
-               checkboxInput("fileSummaryTab", "File Summary Table", value = FALSE),
-               checkboxInput("summaryTabGroup", "Subgroup by class", value = FALSE),
-               checkboxInput("summaryTabNozero", "Remove zero counts", value = FALSE),
-               # Add the Undo/Redo buttons to the UI
-               h5("Undo/Redo label save or delete"),
-               undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
-               #undoHistoryUI_debug("lab_hist")
-      )
-    ),
-    #Options for sidebar
-    collapsed = TRUE,
-    minified  = FALSE,
-    id = "side-panel")
-    }
-
+      #Options for sidebar
+      collapsed = TRUE,
+      minified  = FALSE,
+      id = "side-panel")
+  }
+  
   body <- {
     dashboardBody(
-    shinyjs::useShinyjs(),
-    extendShinyjs(text = jsCode, functions = c("audiotoggle")),
-    useKeys(),
-    uiOutput("loadScript"),
-    keysInput("keys", hotkeys),
-    id    = "main-panel",
-    theme = "blue_gradient",
-    tags$style(".content-wrapper{margin-left: 0px;}"),
-    tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
-    fluidRow({
-    div(
-      column(1,
-        HTML("<b>Filename: </b>")
-      ),
-      column(7,
-        selectInput(
-          "file1",
-          label   = NULL,
-          choices = c(""),
-          width   = "100%"
-        ),
-        tags$head(tags$style(HTML("
+      shinyjs::useShinyjs(),
+      extendShinyjs(text = jsCode, functions = c("audiotoggle")),
+      useKeys(),
+      uiOutput("loadScript"),
+      keysInput("keys", hotkeys),
+      id    = "main-panel",
+      theme = "blue_gradient",
+      tags$style(".content-wrapper{margin-left: 0px;}"),
+      tags$head(tags$style(HTML(".content {padding-top: 0;}"))),
+      fluidRow({
+        div(
+          column(1,
+                 HTML("<b>Filename: </b>")
+          ),
+          column(7,
+                 selectInput(
+                   "file1",
+                   label   = NULL,
+                   choices = c(""),
+                   width   = "100%"
+                 ),
+                 tags$head(tags$style(HTML("
                             #file1+ div>.selectize-input{
                             font-size: 14px; line-height: 14x; margin-bottom: -20px; 
                             min-height: 0px; 
@@ -338,198 +339,198 @@ ui_func <- function() {
                             font-size: 14px; margin-top: 20px; 
                             }
                             ")))
-      ),
-      column(2,
-             HTML("File Change"),
-             fluidRow(
-             column(6, style = "padding:0px;",
-                    tipify(
-                      actionButton("prev_file", "",
-                                   icon  = icon("arrow-left"),
-                                   style = file_btn_style),
-                      "Previous File"
-                    ),
-             ),
-             column(6, style = "padding:0px;",
-                    tipify(actionButton("next_file", "",
-                                        icon  = icon("arrow-right"),
-                                        style = file_btn_style),
-                           "Next File")
-             )
-             )
-      ),
-      column(2,
-        fluidRow(
-          uiOutput("segmentNumText"),
-        column(6, style = "padding:0px;",
-                tipify(
-                  actionButton("prev_section", "",
-                               icon  = icon("chevron-left"),
-                               style = file_btn_style),
-                  "previous section"
-                )
-         ),
-        column(6, style = "padding:0px;",
-                tipify(
-                  actionButton("next_section", "",
-                               icon  = icon("chevron-right"),
-                               style = file_btn_style),
-                  "next section"
-                )
-         )
-        )
-      )
-      )
-    }),
-    #Spectrogram Plot
-    fluidRow({
-      uiOutput("specplot_ui")
-    }),
-    #Oscillogram Plot
-    #fluidRow({
-    #  uiOutput("oscplot_ui")
-    #  }),
-    #One row of audio settings
-    fluidRow({
-      div(
-        column(4, style = "padding:0px;",
-               #br(),
-               actionButton("save_points",
-                            HTML("<b>Save Selection</b>"),
-                            icon  = icon("vector-square"),
-                            style = "width: 100%; background-color: #fff491;"),
-               uiOutput("meta_text")
-        ),
-        column(3, {
-          div(
-            uiOutput("audio_title"),
-            uiOutput("my_audio"),
-            tags$script(src = "JS/audio_time.js")
-            #actionButton("get_time", "Get Time", onclick = js),
-            #verbatimTextOutput("audio_time")
-          )
-        }),
-        column(3, {
-          fixedRow(style = btn_row_style,
-                   div(
-                     column(5,
-                            uiOutput("downloadAudio_ui")
-                            ),
-                   column(7,
-                          selectInput(
-                            "playbackrate",
-                            "Playback Speed:",
-                            choices  = playback_vals,
-                            selected = 1,
-                            width    = "100%"
-                          )
-                   )))
-        }),
-        column(2, {
-          fixedRow(style = btn_row_style,
-                   fluidRow(style = btn_row_style,
-                            actionButton("plt_reset", "Reset Zoom",
-                                         style = file_btn_style)
-                   )
-          )
-        })
-      )
-    }),
-    #Label Buttons UI
-    fluidRow({
-      div(style = btn_sel_style,
-        uiOutput("label_ui"), #backspace to delete
-        tags$script(src = "JS/remove_category.js"),
-        column(6,
-          textInput("otherCategory", "Type in additional category:",
-                    width = "100%"), #enter to add category
-          tags$script(src = "JS/add_category.js"),
-          div(HTML("<b>Category buttons</b>"),
-              div(style = "width: 100%; display: inline-block;",
-            tipify(actionButton("addCategory",
-                         HTML("<b>Add</b>"),
-                         icon  = icon("plus-square"),
-                         style = "width: 24%; text-align:left;"), "Add category"),
-            tipify(actionButton("remCategory",
-                         HTML("<b>Remove</b>"),
-                         icon  = icon("minus-square"),
-                         style = "width: 24%; text-align:left;"), "Remove selected category"),
-            tipify(actionButton("resetCategory",
-                         HTML("<b>Reset</b>"),
-                         icon  = icon("list"),
-                         style = "width: 24%; text-align:left;"), "Remove custom categories added"),
-            disabled(tipify(actionButton("save_extra",
-                                  HTML("<b>Save to List</b>"),
-                                  icon  = icon("archive"),
-                                  style = "width: 24%; text-align:left;"), "Save custom labels to its own file/column of species list"))
-              )
           ),
-            #Label buttons
-          div(HTML("<b>Label buttons</b>"),
-              div(style="width: 100%; display: inline-block;",
-            tipify(actionButton("remove_points",
-                         HTML("<b>Delete</b>"),
-                         icon  = icon("trash-alt"),
-                         style = "width: 24%; text-align:left"), "Delete selection"),
-            tipify(actionButton("reset_labels",
-                         HTML("<b>Clear</b>"),
-                         icon  = icon("eraser"),
-                         style = "width: 24%; text-align:left;"), "Clear all labels for this file"),
-            tipify(actionButton("undo_delete_lab",
-                         HTML("<b>Undo</b>"),
-                         icon  = icon("undo-alt"),
-                         style = "width: 24%; text-align:left;"), "Undo last deleted label(s)"),
-            tipify(downloadButton("downloadData", "Download", style = "width: 24%; text-align:left;"), "Download labels for all files"))
+          column(2,
+                 HTML("File Change"),
+                 fluidRow(
+                   column(6, style = "padding:0px;",
+                          tipify(
+                            actionButton("prev_file", "",
+                                         icon  = icon("arrow-left"),
+                                         style = file_btn_style),
+                            "Previous File"
+                          ),
+                   ),
+                   column(6, style = "padding:0px;",
+                          tipify(actionButton("next_file", "",
+                                              icon  = icon("arrow-right"),
+                                              style = file_btn_style),
+                                 "Next File")
+                   )
+                 )
+          ),
+          column(2,
+                 fluidRow(
+                   uiOutput("segmentNumText"),
+                   column(6, style = "padding:0px;",
+                          tipify(
+                            actionButton("prev_section", "",
+                                         icon  = icon("chevron-left"),
+                                         style = file_btn_style),
+                            "previous section"
+                          )
+                   ),
+                   column(6, style = "padding:0px;",
+                          tipify(
+                            actionButton("next_section", "",
+                                         icon  = icon("chevron-right"),
+                                         style = file_btn_style),
+                            "next section"
+                          )
+                   )
+                 )
           )
-        ),
-        #TODO: Other info to label/record -
-        ## altitude of recorder (check if in metadata)
-        column(6,
-        #div(#style = btn_sel_style,
-        tags$style("#call_type {padding: 0%;}"),
-        selectInput(
-          inputId    = "call_type",
-          label      = "Call Type:",
-          width      = "100%",
-          multiple   = TRUE,
-          choices    = call_types,
-          selected   = NULL#)
-       ),
-        #notes, frequency filtering and label confidence
-        HTML("<b>Additional Notes:</b>"),
-        textAreaInput("notes", NULL, width = "100%", resize = "vertical")
         )
-      )
-    }),
-    fluidRow({
-      div(
-        column(6,
-               uiOutput("freq_ui")
-        ),
-        column(6,
-               sliderInput("label_confidence", "Label Confidence:",
-                           min   = 0,
-                           max   = 1,
-                           step  = 0.05,
-                           value = 1,
-                           ticks = FALSE,
-                           width = "100%"),
-               div(div(style = "float:left;", "low"),
-                   div(style = "float:right;", "high"))
+      }),
+      #Spectrogram Plot
+      fluidRow({
+        uiOutput("specplot_ui")
+      }),
+      #Oscillogram Plot
+      #fluidRow({
+      #  uiOutput("oscplot_ui")
+      #  }),
+      #One row of audio settings
+      fluidRow({
+        div(
+          column(4, style = "padding:0px;",
+                 #br(),
+                 actionButton("save_points",
+                              HTML("<b>Save Selection</b>"),
+                              icon  = icon("vector-square"),
+                              style = "width: 100%; background-color: #fff491;"),
+                 uiOutput("meta_text")
+          ),
+          column(3, {
+            div(
+              uiOutput("audio_title"),
+              uiOutput("my_audio"),
+              tags$script(src = "JS/audio_time.js")
+              #actionButton("get_time", "Get Time", onclick = js),
+              #verbatimTextOutput("audio_time")
+            )
+          }),
+          column(3, {
+            fixedRow(style = btn_row_style,
+                     div(
+                       column(5,
+                              uiOutput("downloadAudio_ui")
+                       ),
+                       column(7,
+                              selectInput(
+                                "playbackrate",
+                                "Playback Speed:",
+                                choices  = playback_vals,
+                                selected = 1,
+                                width    = "100%"
+                              )
+                       )))
+          }),
+          column(2, {
+            fixedRow(style = btn_row_style,
+                     fluidRow(style = btn_row_style,
+                              actionButton("plt_reset", "Reset Zoom",
+                                           style = file_btn_style)
+                     )
+            )
+          })
         )
-      )
-    }),
-    #label summary and edit
-    fluidRow({
-      uiOutput("fileLabInfo")
-    }),
-    #file summary
-    fluidRow({
-      uiOutput("fileLabSummary")
-    })
-  )
+      }),
+      #Label Buttons UI
+      fluidRow({
+        div(style = btn_sel_style,
+            uiOutput("label_ui"), #backspace to delete
+            tags$script(src = "JS/remove_category.js"),
+            column(6,
+                   textInput("otherCategory", "Type in additional category:",
+                             width = "100%"), #enter to add category
+                   tags$script(src = "JS/add_category.js"),
+                   div(HTML("<b>Category buttons</b>"),
+                       div(style = "width: 100%; display: inline-block;",
+                           tipify(actionButton("addCategory",
+                                               HTML("<b>Add</b>"),
+                                               icon  = icon("plus-square"),
+                                               style = "width: 24%; text-align:left;"), "Add category"),
+                           tipify(actionButton("remCategory",
+                                               HTML("<b>Remove</b>"),
+                                               icon  = icon("minus-square"),
+                                               style = "width: 24%; text-align:left;"), "Remove selected category"),
+                           tipify(actionButton("resetCategory",
+                                               HTML("<b>Reset</b>"),
+                                               icon  = icon("list"),
+                                               style = "width: 24%; text-align:left;"), "Remove custom categories added"),
+                           disabled(tipify(actionButton("save_extra",
+                                                        HTML("<b>Save to List</b>"),
+                                                        icon  = icon("archive"),
+                                                        style = "width: 24%; text-align:left;"), "Save custom labels to its own file/column of species list"))
+                       )
+                   ),
+                   #Label buttons
+                   div(HTML("<b>Label buttons</b>"),
+                       div(style="width: 100%; display: inline-block;",
+                           tipify(actionButton("remove_points",
+                                               HTML("<b>Delete</b>"),
+                                               icon  = icon("trash-alt"),
+                                               style = "width: 24%; text-align:left"), "Delete selection"),
+                           tipify(actionButton("reset_labels",
+                                               HTML("<b>Clear</b>"),
+                                               icon  = icon("eraser"),
+                                               style = "width: 24%; text-align:left;"), "Clear all labels for this file"),
+                           tipify(actionButton("undo_delete_lab",
+                                               HTML("<b>Undo</b>"),
+                                               icon  = icon("undo-alt"),
+                                               style = "width: 24%; text-align:left;"), "Undo last deleted label(s)"),
+                           tipify(downloadButton("downloadData", "Download", style = "width: 24%; text-align:left;"), "Download labels for all files"))
+                   )
+            ),
+            #TODO: Other info to label/record -
+            ## altitude of recorder (check if in metadata)
+            column(6,
+                   #div(#style = btn_sel_style,
+                   tags$style("#call_type {padding: 0%;}"),
+                   selectInput(
+                     inputId    = "call_type",
+                     label      = "Call Type:",
+                     width      = "100%",
+                     multiple   = TRUE,
+                     choices    = call_types,
+                     selected   = NULL#)
+                   ),
+                   #notes, frequency filtering and label confidence
+                   HTML("<b>Additional Notes:</b>"),
+                   textAreaInput("notes", NULL, width = "100%", resize = "vertical")
+            )
+        )
+      }),
+      fluidRow({
+        div(
+          column(6,
+                 uiOutput("freq_ui")
+          ),
+          column(6,
+                 sliderInput("label_confidence", "Label Confidence:",
+                             min   = 0,
+                             max   = 1,
+                             step  = 0.05,
+                             value = 1,
+                             ticks = FALSE,
+                             width = "100%"),
+                 div(div(style = "float:left;", "low"),
+                     div(style = "float:right;", "high"))
+          )
+        )
+      }),
+      #label summary and edit
+      fluidRow({
+        uiOutput("fileLabInfo")
+      }),
+      #file summary
+      fluidRow({
+        uiOutput("fileLabSummary")
+      })
+    )
   }
-
+  
   ui <- dashboardPage(
     header,
     sidebar,
@@ -549,9 +550,9 @@ server <- function(input, output, session) {
     filetypes      = c("wav"),
     allowDirCreate = FALSE
   )
-
+  
   nickname_path  <- reactiveVal(NULL)
-
+  
   dataModal <- function(nickname, audio_folder, failed = FALSE) {
     modalDialog(
       h5("Create folder"),
@@ -564,7 +565,7 @@ server <- function(input, output, session) {
       )
     )
   }
-
+  
   lab_nickname <- reactive({
     auth0_session <- session$userData$auth0_info
     audio_folder  <- "www"
@@ -574,18 +575,18 @@ server <- function(input, output, session) {
       nickname <- Sys.info()[["user"]]
     else
       nickname <- auth0_session$nickname
-    nickname_path(file.path(audio_folder, nickname))
+    nickname_path(here(audio_folder, nickname))
     if (!(nickname %in% list.files(audio_folder)))
       showModal(dataModal(nickname, audio_folder))
     if (!(nickname %in% list.files(audio_folder)))
       nickname <- "tmp"
     return(nickname)
   })
-
+  
   filename_pre <- function(x, df) {
     return(paste0("(", sum(df$file_name == x), ") ", x))
   }
-
+  
   refresh_labcounts <- function() {
     filenames <- file_list()
     names(filenames) <- sapply(filenames, function(x) filename_pre(x, fullData()))
@@ -593,7 +594,7 @@ server <- function(input, output, session) {
                       choices  = filenames,
                       selected = input$file1)
   }
-
+  
   get_file_list <- function() {
     filenames <- list.files(dataPath(), pattern = "\\.wav$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
@@ -602,43 +603,43 @@ server <- function(input, output, session) {
       names(filenames) <- sapply(filenames, function(x) filename_pre(x, full_df))
     return(filenames)
   }
-
+  
   dataPath <- reactive({
-    datapath <- getwd()
+    datapath <- here()
     dirinfo  <- parseDirPath(volumes, input$folder)
     if (!identical(dirinfo, character(0)))
       return(dirinfo)
-    audiodir <- file.path(datapath, "www", lab_nickname())
+    audiodir <- here(datapath, "www", lab_nickname())
     if (dir.exists(audiodir))
-      return(audiodir)
+      return(here(audiodir))
     else
-      return(datapath)
+      return(here(datapath))
   })
-
+  
   output$folder <- renderText({
     return(dataPath())
   })
-
+  
   labs_filename <- reactive({
-    fname <- paste0(ldir, "/labels_", lab_nickname(), ".csv")
+    fname <- here(ldir, paste0("labels_", lab_nickname(), ".csv"))
     if(!file.exists(fname)){
       #creates empty dataframe
-      write.csv(read.csv(paste0(ldir, "/labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
+      write.csv(read.csv(here(ldir, "labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
       showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
                        duration = NULL, type = "message")
     }
-    return(fname)
+    return(here(fname))
   })
-
+  
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session,
                             checkFunc = function() unique(get_file_list()),
                             valueFunc = get_file_list)
-
+  
   observeEvent(file_list(), ignoreInit = TRUE, ignoreNULL = TRUE, {
     refresh_labcounts()
   })
-
+  
   ranges_spec    <- reactiveValues(x = NULL, y = NULL)
   ranges_osc     <- reactiveValues(x = NULL)
   dc_ranges_spec <- reactiveValues(x = NULL, y = NULL)
@@ -654,7 +655,7 @@ server <- function(input, output, session) {
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
   spec_preload   <- reactiveVal(FALSE)
-
+  
   plot_collapse_button <- function(name, id, top_pad = 0) {
     if (plots_open[[id]]) {
       button_id    <- paste0("collapse_", id)
@@ -667,12 +668,12 @@ server <- function(input, output, session) {
     }
     actionButton(button_id, button_hover, icon = icon(button_icon))
   }
-
+  
   reset_ranges <- function(x_list) {
     for (nm in names(x_list))
       x_list[[nm]] <- NULL
   }
-
+  
   cat_colours <- function(x) {
     if (is.null(x))
       return(NULL)
@@ -690,13 +691,13 @@ server <- function(input, output, session) {
     merge_df <- merge(x, cat_df, by = "trim_class", sort = FALSE)
     return(merge_df)
   }
-
+  
   categories <- reactiveValues(
     base = get_entries(species_list[, 1]),
     misc = misc_categories,
     xtra = c()
   )
-
+  
   observeEvent(input$mode, {
     if(input$mode == "bats") {
       updateSelectInput(inputId = "spec_interpolate", selected = FALSE)
@@ -704,14 +705,14 @@ server <- function(input, output, session) {
       shinyjs::reset("spec_interpolate")
     }
   })
-
+  
   observeEvent(input$upload_files, {
     #copy each upload file to destination folder
     apply(input$upload_files, 1, function(x) {
-      file.copy(x["datapath"], file.path(dataPath(), x["name"]))
+      file.copy(x["datapath"], here(dataPath(), x["name"]))
     })
   })
-
+  
   observeEvent(input$dircreate, {
     dir.create(nickname_path())
     removeModal()
@@ -720,11 +721,11 @@ server <- function(input, output, session) {
     Sys.sleep(2)
     session$reload()
   })
-
+  
   observeEvent(input$species_list, {
     categories$base <- get_entries(species_list[, input$species_list])
   })
-
+  
   observeEvent(input$bto_codes, {
     x <- get_entries(species_list[, input$species_list])
     if (input$bto_codes) {
@@ -738,16 +739,16 @@ server <- function(input, output, session) {
     }
     categories$base <- x
   })
-
+  
   class_label <- reactive({
     cats <- categories
     c(cats$base, cats$misc, cats$xtra)
   })
-
-  conf_filename <- reactive(paste0("saved_configs/input_", lab_nickname(), ".RDS"))
-
+  
+  conf_filename <- reactive(here(paste0("saved_configs/input_", lab_nickname(), ".RDS")))
+  
   fullData   <- reactiveVal(empty_lab_df)
-
+  
   write_labs <- function(lab_df,
                          fname     = labs_filename(),
                          append    = TRUE,
@@ -758,7 +759,7 @@ server <- function(input, output, session) {
                 sep       = ",",
                 row.names = FALSE)
   }
-
+  
   observeEvent(input$file1, {
     if (.is_null(input$file1)) {
       disable("prev_file")
@@ -790,7 +791,7 @@ server <- function(input, output, session) {
     else
       fullData(empty_lab_df)
   })
-
+  
   labelsData <- reactive({
     lab_df <- fullData()
     lab_df <- lab_df[lab_df$file_name == input$file1, ]
@@ -802,7 +803,7 @@ server <- function(input, output, session) {
     else
       return(lab_df)
   })
-
+  
   labeler <- reactive({
     auth0_session <- session$userData$auth0_info
     if (is.null(auth0_session))
@@ -810,7 +811,7 @@ server <- function(input, output, session) {
     else
       return(auth0_session$name)
   })
-
+  
   undo_app_state <- undoHistory(
     id = "lab_hist",
     value = reactive({
@@ -818,26 +819,26 @@ server <- function(input, output, session) {
       fullData()
     })
   )
-
+  
   # Use an observer to receive updates from undoHistory() and update the app.
   observe({
     req(!is.null(undo_app_state())) #<< Need to update app whenever not NULL
-
+    
     # Manually update app UI and reactive values
     fullData(undo_app_state())
   })
-
+  
   # only admin can download all labels
   # other users download only theirs
   saveData <- reactive({
     if (labeler() == "anthony.gibbons.2022@mumail.ie") {
-      lread_csv <- lapply(file.path(ldir, list.files(ldir)), read.csv)
+      lread_csv <- lapply(here(ldir, list.files(ldir)), read.csv)
       return(do.call(rbind, lread_csv))
     } else {
       return(fullData())
     }
   })
-
+  
   output$fileLabInfo <- renderUI({
     if (.is_null(input$file1) | !input$fileEditTab)
       return(NULL)
@@ -857,14 +858,14 @@ server <- function(input, output, session) {
                                style = "info")
     )
   })
-
+  
   output$fileLabSummary <- renderUI({
     if (!input$fileSummaryTab)
       return(NULL)
     df <- fullData()
     #if (nrow(df) == 0)
     #  return(NULL)
-
+    
     panel_name <- paste("File Summary",
                         ifelse(nrow(df) == 0, "",
                                paste0("(", length(unique(df$file_name)), " files labelled; ", nrow(df), " total labels)")))
@@ -876,7 +877,7 @@ server <- function(input, output, session) {
                                style = "info")
     )
   })
-
+  
   input_names <- function(x) {
     lab_df <- labelsData()
     if (is.null(lab_df))
@@ -884,7 +885,7 @@ server <- function(input, output, session) {
     paste0("tab_", which(input$file1 == file_list()), x,
            format(as.POSIXct(lab_df$date_time), "%Y%m%d_%H%M%S"))
   }
-
+  
   output$labTable <- renderTable({
     lab_df <- labelsData()
     #columns in right order
@@ -919,26 +920,26 @@ server <- function(input, output, session) {
     time2 <- tab_num_input(lab_df, lab_df$end_time,   "end_time",   lab_df$start_time, ts[2], diff(ts) / 100)
     freq1 <- tab_num_input(lab_df, lab_df$start_freq, "start_freq", fs[1], lab_df$end_freq, diff(fs) / 100)
     freq2 <- tab_num_input(lab_df, lab_df$end_freq,   "end_freq",   lab_df$start_freq, fs[2], diff(fs) / 100)
-
+    
     lab_df$start_time <- time1
     lab_df$end_time   <- time2
     lab_df$start_freq <- freq1
     lab_df$end_freq   <- freq2
-
+    
     conf <- tab_num_input(lab_df, lab_df$confidence, "confidence", 0, 1, 0.1)
     lab_df$confidence <- conf
-
+    
     choices <- union(class_label(), fullData()$class_label)
-
+    
     class1 <- tab_class_input(lab_df, lab_df$class_label, choices, "class_label")
     lab_df$class_label <- class1
-
+    
     return(lab_df)
   },
   striped  = TRUE,
   bordered = TRUE,
   sanitize.text.function = function(x) x)
-
+  
   summary_df <- reactive({
     df <- fullData()
     df <- df[df$file_name %in% file_list() &
@@ -957,16 +958,16 @@ server <- function(input, output, session) {
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
       rename(num_labels = n)
-
+    
     other_files <- setdiff(file_list(), sum_df$file_name)
-
+    
     #dataframe of zeros for each file without labels
     if (length(other_files) > 0) {
       new_df <- data.frame(file_name  = other_files,
                            num_labels = 0)
       sum_df <- rbind(sum_df, new_df)
     }
-
+    
     if (input$summaryTabGroup)
       sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label), ]
     else
@@ -977,7 +978,7 @@ server <- function(input, output, session) {
         inputs[i] <- as.character(FUN(paste0(id, nms[i]), ...))
       return(inputs)
     }
-
+    
     sum_df$Actions <- paste0(dtShinyInput(actionButton, sum_df$file_name, "button_", label = "Go to File",
                                           onclick = "Shiny.onInputChange('dt_select_button', this.id)"),
                              dtShinyInput(actionButton, sum_df$file_name, "delbutton_", label = "",
@@ -988,11 +989,11 @@ server <- function(input, output, session) {
       sum_df <- sum_df[sum_df$num_labels != 0, ]
     return(sum_df)
   })
-
+  
   output$labSummaryTable <- renderDataTable({
     summary_df()
   }, filter = "top", server = FALSE, escape = FALSE, selection = "none")
-
+  
   observeEvent(input$dt_select_button, {
     sum_df <- summary_df()
     btn_extract <- str_locate(input$dt_select_button, "button_")[, "end"]
@@ -1004,51 +1005,51 @@ server <- function(input, output, session) {
     segment_end_s(1)
     segment_start(0)
   })
-
+  
   observeEvent(input$dt_delete_button, {
     sum_df <- summary_df()
     btn_extract  <- str_locate(input$dt_delete_button, "delbutton_")[, "end"]
     del_filename <- str_sub(input$dt_delete_button, btn_extract + 1)
-    file.remove(file.path(dataPath(), del_filename))
+    file.remove(here(dataPath(), del_filename))
     showNotification(HTML(paste0("File <b>", del_filename, "</b> deleted")),
                      type = "warning")
   })
-
+  
   input_list <- function(x) {
     a <- lapply(x, function(name) input[[name]])
     return(a)
   }
-
+  
   t1Inputs <- reactive({
     x <- input_names("start_time")
     return(input_list(x))
   }) %>% throttle(100)
-
+  
   t2Inputs <- reactive({
     x <- input_names("end_time")
     return(input_list(x))
   }) %>% throttle(100)
-
+  
   f1Inputs <- reactive({
     x <- input_names("start_freq")
     return(input_list(x))
   }) %>% throttle(100)
-
+  
   f2Inputs <- reactive({
     x <- input_names("end_freq")
     return(input_list(x))
   }) %>% throttle(100)
-
+  
   confInputs <- reactive({
     x <- input_names("confidence")
     return(input_list(x))
   }) %>% throttle(100)
-
+  
   classInputs <- reactive({
     x <- input_names("class_label")
     return(input_list(x))
   }) %>% throttle(100)
-
+  
   overwriteLabData <- function(vals, col_name) {
     if (is.null(vals))
       return(NULL)
@@ -1056,7 +1057,7 @@ server <- function(input, output, session) {
     lab_df  <- labelsData()
     #columns in right order
     lab_df  <- lab_df[, colnames(full_df)]
-
+    
     #which inputs (in display table) differ from saved data
     #there should be at most one changed
     diff_idx    <- which(vals != lab_df[, col_name][seq_along(vals)])
@@ -1072,33 +1073,33 @@ server <- function(input, output, session) {
       fullData(full_df)
     }
   }
-
+  
   #If any of the inputs in the label info table change
   #edit the values in saved data
   observeEvent(t1Inputs(), {
     overwriteLabData(unlist(t1Inputs()), "start_time")
   })
-
+  
   observeEvent(t2Inputs(), {
     overwriteLabData(unlist(t2Inputs()), "end_time")
   })
-
+  
   observeEvent(f1Inputs(), {
     overwriteLabData(unlist(f1Inputs()), "start_freq")
   })
-
+  
   observeEvent(f2Inputs(), {
     overwriteLabData(unlist(f2Inputs()), "end_freq")
   })
-
+  
   observeEvent(confInputs(), {
     overwriteLabData(unlist(confInputs()), "confidence")
   })
-
+  
   observeEvent(classInputs(), {
     overwriteLabData(unlist(classInputs()), "class_label")
   })
-
+  
   output$start_ui <- renderUI({
     if (.is_null(input$file1))
       actionButton("start_labelling", "Start Labelling!",
@@ -1107,18 +1108,18 @@ server <- function(input, output, session) {
       actionButton("end_labelling", "End Labelling",
                    class = "btn-danger")
   })
-
+  
   output$user_ui <- renderUI({
     labeler()
   })
-
+  
   output$downloadAudio_ui <- renderUI({
     div(
       HTML("<b>Download:</b>"),
       downloadButton("downloadWav", label = NULL, style = "width:100%; margin-top: 5%;")
     )
   })
-
+  
   observeEvent(input$start_labelling, {
     full_df <- fullData()
     filenms <- file_list()
@@ -1129,7 +1130,7 @@ server <- function(input, output, session) {
                                   Please <b>Upload files</b> or navigate to a different directory to get started.")),
                        type = "error")
   })
-
+  
   observeEvent(input$end_labelling, {
     updateSelectInput(inputId  = "file1",
                       selected = "",
@@ -1151,21 +1152,21 @@ server <- function(input, output, session) {
       do.call(tabsetPanel,
               c(
                 purrr::imap(instruction_list,
-                \(x, idx)
-                 tabPanel(
-                   title = paste("Step", idx),
-                   x$str,
-                   purrr::map(x[-1], modal_fill)
-                 )
+                            \(x, idx)
+                            tabPanel(
+                              title = paste("Step", idx),
+                              x$str,
+                              purrr::map(x[-1], modal_fill)
+                            )
                 )
-                )
-              ),
+              )
+      ),
       easyClose = TRUE,
       footer    = NULL
-      )
+    )
     )
   })
-
+  
   output$label_ui <- renderUI({
     base_cols  <- c("darkgreen", "limegreen")
     misc_cols  <- c("yellow", "orange")
@@ -1174,7 +1175,7 @@ server <- function(input, output, session) {
     cmisc  <- categories$misc
     cextra <- categories$xtra
     #my_gradients <- colorRampPalette(c("darkred","red"))(length(cextra))
-
+    
     btn_col_js <- NULL
     btn_col_js <- add_colour_js(btn_col_js, cbase, base_cols)
     btn_col_js <- add_colour_js(btn_col_js, cmisc, misc_cols)
@@ -1200,7 +1201,7 @@ server <- function(input, output, session) {
       tags$script(btn_col_js),
     )
   })
-
+  
   output$freq_ui <- renderUI({
     freq_range <- as.numeric(c(input$freq_min, input$freq_max))
     sliderInput(
@@ -1214,14 +1215,14 @@ server <- function(input, output, session) {
       width = "100%"
     )
   })
-
+  
   audioInput <- reactive({
     segment_total(1)
-
+    
     if (.is_null(input$file1))
       return(NULL)
-    tmp_audio <- readWave(file.path(dataPath(), input$file1))
-
+    tmp_audio <- readWave(here(dataPath(), input$file1))
+    
     #based on torchaudio::functional_gain
     audio_gain     <- function(waveform, gain_db = 0) {
       if (gain_db == 0)
@@ -1235,7 +1236,7 @@ server <- function(input, output, session) {
     tmp_audio@left[tmp_audio@left >  32767] <-  32767
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
-
+    
     len_s <- length(tmp_audio) / tmp_audio@samp.rate
     segment_end_s(len_s)
     t_step <- input$t_step
@@ -1261,15 +1262,15 @@ server <- function(input, output, session) {
       disable("next_section")
       x_coords(NULL)
     }
-    writeWave(tmp_audio, file.path(dataPath(), "tmp.wav"))
+    writeWave(tmp_audio, here(dataPath(), "tmp.wav"))
     return(tmp_audio)
   })
-
+  
   cleanInput <- reactive({
     tmp_audio <- audioInput()
     if (is.null(tmp_audio) | is.null(input$frequency_range))
       return(NULL)
-
+    
     if (!is.null(ranges_osc$x) | !is.null(ranges_spec$x)) {
       #time crop
       if (!is.null(ranges_osc$x))
@@ -1287,7 +1288,7 @@ server <- function(input, output, session) {
       tc <- sort(tc) - segment_start()
       tmp_audio <- extractWave_t(tmp_audio, tc)
     }
-
+    
     select_zoom <- !is.null(ranges_spec$y) | !is.null(dc_ranges_spec$y)
     if (!is.null(ranges_spec$y))
       frange <- ranges_spec$y
@@ -1295,19 +1296,19 @@ server <- function(input, output, session) {
       frange <- dc_ranges_spec$y
     else
       frange <- input$frequency_range
-
+    
     tmp_spec <- spectro(tmp_audio,
                         f        = tmp_audio@samp.rate,
                         wl       = input$window_width,
                         ovlp     = input$fft_overlap,
                         plot     = FALSE)
-
+    
     do_spec_crop <- frange_check(frange, range(tmp_spec$freq)) | select_zoom
-
+    
     if (!do_spec_crop &
         (input$noisereduction == "None"))
       return(NULL)
-
+    
     if (input$noisereduction != "None") {
       audio_clean$noisered <- TRUE
       complex_spec <- spectro(tmp_audio,
@@ -1318,7 +1319,7 @@ server <- function(input, output, session) {
                               plot     = FALSE,
                               norm     = FALSE,
                               dB       = NULL)
-
+      
       noisered  <- noise_reduce(input$noisereduction)
       #noise is the geometric median of each row/column
       specnoise <- t(apply(complex_spec$amp, MARGIN = noisered, geometric_median))
@@ -1329,9 +1330,9 @@ server <- function(input, output, session) {
       else
         noise_mat <- matrix(rep(specnoise_complex, nrow(complex_spec$amp)),
                             nrow = nrow(complex_spec$amp), byrow = TRUE)
-
+      
       complex_spec$amp <- complex_spec$amp - noise_mat
-
+      
       audio_inv <- istft(complex_spec$amp,
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width,
@@ -1341,7 +1342,7 @@ server <- function(input, output, session) {
     } else {
       audio_clean$noisered <- FALSE
     }
-
+    
     if (do_spec_crop) {
       audio_clean$select <- TRUE
       complex_spec <- spectro(tmp_audio,
@@ -1367,14 +1368,14 @@ server <- function(input, output, session) {
     } else {
       audio_clean$select <- FALSE
     }
-    writeWave(tmp_audio, file.path(dataPath(), "tmp_clean.wav"))
+    writeWave(tmp_audio, here(dataPath(), "tmp_clean.wav"))
     return(tmp_audio)
   })
-
+  
   gettime <- reactive(list(x = input$get_time))
-
+  
   gettime_t <- gettime %>% throttle(50)
-
+  
   output$segmentNumText <- renderUI({
     txt <- "Segment: "
     if (.is_null(input$file1))
@@ -1382,14 +1383,14 @@ server <- function(input, output, session) {
     if (segment_total() > 1) {
       if (segment_num() == segment_total())
         seg_colour <- "green"
-      else
-        seg_colour <- "red"
-      txt <- paste(txt, "<span style='color: ", seg_colour, ";'><b>(",
-                   segment_num(), "/", segment_total(), ")</b></span>")
+          else
+            seg_colour <- "red"
+              txt <- paste(txt, "<span style='color: ", seg_colour, ";'><b>(",
+                           segment_num(), "/", segment_total(), ")</b></span>")
     }
     return(HTML(txt))
   })
-
+  
   specData <- reactive({
     if (.is_null(input$file1))
       return(data.frame(time        = 0,
@@ -1397,9 +1398,9 @@ server <- function(input, output, session) {
                         amplitude   = -Inf,
                         freq_select = 1))
     tmp_audio <- audioInput()
-
+    
     noisered <- noise_reduce(input$noisereduction)
-
+    
     #wl <- as.integer(length(tmp_audio)/100)
     #wl <- input$window_width_disp
     #if (!is.null(dc_ranges_spec$x)){
@@ -1408,7 +1409,7 @@ server <- function(input, output, session) {
     #wl <- as.integer(wl/10)
     #}
     #wl <- wl - wl %% 2
-
+    
     spec <- spectro(tmp_audio,
                     f        = tmp_audio@samp.rate,
                     wl       = input$window_width_disp,
@@ -1416,26 +1417,26 @@ server <- function(input, output, session) {
                     plot     = FALSE,
                     noisereduction = noisered,
                     dB = input$spec_db)
-
+    
     spec$amp <- spec$amp + input$db_gain
     spec$amp <- spec$amp + input$db_contrast
-
+    
     spec$amp[spec$amp > -20] <- -20
-
+    
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)),
                        frequency = rep(spec$freq, times = ncol(spec$amp)),
                        amplitude = as.vector(spec$amp))
-
+    
     df$time <- df$time + segment_start()
-
+    
     #if (!is.null(dc_ranges_osc$x))
     #  df$time <- df$time + dc_ranges_osc$x[1]
     #else if (!is.null(dc_ranges_spec$x))
     #  df$time <- df$time + dc_ranges_spec$x[1]
-
+    
     return(df %>% sample_frac(input$spec_samp))
   })
-
+  
   oscData <- reactive({
     if (.is_null(input$file1))
       return(NULL)
@@ -1443,7 +1444,7 @@ server <- function(input, output, session) {
       tmp_audio <- audioInput()
     else
       tmp_audio <- cleanInput()
-
+    
     time_seq <- function(x) {
       return(seq(0, length(x@left) / x@samp.rate, length.out = length(x)))
     }
@@ -1453,7 +1454,7 @@ server <- function(input, output, session) {
       df2$time <- df2$time + dc_ranges_osc$x[1]
     else if (!is.null(dc_ranges_spec$x))
       df2$time <- df2$time + dc_ranges_spec$x[1]
-
+    
     #spacing for "custom" y axis margin
     strlen_osc_y  <- length_b10(df2$amplitude)
     spec_freq <- input$frequency_range
@@ -1470,32 +1471,32 @@ server <- function(input, output, session) {
     }
     return(df2)
   })
-
+  
   specCanvas <- reactive({
     return(ggplot(specData(),
                   aes(x    = time,
                       y    = frequency,
                       fill = amplitude)) +
              spec_theme)})
-
+  
   specPlot <- reactive({
     df <- specData()
-
+    
     y_breaks <- pretty(df$frequency, 5)
     if (!is.null(dc_ranges_spec$y))
       y_breaks <- pretty(dc_ranges_spec$y, 5)
-
+    
     x_breaks <- pretty(df$time, 5)
     if (!is.null(dc_ranges_spec$x))
       x_breaks <- pretty(dc_ranges_spec$x, 5)
-
+    
     p <- plot_spectrogram(df, specCanvas(), input, length_ylabs, dc_ranges_spec,
                           specplot_range, x_breaks, y_breaks)
-
+    
     gb   <- ggplot_build(p)
     specplot_range$x <- gb$layout$panel_params[[1]]$x.range
     specplot_range$y <- gb$layout$panel_params[[1]]$y.range
-
+    
     if (!is.null(x_coords()))
       p <- p + coord_cartesian(xlim = x_coords(),
                                expand = FALSE)
@@ -1503,23 +1504,23 @@ server <- function(input, output, session) {
       p <- p + coord_cartesian(ylim = dc_ranges_spec$y,
                                xlim = dc_ranges_spec$x,
                                expand = FALSE, default = TRUE)
-
+    
     return(p)
   })
-
+  
   specPlotFront <- reactive({
     df <- specData()
-
+    
     y_breaks <- pretty(df$frequency, 5)
     if (!is.null(dc_ranges_spec$y))
       y_breaks <- pretty(dc_ranges_spec$y, 5)
-
+    
     x_breaks <- pretty(df$time, 5)
     if (!is.null(dc_ranges_spec$x))
       x_breaks <- pretty(dc_ranges_spec$x, 5)
-
+    
     p <- plot_spec_front(input, length_ylabs, specplot_range, x_breaks, y_breaks)
-
+    
     if (!is.null(x_coords()))
       p <- p + coord_cartesian(xlim = x_coords(),
                                expand = FALSE)
@@ -1527,10 +1528,10 @@ server <- function(input, output, session) {
       p <- p + coord_cartesian(ylim = dc_ranges_spec$y,
                                xlim = dc_ranges_spec$x,
                                expand = FALSE, default = TRUE)
-
+    
     return(p)
   })
-
+  
   output$specplot_ui <- renderUI({
     div(
       tags$head(tags$style(HTML(plot_z_style))),
@@ -1592,7 +1593,7 @@ server <- function(input, output, session) {
       uiOutput("hover_info")
     )
   })
-
+  
   output$specplot <- renderPlot({
     if (input$base_specplot)
       plot_spectrogram_base(specData(), input, length_ylabs, dc_ranges_spec,
@@ -1600,22 +1601,22 @@ server <- function(input, output, session) {
     else
       return(specPlot())
   })
-
+  
   output$specplot_img <- renderImage({
-    list(src    = file.path("images", change_ext(input$file1, "wav", "png", "_spec")),
+    list(src    = here("images", change_ext(input$file1, "wav", "png", "_spec")),
          width  = session$clientData$output_specplot_width,
          height = session$clientData$output_specplot_height
     )
   }, deleteFile = FALSE)
-
+  
   output$specplot_freq <- renderPlot({
     if (.is_null(input$file1) | !input$spec_freq_bounds)
       return(NULL)
     spec_plot <- specPlotFront()
-
+    
     df <- specData()
     frange <- input$frequency_range
-
+    
     if (!is.null(frange))
       if (frange_check(frange, range(df$frequency)))
         spec_plot <- spec_plot +
@@ -1631,7 +1632,7 @@ server <- function(input, output, session) {
                 fill = "black", alpha = .5)
     return(spec_plot)
   }, bg = "transparent")
-
+  
   output$specplot_time <- renderPlot({
     if (.is_null(input$file1) | !input$spec_time)
       return(NULL)
@@ -1655,7 +1656,7 @@ server <- function(input, output, session) {
     }
     return(spec_plot)
   }, bg = "transparent")
-
+  
   output$specplot_front <- renderPlot({
     if (.is_null(input$file1))
       return(NULL)
@@ -1694,7 +1695,7 @@ server <- function(input, output, session) {
         }
         lab_df$class_label <- as.vector(sapply(lab_df$class_label, function(y) name_to_bto(y, df)))
       }
-
+      
       spec_plot <- spec_plot +
         geom_rect(data = lab_df,
                   mapping = aes(xmin = start_time,
@@ -1727,7 +1728,7 @@ server <- function(input, output, session) {
     }
     return(spec_plot)
   }, bg = "transparent")
-
+  
   output$spec_time_js_line <- renderUI({
     if (!input$spec_time_js)
       return(NULL)
@@ -1740,13 +1741,13 @@ server <- function(input, output, session) {
                         top:0;",
                "some line"))
   })
-
+  
   observeEvent(input$savespec, {
     if (!.is_null(input$file1))
       spec_name <- gsub(".wav", "_spec.png", input$file1)
     else
       spec_name <- "blank_spec.png"
-    file_nm <- file.path(getwd(), "images", spec_name)
+    file_nm <- here("images", spec_name)
     width   <- session$clientData$output_specplot_width
     height  <- session$clientData$output_specplot_height
     # For high-res displays, this will be greater than 1
@@ -1763,14 +1764,14 @@ server <- function(input, output, session) {
                      #          "Go to folder", target = "_blank"),
                      type = "message")
   })
-
+  
   output$specplot_blank <- renderPlot({
     if (plots_open$spec)
       return(NULL)
     else
       blank_plot(label = "Spectrogram (hidden)")
   })
-
+  
   output$oscplot_ui <- renderUI({
     if (input$include_osc)
       div(
@@ -1807,10 +1808,10 @@ server <- function(input, output, session) {
     else
       return(NULL)
   })
-
+  
   output$oscplot <- renderPlot({
     p <- plot_oscillogram(oscData(), input, length_ylabs)
-
+    
     if (!.is_null(input$file1)) {
       if (!is.null(dc_ranges_spec$x))
         p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE)
@@ -1821,7 +1822,7 @@ server <- function(input, output, session) {
       osc_name <- "blank_osc.png"
     }
     observeEvent(input$saveosc, {
-      file_nm <- file.path(getwd(), "images", osc_name)
+      file_nm <- here("images", osc_name)
       width   <- session$clientData$output_oscplot_width
       height  <- session$clientData$output_oscplot_height
       # For high-res displays, this will be greater than 1
@@ -1840,14 +1841,14 @@ server <- function(input, output, session) {
     })
     return(p)
   })
-
+  
   output$oscplot_blank <- renderPlot({
     if (plots_open$osc)
       return(NULL)
     else
       blank_plot(label = "Oscillogram (hidden)")
   })
-
+  
   output$hover_info <- renderUI({
     if (.is_null(input$file1) | !input$include_hover)
       return(NULL)
@@ -1863,10 +1864,10 @@ server <- function(input, output, session) {
     if (point$time > segment_end_s())
       return(NULL)
     point <- round(point, 3)
-
+    
     #lab_df <- labelsData()
     #lab_df <- lab_df[in_label_box(lab_df, point), ]
-
+    
     #if (is.null(lab_df))
     species_in_hover <- ""
     #else if (nrow(lab_df) == 0)
@@ -1876,14 +1877,14 @@ server <- function(input, output, session) {
     #  species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
     #                             "<br/><b> Call type: </b>", lab_df$call_type)
     #}
-
+    
     # create style property for tooltip
     # background color is set so tooltip is a almost transparent
     # z-index is the stack index and is set to 100 so the tooltip will be on top
     style <- paste0("position:absolute; z-index:100; ",
                     "background-color: rgba(120, 120, 120, 0.25); ",
                     "color: rgb(245, 245, 245); padding: 1%;")
-
+    
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -1893,19 +1894,19 @@ server <- function(input, output, session) {
                     species_in_hover)))
     )
   })
-
+  
   output$spec_collapse <- renderUI({
     plot_collapse_button("Spectrogram", "spec")
   })
-
+  
   observeEvent(input$collapse_spec, {
     plots_open$spec <- FALSE
   })
-
+  
   observeEvent(input$open_spec, {
     plots_open$spec <- TRUE
   })
-
+  
   observeEvent(input$keys, {
     if (input$keys == "shift+space")
       js$audiotoggle()
@@ -1925,7 +1926,7 @@ server <- function(input, output, session) {
       updateRadioGroupButtons(inputId = "label_points",
                               selected = class_label()[min(length(class_label()), as.integer(input$keys))])
   })
-
+  
   output$hover_info_osc <- renderUI({
     if (.is_null(input$file1) | !input$include_hover_osc)
       return(NULL)
@@ -1938,7 +1939,7 @@ server <- function(input, output, session) {
     if (nrow(point) == 0)
       return(NULL)
     point <- round(point, 3)
-
+    
     in_label_box <- function(df, point) {
       return(btw(point$time, df$start_time, df$end_time))
     }
@@ -1950,14 +1951,14 @@ server <- function(input, output, session) {
       species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
                                  "<br/><b> Call type: </b>", lab_df$call_type)
     }
-
+    
     # create style property for tooltip
     # background color is set so tooltip is a almost transparent
     # z-index is the stack index and is set to 100 so the tooltip will be on top
     style <- paste0("position:absolute; z-index:100; ",
                     "background-color: rgba(120, 120, 120, 0.25); ",
                     "color: rgb(245, 245, 245); padding: 1%;")
-
+    
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -1966,19 +1967,19 @@ server <- function(input, output, session) {
                     species_in_hover)))
     )
   })
-
+  
   output$osc_collapse <- renderUI({
     plot_collapse_button("Oscillogram", "osc")
   })
-
+  
   observeEvent(input$collapse_osc, {
     plots_open$osc <- FALSE
   })
-
+  
   observeEvent(input$open_osc, {
     plots_open$osc <- TRUE
   })
-
+  
   observeEvent(input$specplot_brush, {
     # When a double-click happens, check if there's a brush on the plot.
     # If so, zoom to the brush bounds; if not, reset the zoom.
@@ -1992,9 +1993,9 @@ server <- function(input, output, session) {
       reset_ranges(ranges_spec)
     }
   })
-
+  
   spec_click <- reactive({input$specplot_click}) %>% throttle(1000)
-
+  
   observeEvent(spec_click(), {
     reset_ranges(ranges_spec)
     #if(is.null(input$specplot_brush) & !is.null(labelsData())){
@@ -2009,7 +2010,7 @@ server <- function(input, output, session) {
     #TODO: click could possibly navigate time in clip, or activate a label (for editing/deleting)
     #}
   })
-
+  
   observeEvent(input$specplot_dblclick, {
     # When a double-click happens, check if there's a brush on the plot.
     # If so, zoom to the brush bounds; if not, reset the zoom.
@@ -2026,7 +2027,7 @@ server <- function(input, output, session) {
       reset_ranges(ranges_spec)
     }
   })
-
+  
   observeEvent(input$oscplot_dblclick, {
     brush <- input$oscplot_brush
     if (!is.null(brush)) {
@@ -2036,14 +2037,14 @@ server <- function(input, output, session) {
       reset_ranges(ranges_osc)
     }
   })
-
+  
   observeEvent(input$plt_reset, {
     reset_ranges(ranges_spec)
     reset_ranges(ranges_osc)
     reset_ranges(dc_ranges_spec)
     reset_ranges(dc_ranges_osc)
   })
-
+  
   observeEvent(input$addCategory, {
     if (gsub(" ", "", input$otherCategory) == "") {
       showNotification("Need category name to add", type = "error")
@@ -2056,7 +2057,7 @@ server <- function(input, output, session) {
                               selected = input$otherCategory)
     }
   })
-
+  
   observeEvent(input$remCategory, {
     if (is.null(input$label_points))
       showNotification("Need a category selected to remove it", type = "error")
@@ -2071,12 +2072,12 @@ server <- function(input, output, session) {
                        type = "warning")
     }
   })
-
+  
   observeEvent(input$resetCategory, {
     categories$xtra <- NULL
     showNotification("Extra labels reset to null", type = "warning")
   })
-
+  
   observeEvent(input$save_points, {
     if (!is.null(ranges_spec$x)) {
       if (is.null(input$call_type))
@@ -2096,7 +2097,7 @@ server <- function(input, output, session) {
                            notes       = input$notes,
                            labeler     = labeler())
       typecol <- as.vector(cat_colours(lab_df)$typecol)
-
+      
       full_df <- fullData()
       if (!is.null(full_df)) {
         inp_list  <- names(input)
@@ -2121,7 +2122,7 @@ server <- function(input, output, session) {
       showNotification("Label not saved, nothing selected!", type = "error")
     }
   })
-
+  
   observeEvent(input$remove_points, {
     if (!is.null(ranges_spec$x)) {
       lab_df <- data.frame(start_time = ranges_spec$x[1],
@@ -2147,7 +2148,7 @@ server <- function(input, output, session) {
       showNotification("Label not removed, nothing selected!", type = "error")
     }
   })
-
+  
   observeEvent(input$undo_delete_lab, {
     full_df   <- fullData()
     del_df    <- deleted_lab$data
@@ -2164,7 +2165,7 @@ server <- function(input, output, session) {
     }
     refresh_labcounts()
   })
-
+  
   observeEvent(input$reset_labels, {
     full_df <- fullData()
     delete_idx <- full_df$file_name == input$file1
@@ -2175,16 +2176,16 @@ server <- function(input, output, session) {
     showNotification("All labels removed for this file, click Undo to bring back", type = "message")
     refresh_labcounts()
   })
-
+  
   output$my_audio <- renderUI({
     audio_style <- "width: 100%;"
     if (!is.null(cleanInput())) {
-      file_name   <- file.path(dataPath(), "tmp_clean.wav")
+      file_name   <- here(dataPath(), "tmp_clean.wav")
       audio_style <- paste(audio_style, "filter: sepia(50%);")
     } else {
-      file_name <- file.path(dataPath(), "tmp.wav")
+      file_name <- here(dataPath(), "tmp.wav")
     }
-
+    
     audio_style <- HTML(audio_style)
     if (.is_null(input$file1))
       return(tags$audio(id       = "my_audio_player",
@@ -2210,7 +2211,7 @@ server <- function(input, output, session) {
       tags$script(pb_script)
     )
   })
-
+  
   output$audio_title <- renderUI({
     base <- "<b>Play audio:<b/>"
     if (!is.null(cleanInput())) {
@@ -2221,7 +2222,7 @@ server <- function(input, output, session) {
     }
     HTML(base)
   })
-
+  
   output$meta_text <- renderUI({
     if (is.null(audioInput()))
       return(NULL)
@@ -2245,7 +2246,7 @@ server <- function(input, output, session) {
     loc_d2c     <- meta_paste(df, m2km(df$dist_to_coastline))
     other_cols  <- setdiff(colnames(df), main_cols)
     other_metatxt <- purrr::map(other_cols, function(x) {div(HTML(paste0("<b>", x, ": </b>")),
-                                                            meta_paste(df[, x], df[, x]))})
+                                                             meta_paste(df[, x], df[, x]))})
     div(
       tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
       tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
@@ -2262,14 +2263,14 @@ server <- function(input, output, session) {
                                  style = "info")
       ))
   })
-
+  
   output$audio_time <- renderText({
     if (.is_null(input$file1))
       return(NULL)
     else
       return(input$get_time)
   })
-
+  
   observe({
     shinyjs::toggle(id  = "specplot",
                     anim      = TRUE,
@@ -2279,7 +2280,7 @@ server <- function(input, output, session) {
     shinyjs::toggle(id  = "specplot_blank",
                     condition = !plots_open$spec)
   })
-
+  
   observe({
     shinyjs::toggle(id  = "oscplot",
                     anim      = TRUE,
@@ -2289,7 +2290,7 @@ server <- function(input, output, session) {
     shinyjs::toggle(id  = "oscplot_blank",
                     condition = !plots_open$osc)
   })
-
+  
   output$downloadSpec <- downloadHandler(
     filename = function() {
       paste0("spec-", Sys.Date(), ".csv")
@@ -2298,7 +2299,7 @@ server <- function(input, output, session) {
       write.csv(specData(), file, row.names = FALSE)
     }
   )
-
+  
   output$downloadData <- downloadHandler(
     filename = function() {
       paste0("data-", Sys.Date(), ".csv")
@@ -2307,7 +2308,7 @@ server <- function(input, output, session) {
       write.csv(saveData(), file, row.names = FALSE)
     }
   )
-
+  
   output$downloadWav <- downloadHandler(
     filename = function() {
       input$file1
@@ -2316,7 +2317,7 @@ server <- function(input, output, session) {
       savewav(audioInput(), filename = file)
     }
   )
-
+  
   # move to previous file (resetting zoom)
   observeEvent(input$prev_file, {
     idx <- which(input$file1 == file_list()) - 1
@@ -2335,7 +2336,7 @@ server <- function(input, output, session) {
     segment_end_s(1)
     segment_start(0)
   })
-
+  
   # move to next file (resetting zoom)
   observeEvent(input$next_file, {
     idx <- which(input$file1 == file_list()) + 1
@@ -2354,11 +2355,11 @@ server <- function(input, output, session) {
     segment_end_s(1)
     segment_start(0)
   })
-
+  
   # Previous (15 second) segment
   observeEvent(input$prev_section, {
     idx <- segment_num() - 1
-
+    
     if (idx < 1) {
       showNotification("Cannot go to previous segment, at beginning of file",
                        type = "error")
@@ -2370,11 +2371,11 @@ server <- function(input, output, session) {
       reset_ranges(dc_ranges_osc)
     }
   })
-
+  
   # Next (15 second) segment
   observeEvent(input$next_section, {
     idx <- segment_num() + 1
-
+    
     if (idx > segment_total()) {
       showNotification("Cannot go to next segment, at end of file",
                        type = "error")
@@ -2386,19 +2387,19 @@ server <- function(input, output, session) {
       reset_ranges(dc_ranges_osc)
     }
   })
-
+  
   observeEvent(input$reset_sidebar, {
     shinyjs::reset("side-panel")
   })
-
+  
   observeEvent(input$reset_body, {
     shinyjs::reset("main-panel")
   })
-
+  
   output$loadScript <- renderUI({
     tags$script(paste0(sapply(names(input), inp_script), collapse = " "))
   })
-
+  
   observeEvent(input$inputLoad, {
     fname <- conf_filename()
     if (file.exists(fname)) {
@@ -2421,7 +2422,7 @@ server <- function(input, output, session) {
       showNotification("No previous settings to load", type = "warning", duration = NULL)
     }
   })
-
+  
   session$onSessionEnded(function() {
     isolate(saveRDS(input, file = conf_filename()))
   })
