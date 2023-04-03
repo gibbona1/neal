@@ -20,7 +20,7 @@ get_audio_recdf <- function(x) {
     str_start <- 1
   name_str <- substr(name_str, str_start, nchar(name_str) - 1)
 
-  loc_df <- read.csv("location_list.csv", fileEncoding = "UTF-8-BOM")
+  loc_df <- read.csv(here("data", "location_list.csv"), fileEncoding = "UTF-8-BOM")
   if (name_str %in% loc_df$recorder_name)
     return(loc_df[loc_df$recorder_name == name_str, ])
   return(NULL)

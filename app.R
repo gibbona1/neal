@@ -26,10 +26,10 @@ library(janitor)
 library(DT)
 library(here)
 
-source("plot_helpers.R")
-source("audio_meta.R")
-source("server_helpers.R")
-source("instruction_list.R")
+source("R/plot_helpers.R")
+source("R/audio_meta.R")
+source("R/server_helpers.R")
+source("R/instruction_list.R")
 
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30 * 1024 ^ 2)
@@ -780,7 +780,7 @@ server <- function(input, output, session) {
       else
         enable("next_file")
       file1_img <- change_ext(input$file1, "wav", "png", "_spec")
-      if (file1_img %in% list.files("images"))
+      if (file1_img %in% list.files(here("images")))
         spec_preload <- TRUE
       else
         spec_preload <- FALSE
