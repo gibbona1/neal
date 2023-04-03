@@ -1144,7 +1144,7 @@ server <- function(input, output, session) {
       if(is.character(x))
         img_fill <- modal_img(x)
       else
-        img_fill <- div(x$str,  modal_img(x$img))
+        img_fill <- div(x$str,  modal_img(x$img), hr())
       return(img_fill)
     }
     showModal(modalDialog(
