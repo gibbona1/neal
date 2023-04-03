@@ -40,7 +40,6 @@ ldir   <- "labels" #label directory
 
 empty_lab_df <- read.csv(here(ldir, "labels_tmp.csv"))[FALSE, ]
 
-species_list <- read.csv(here("data", "species_list.csv"), fileEncoding = "UTF-8-BOM", check.names = FALSE)
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
                 "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
@@ -181,10 +180,7 @@ ui_func <- function() {
                  selectInput("mode", "Label Mode",
                              choices = c("Bats" = "bats", "Birds (default)" = "birds"),
                              selected = "birds"),
-                 selectInput("species_list",
-                             "Species List:",
-                             choices = colnames(species_list),
-                             width   = "100%"),
+                 uiOutput("species_list_ui"),
                  checkboxInput("bto_codes", "Display as BTO codes", value = FALSE),
                  actionButton("inputLoad", "Load Settings")
         ),
@@ -631,6 +627,22 @@ server <- function(input, output, session) {
     return(here(fname))
   })
   
+  get_species_list <- function(nrows = -1){
+    return(read.csv(here("data", "species_list.csv"), 
+                    fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
+  }
+  
+  speciesList <- reactivePoll(10000, session,
+                              checkFunc = function() colnames(get_species_list(nrows=1)),
+                              valueFunc = get_species_list)
+  
+  output$species_list_ui <- renderUI({
+    selectInput("species_list",
+                "Species List:",
+                choices = colnames(speciesList()),
+                width   = "100%")
+  })
+  
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session,
                             checkFunc = function() unique(get_file_list()),
@@ -678,7 +690,7 @@ server <- function(input, output, session) {
     if (is.null(x))
       return(NULL)
     x$trim_class <- trim_start(x$class_label)
-    other_c <- unique(unlist(species_list))
+    other_c <- unique(unlist(speciesList()))
     other_c <- other_c[other_c != "" & !(other_c %in% class_label())]
     x_cl    <- as.vector(x$class_label)
     other_c <- union(other_c, x_cl[!x_cl %in% class_label()])
@@ -693,7 +705,7 @@ server <- function(input, output, session) {
   }
   
   categories <- reactiveValues(
-    base = get_entries(species_list[, 1]),
+    base = c(),
     misc = misc_categories,
     xtra = c()
   )
@@ -723,11 +735,11 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$species_list, {
-    categories$base <- get_entries(species_list[, input$species_list])
+    categories$base <- get_entries(speciesList()[, input$species_list])
   })
   
   observeEvent(input$bto_codes, {
-    x <- get_entries(species_list[, input$species_list])
+    x <- get_entries(speciesList()[, input$species_list])
     if (input$bto_codes) {
       df <- bto_df
       df$species_name <- trim_start(df$species_name)
@@ -2424,7 +2436,12 @@ server <- function(input, output, session) {
   })
   
   session$onSessionEnded(function() {
-    isolate(saveRDS(input, file = conf_filename()))
+    tryCatch({
+      isolate(saveRDS(input, file = conf_filename()))
+      cat("saved config")
+      },
+      error = function(e) e
+    )
   })
 }
 
