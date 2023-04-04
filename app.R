@@ -66,6 +66,8 @@ get_species_list <- function(nrows = -1){
                   fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
 }
 
+parse_span <- function(x, col) tags$span(x, style=paste0("color: ", col, ";"))
+
 btn_row_style  <- "display: inline-block;
                    width: 100%;
                    height: 100%;
@@ -1444,8 +1446,8 @@ server <- function(input, output, session) {
         seg_colour <- "green"
           else
             seg_colour <- "red"
-              txt <- paste(txt, "<span style='color: ", seg_colour, ";'><b>(",
-                           segment_num(), "/", segment_total(), ")</b></span>")
+      seg_progress <- paste0("(", segment_num(), "/", segment_total(), ")")
+      txt <- paste(txt, parse_span(seg_progress, seg_colour))
     }
     return(HTML(txt))
   })
@@ -2170,10 +2172,9 @@ server <- function(input, output, session) {
         write_labs(lab_df, append = FALSE, col.names = TRUE)
         fullData(lab_df)
       }
-      showNotification(HTML(paste0("Label ", "<span style='color: ",
-                                   typecol, ";'>",
-                                   tags$b(input$label_points),
-                                   "</span> successfully saved!")),
+      showNotification(HTML(paste0("Label ", 
+                                   parse_span(tags$b(input$label_points), typecol),
+                                   " successfully saved!")),
                        type = "message")
       updateTextAreaInput(inputId = "notes", value = "")
     } else {
@@ -2274,9 +2275,9 @@ server <- function(input, output, session) {
     base <- paste(tags$b("Play audio:"))
     if (!is.null(cleanInput())) {
       if (audio_clean$select)
-        base <- paste(base, "<span style='color: red;'>(selected)</span>")
+        base <- paste(base, parse_span("(selected)", "red"))
       if (audio_clean$noisered)
-        base <- paste(base, "<span style='color: red;'>(noise reduction)</span>")
+        base <- paste(base, parse_span("(noise reduction)", "red"))
     }
     HTML(base)
   })
