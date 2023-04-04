@@ -60,6 +60,11 @@ hotkeys <- c(
 
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
 
+get_species_list <- function(nrows = -1){
+  return(read.csv(here("data", "species_list.csv"), 
+                  fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
+}
+
 btn_row_style  <- "display: inline-block;
                    width: 100%;
                    height: 100%;
@@ -180,7 +185,11 @@ ui_func <- function() {
                  selectInput("mode", "Label Mode",
                              choices = c("Bats" = "bats", "Birds (default)" = "birds"),
                              selected = "birds"),
-                 uiOutput("species_list_ui"),
+                 fileInput("upload_species_col", "Upload columns to species list", multiple = FALSE, accept = ".csv"),
+                 selectInput("species_list",
+                             "Species List:",
+                             choices = colnames(get_species_list(nrows = 1)),
+                             width   = "100%"),
                  checkboxInput("bto_codes", "Display as BTO codes", value = FALSE),
                  actionButton("inputLoad", "Load Settings")
         ),
@@ -627,21 +636,13 @@ server <- function(input, output, session) {
     return(here(fname))
   })
   
-  get_species_list <- function(nrows = -1){
-    return(read.csv(here("data", "species_list.csv"), 
-                    fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
-  }
-  
-  speciesList <- reactivePoll(10000, session,
+  speciesList <- reactivePoll(1000, session,
                               checkFunc = function() colnames(get_species_list(nrows=1)),
-                              valueFunc = get_species_list)
-  
-  output$species_list_ui <- renderUI({
-    selectInput("species_list",
-                "Species List:",
-                choices = colnames(speciesList()),
-                width   = "100%")
-  })
+                              valueFunc = function() {
+                                new_df <- get_species_list()
+                                updateSelectInput(inputId = "species_list", choices = colnames(new_df))
+                                return(new_df)
+                                })
   
   # store as a reactive instead of output
   file_list <- reactivePoll(1000, session,
@@ -705,7 +706,7 @@ server <- function(input, output, session) {
   }
   
   categories <- reactiveValues(
-    base = c(),
+    base = get_species_list()[,1] %>% get_entries(),
     misc = misc_categories,
     xtra = c()
   )
@@ -723,6 +724,26 @@ server <- function(input, output, session) {
     apply(input$upload_files, 1, function(x) {
       file.copy(x["datapath"], here(dataPath(), x["name"]))
     })
+  })
+  
+  observeEvent(input$upload_species_col, {
+    new_df <- read.csv(input$upload_species_col$datapath)
+    old_df <- speciesList()
+    new_df <- new_df[,!(colnames(new_df) %in% colnames(old_df))]
+    new_cols <- colnames(new_df)
+    old_list <- as.list(old_df)
+    for(nm in new_cols)
+      old_list[[nm]] <- new_df[,nm]
+    # determine the maximum length of the vectors
+    max_length <- max(lengths(old_list))
+    # pad the vectors with missing values (NA) so that they have the same length
+    padded_vectors <- lapply(old_list, function(x) c(x, rep("", max_length - length(x))))
+    
+    # combine the padded vectors into a data frame
+    padded_df <- data.frame(padded_vectors)
+    write.csv(padded_df, here("data", "species_list.csv"), row.names = FALSE)
+    showNotification(HTML(paste0("Columns <b>", paste0(new_cols, collapse = ','), "</b> added to species list")),
+                     duration = NULL, type = "message")
   })
   
   observeEvent(input$dircreate, {
