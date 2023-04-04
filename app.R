@@ -1169,10 +1169,10 @@ server <- function(input, output, session) {
   
   output$start_ui <- renderUI({
     if (.is_null(input$file1))
-      actionLink("start_labelling", "Start Labelling!",
+      actionButton("start_labelling", "Start Labelling!",
                    class = "btn btn-success")
     else
-      actionLink("end_labelling", "End Labelling",
+      actionButton("end_labelling", "End Labelling",
                    class = "btn btn-danger")
   })
   
