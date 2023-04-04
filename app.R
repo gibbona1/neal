@@ -25,6 +25,7 @@ library(stringr)
 library(janitor)
 library(DT)
 library(here)
+library(data.table)
 
 source("R/plot_helpers.R")
 source("R/audio_meta.R")
@@ -182,6 +183,8 @@ ui_func <- function() {
                  h5("Data folder"),
                  verbatimTextOutput("folder", placeholder = TRUE),
                  fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
+                 verbatimTextOutput("label_loc"),
+                 fileInput("upload_labs", "Upload labels", multiple = FALSE, accept = ".csv"),
                  selectInput("mode", "Label Mode",
                              choices = c("Bats" = "bats", "Birds (default)" = "birds"),
                              selected = "birds"),
@@ -625,6 +628,10 @@ server <- function(input, output, session) {
     return(dataPath())
   })
   
+  output$label_loc <- renderText({
+    return(labs_filename())
+  })
+  
   labs_filename <- reactive({
     fname <- here(ldir, paste0("labels_", lab_nickname(), ".csv"))
     if(!file.exists(fname)){
@@ -633,7 +640,7 @@ server <- function(input, output, session) {
       showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
                        duration = NULL, type = "message")
     }
-    return(here(fname))
+    return(fname)
   })
   
   speciesList <- reactivePoll(1000, session,
@@ -744,6 +751,24 @@ server <- function(input, output, session) {
     write.csv(padded_df, here("data", "species_list.csv"), row.names = FALSE)
     showNotification(HTML(paste0("Columns <b>", paste0(new_cols, collapse = ','), "</b> added to species list")),
                      duration = NULL, type = "message")
+  })
+  
+  observeEvent(input$upload_labs, {
+    new_df <- read.csv(input$upload_labs$datapath)
+    full_df <- fullData()
+    add_df <- list(full_df[FALSE,], 
+                   new_df %>%
+                     select(intersect(names(.), names(full_df)))
+                   ) %>%
+      rbindlist(use.names = TRUE, fill = TRUE) %>%
+      as.data.frame()
+    write_labs(add_df, append = FALSE, col.names = TRUE)
+    fullData(rbind(full_df, add_df))
+    showNotification(HTML(paste0("Uploaded <b>", nrow(add_df), 
+                                 "</b> annotations to <b>", 
+                                 labs_filename(), "</b>")),
+                     duration = NULL, type = "message")
+    refresh_labcounts()
   })
   
   observeEvent(input$dircreate, {
