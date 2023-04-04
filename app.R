@@ -329,7 +329,7 @@ ui_func <- function() {
       fluidRow({
         div(
           column(1,
-                 HTML("<b>Filename: </b>")
+                 tags$b("Filename:")
           ),
           column(7,
                  selectInput(
@@ -404,7 +404,7 @@ ui_func <- function() {
           column(4, style = "padding:0px;",
                  #br(),
                  actionButton("save_points",
-                              HTML("<b>Save Selection</b>"),
+                              tags$b("Save Selection"),
                               icon  = icon("vector-square"),
                               style = "width: 100%; background-color: #fff491;"),
                  uiOutput("meta_text")
@@ -453,39 +453,39 @@ ui_func <- function() {
                    textInput("otherCategory", "Type in additional category:",
                              width = "100%"), #enter to add category
                    tags$script(src = "JS/add_category.js"),
-                   div(HTML("<b>Category buttons</b>"),
+                   div(tags$b("Category buttons"),
                        div(style = "width: 100%; display: inline-block;",
                            tipify(actionButton("addCategory",
-                                               HTML("<b>Add</b>"),
+                                               tags$b("Add"),
                                                icon  = icon("plus-square"),
                                                style = "width: 24%; text-align:left;"), "Add category"),
                            tipify(actionButton("remCategory",
-                                               HTML("<b>Remove</b>"),
+                                               tags$b("Remove"),
                                                icon  = icon("minus-square"),
                                                style = "width: 24%; text-align:left;"), "Remove selected category"),
                            tipify(actionButton("resetCategory",
-                                               HTML("<b>Reset</b>"),
+                                               tags$b("Reset"),
                                                icon  = icon("list"),
                                                style = "width: 24%; text-align:left;"), "Remove custom categories added"),
                            disabled(tipify(actionButton("save_extra",
-                                                        HTML("<b>Save to List</b>"),
+                                                        tags$b("Save to List"),
                                                         icon  = icon("archive"),
                                                         style = "width: 24%; text-align:left;"), "Save custom labels to its own file/column of species list"))
                        )
                    ),
                    #Label buttons
-                   div(HTML("<b>Label buttons</b>"),
+                   div(tags$b("Label buttons"),
                        div(style="width: 100%; display: inline-block;",
                            tipify(actionButton("remove_points",
-                                               HTML("<b>Delete</b>"),
+                                               tags$b("Delete"),
                                                icon  = icon("trash-alt"),
                                                style = "width: 24%; text-align:left"), "Delete selection"),
                            tipify(actionButton("reset_labels",
-                                               HTML("<b>Clear</b>"),
+                                               tags$b("Clear"),
                                                icon  = icon("eraser"),
                                                style = "width: 24%; text-align:left;"), "Clear all labels for this file"),
                            tipify(actionButton("undo_delete_lab",
-                                               HTML("<b>Undo</b>"),
+                                               tags$b("Undo"),
                                                icon  = icon("undo-alt"),
                                                style = "width: 24%; text-align:left;"), "Undo last deleted label(s)"),
                            tipify(downloadButton("downloadData", "Download", style = "width: 24%; text-align:left;"), "Download labels for all files"))
@@ -505,7 +505,7 @@ ui_func <- function() {
                      selected   = NULL#)
                    ),
                    #notes, frequency filtering and label confidence
-                   HTML("<b>Additional Notes:</b>"),
+                   tags$b("Additional Notes:"),
                    textAreaInput("notes", NULL, width = "100%", resize = "vertical")
             )
         )
@@ -564,7 +564,8 @@ server <- function(input, output, session) {
   dataModal <- function(nickname, audio_folder, failed = FALSE) {
     modalDialog(
       h5("Create folder"),
-      HTML(paste0("Folder <b>", nickname, "</b> not found in <b>", audio_folder, "</b>. Would you like to create it?")),
+      HTML(paste("Folder", tags$b(nickname), "not found in", tags$b(audio_folder), br(), 
+                 "Would you like to create it?")),
       if (failed)
         div(tags$b("Invalid name of data object", style = "color: red;")),
       footer = tagList(
@@ -637,7 +638,7 @@ server <- function(input, output, session) {
     if(!file.exists(fname)){
       #creates empty dataframe
       write.csv(read.csv(here(ldir, "labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
-      showNotification(HTML(paste0("New label file <b>", fname, "</b> created. Your labels will be stored here")),
+      showNotification(HTML(paste("New label file", tags$b(fname), "created. Your labels will be stored here")),
                        duration = NULL, type = "message")
     }
     return(fname)
@@ -749,7 +750,7 @@ server <- function(input, output, session) {
     # combine the padded vectors into a data frame
     padded_df <- data.frame(padded_vectors)
     write.csv(padded_df, here("data", "species_list.csv"), row.names = FALSE)
-    showNotification(HTML(paste0("Columns <b>", paste0(new_cols, collapse = ','), "</b> added to species list")),
+    showNotification(HTML(paste("Columns", tags$b(paste0(new_cols, collapse = ', ')), "added to species list")),
                      duration = NULL, type = "message")
   })
   
@@ -764,9 +765,9 @@ server <- function(input, output, session) {
       as.data.frame()
     write_labs(add_df, append = FALSE, col.names = TRUE)
     fullData(rbind(full_df, add_df))
-    showNotification(HTML(paste0("Uploaded <b>", nrow(add_df), 
-                                 "</b> annotations to <b>", 
-                                 labs_filename(), "</b>")),
+    showNotification(HTML(paste("Uploaded", tags$b(nrow(add_df)), 
+                                 "annotations to", 
+                                 tags$b(labs_filename()))),
                      duration = NULL, type = "message")
     refresh_labcounts()
   })
@@ -774,7 +775,7 @@ server <- function(input, output, session) {
   observeEvent(input$dircreate, {
     dir.create(nickname_path())
     removeModal()
-    showNotification(HTML(paste0("Directory <b>", nickname_path(), "</b> created. restarting...")),
+    showNotification(HTML(paste("Directory", tags$b(nickname_path()), "created. restarting...")),
                      duration = NULL, type = "message")
     Sys.sleep(2)
     session$reload()
@@ -1069,7 +1070,7 @@ server <- function(input, output, session) {
     btn_extract  <- str_locate(input$dt_delete_button, "delbutton_")[, "end"]
     del_filename <- str_sub(input$dt_delete_button, btn_extract + 1)
     file.remove(here(dataPath(), del_filename))
-    showNotification(HTML(paste0("File <b>", del_filename, "</b> deleted")),
+    showNotification(HTML(paste("File", tags$b(del_filename), "deleted")),
                      type = "warning")
   })
   
@@ -1173,7 +1174,7 @@ server <- function(input, output, session) {
   
   output$downloadAudio_ui <- renderUI({
     div(
-      HTML("<b>Download:</b>"),
+      tags$b("Download:"),
       downloadButton("downloadWav", label = NULL, style = "width:100%; margin-top: 5%;")
     )
   })
@@ -1814,9 +1815,9 @@ server <- function(input, output, session) {
            height = height * pixelratio,
            width  = width * pixelratio,
            units  = "px")
-    showNotification(HTML(paste0("Spectrogram image <b>",
-                                 spec_name,
-                                 "</b> saved to <b>images</b>.")),
+    showNotification(HTML(paste("Spectrogram image",
+                                 tags$b(spec_name),
+                                 "saved to <b>images</b>.")),
                      #TODO: clickable link to images folder
                      #action = a(href = file.path("file://", getwd(), "images"),
                      #          "Go to folder", target = "_blank"),
@@ -1889,9 +1890,9 @@ server <- function(input, output, session) {
              height = height * pixelratio,
              width  = width * pixelratio,
              units  = "px")
-      showNotification(HTML(paste0("Oscillogram image <b>",
-                                   osc_name,
-                                   "</b> saved to <b>images</b>.")),
+      showNotification(HTML(paste("Oscillogram image",
+                                   tags$b(osc_name),
+                                   "saved to <b>images</b>.")),
                        #TODO: clickable link to images folder
                        #action = a(href = file.path("file://", getwd(), "images"),
                        #          "Go to folder", target = "_blank"),
@@ -1946,9 +1947,9 @@ server <- function(input, output, session) {
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
-      p(HTML(paste0("<b> Time: </b>", point$time, " seconds<br/>",
-                    "<b> Frequency: </b>", point$frequency, " kHz<br/>",
-                    "<b> Amplitude: </b>", point$amplitude, " dB",
+      p(HTML(paste(tags$b("Time:"), point$time, "seconds", br(),
+                    tags$b("Frequency:"), point$frequency, "kHz", br(),
+                    tags$b("Amplitude:"), point$amplitude, "dB",
                     species_in_hover)))
     )
   })
@@ -2006,8 +2007,8 @@ server <- function(input, output, session) {
       species_in_hover <- ""
     } else {
       lab_df <- lab_df[1, ]
-      species_in_hover <- paste0("<br/><b> Species: </b>", lab_df$class_label,
-                                 "<br/><b> Call type: </b>", lab_df$call_type)
+      species_in_hover <- paste(br(), tags$b("Species:"), lab_df$class_label,
+                                br(), tags$b("Call type:"), lab_df$call_type)
     }
     
     # create style property for tooltip
@@ -2020,8 +2021,8 @@ server <- function(input, output, session) {
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
-      p(HTML(paste0("<b> Time: </b>", point$time, " seconds<br/>",
-                    "<b> Amplitude: </b>", point$amplitude,
+      p(HTML(paste(tags$b("Time:"), point$time, "seconds", br(),
+                    tags$b("Amplitude:"), point$amplitude,
                     species_in_hover)))
     )
   })
@@ -2124,9 +2125,8 @@ server <- function(input, output, session) {
     else if (input$label_points %in% categories$xtra) {
       lab_rem_idx <- which(categories$xtra == input$label_points)
       categories$xtra <- categories$xtra[-lab_rem_idx]
-      showNotification(HTML(paste0("Label <b>",
-                                   input$label_points,
-                                   "</b> removed")),
+      showNotification(HTML(paste("Label", tags$b(input$label_points),
+                                  "removed")),
                        type = "warning")
     }
   })
@@ -2171,9 +2171,9 @@ server <- function(input, output, session) {
         fullData(lab_df)
       }
       showNotification(HTML(paste0("Label ", "<span style='color: ",
-                                   typecol, ";'><b>",
-                                   input$label_points,
-                                   "</b></span> successfully saved!")),
+                                   typecol, ";'>",
+                                   tags$b(input$label_points),
+                                   "</span> successfully saved!")),
                        type = "message")
       updateTextAreaInput(inputId = "notes", value = "")
     } else {
@@ -2271,7 +2271,7 @@ server <- function(input, output, session) {
   })
   
   output$audio_title <- renderUI({
-    base <- "<b>Play audio:<b/>"
+    base <- paste(tags$b("Play audio:"))
     if (!is.null(cleanInput())) {
       if (audio_clean$select)
         base <- paste(base, "<span style='color: red;'>(selected)</span>")
@@ -2303,19 +2303,19 @@ server <- function(input, output, session) {
       loc_link <- get_gmap_link(latlong)
     loc_d2c     <- meta_paste(df, m2km(df$dist_to_coastline))
     other_cols  <- setdiff(colnames(df), main_cols)
-    other_metatxt <- purrr::map(other_cols, function(x) {div(HTML(paste0("<b>", x, ": </b>")),
+    other_metatxt <- purrr::map(other_cols, function(x) {div(tags$b(paste0(x, ":")),
                                                              meta_paste(df[, x], df[, x]))})
     div(
       tags$style(".panel-heading{font-size: 75%; padding: 0%;}"),
       tags$style("#collapseExample{font-size: 85%; padding: 0%;}"),
       bsCollapse(id = "collapseExample",
                  bsCollapsePanel("Meta Information",
-                                 HTML("<b>Time recorded: </b>"), as.character(dt), br(),
-                                 HTML("<b>Location: </b>"), loc_address, br(),
-                                 HTML("<b>Habitat type: </b>"), loc_habitat, br(),
-                                 HTML("<b>Coordinates: </b>"),
+                                 tags$b("Time recorded:"), as.character(dt), br(),
+                                 tags$b("Location:"), loc_address, br(),
+                                 tags$b("Habitat type:"), loc_habitat, br(),
+                                 tags$b("Coordinates:"),
                                  loc_latlong, loc_link, br(),
-                                 HTML("<b>Distance to coastline: </b>"),
+                                 tags$b("Distance to coastline:"),
                                  loc_d2c,
                                  other_metatxt,
                                  style = "info")
