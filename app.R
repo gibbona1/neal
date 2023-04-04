@@ -109,10 +109,15 @@ ui_func <- function() {
     dashboardHeader(
       title = div(img(src = "ne-logo.jpg", height = 30), "Audio Labeller"),
       titleWidth = 300,
+      tags$li(class = "dropdown", 
+              tags$style("#start_labelling {background:green;}"),
+              tags$style("#end_labelling {background:red;}"),
+              uiOutput("start_ui"), 
+              style = "height: 100%; margin-top: 0px; line-height: 50px;"),
       dropdownMenu(
-        tags$li(class = "dropdown",
-                uiOutput("start_ui")
-        ),
+        #tags$li(class = "dropdown",
+        #        uiOutput("start_ui")
+        #),
         tags$li(class = "dropdown",
                 auth0::logoutButton()
         ),
@@ -183,8 +188,9 @@ ui_func <- function() {
                                 title = "Please select a folder",
                                 icon  = icon("folder")),
                  h5("Data folder"),
-                 verbatimTextOutput("folder", placeholder = TRUE),
+                 verbatimTextOutput("folder_name", placeholder = TRUE),
                  fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
+                 h5("Label file"),
                  verbatimTextOutput("label_loc"),
                  fileInput("upload_labs", "Upload labels", multiple = FALSE, accept = ".csv"),
                  selectInput("mode", "Label Mode",
@@ -627,7 +633,7 @@ server <- function(input, output, session) {
       return(here(datapath))
   })
   
-  output$folder <- renderText({
+  output$folder_name <- renderText({
     return(dataPath())
   })
   
@@ -1163,11 +1169,11 @@ server <- function(input, output, session) {
   
   output$start_ui <- renderUI({
     if (.is_null(input$file1))
-      actionButton("start_labelling", "Start Labelling!",
-                   class = "btn-success")
+      actionLink("start_labelling", "Start Labelling!",
+                   class = "btn btn-success")
     else
-      actionButton("end_labelling", "End Labelling",
-                   class = "btn-danger")
+      actionLink("end_labelling", "End Labelling",
+                   class = "btn btn-danger")
   })
   
   output$user_ui <- renderUI({
