@@ -9,3 +9,5 @@ www/*/*.wav
 www/tmp.wav
 www/tmp_clean.wav
 tmp_spec.csv
+# {shinytest2}: Ignore new debug snapshots for `$expect_values()`
+*_.new.png
