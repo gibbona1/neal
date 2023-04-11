@@ -28,8 +28,9 @@ Imports:
     shinyFiles,
     shinyjs,
     shinythemes,
-    shinyThings,
     shinyWidgets,
     stringr,
     tuneR,
     viridis
+Remotes:
+    gadenbuie/shinyThings
