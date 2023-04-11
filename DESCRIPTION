@@ -33,6 +33,7 @@ Imports:
     tuneR,
     viridis,
     grid,
-    png
+    png,
+    shinytest2
 Remotes:
     gadenbuie/shinyThings
