@@ -31,6 +31,8 @@ Imports:
     shinyWidgets,
     stringr,
     tuneR,
-    viridis
+    viridis,
+    grid,
+    png
 Remotes:
     gadenbuie/shinyThings
