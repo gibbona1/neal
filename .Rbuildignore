@@ -1,2 +1,4 @@
 ^\.github$
 _\.new\.png$
+^.*\.Rproj$
+^\.Rproj\.user$

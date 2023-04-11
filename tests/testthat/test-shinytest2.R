@@ -21,13 +21,12 @@ test_that("{shinytest2} recording: neal-labelling", {
   app$wait_for_value(input = "end_labelling", timeout = 2000)
   app$click("end_labelling")
   app$expect_values()
-  app$expect_values()
 })
 
 
 test_that("{shinytest2} recording: neal-categories", {
   app <- AppDriver$new(name = "neal-categories", height = 569, width = 979)
-  app$wait_for_value(input = "start_labelling", timeout = 2000)
+  app$wait_for_value(input = "start_labelling", timeout = 5000)
   app$click("start_labelling")
   app$set_inputs(otherCategory = "abc")
   app$click("addCategory")

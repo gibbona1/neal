@@ -200,6 +200,7 @@ ui_func <- function() {
                  selectInput("species_list",
                              "Species List:",
                              choices = colnames(get_species_list(nrows = 1)),
+                             #selected = "Species",
                              width   = "100%"),
                  checkboxInput("bto_codes", "Display as BTO codes", value = FALSE),
                  actionButton("inputLoad", "Load Settings")

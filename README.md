@@ -1,3 +1,6 @@
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/gibbona1/neal/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gibbona1/neal/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
 # NEAL (Nature+Energy Audio Labeller)
 
 NEAL (Nature+Energy Audio Labeller) is an open-source interactive audio data annotation tool. 

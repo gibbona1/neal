@@ -1,3 +1,5 @@
+library(shiny)
+
 instruction_list <- list(
      list("str" = "This is the main page. To start, click the user icon on the top right.",
           "img" = 'app_1main.png'),
