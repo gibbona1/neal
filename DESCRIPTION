@@ -31,6 +31,8 @@ Imports:
     viridis,
     grid,
     png,
+    shinyThings
+Suggests:
     shinytest2
 Remotes:
     gadenbuie/shinyThings

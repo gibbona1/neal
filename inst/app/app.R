@@ -27,19 +27,14 @@ library(DT)
 library(here)
 library(data.table)
 
-source("R/plot_helpers.R")
-source("R/audio_meta.R")
-source("R/server_helpers.R")
-source("R/instruction_list.R")
-
 #change max supported audio file size to 30MB
 options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
-bto_df <- read.csv(here("data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM")
+bto_df <- read.csv(here("inst", "data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM")
 
 ldir   <- "labels" #label directory
 
-empty_lab_df <- read.csv(here(ldir, "labels_tmp.csv"))[FALSE, ]
+empty_lab_df <- read.csv(here("inst", ldir, "labels_tmp.csv"))[FALSE, ]
 
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
@@ -62,7 +57,7 @@ hotkeys <- c(
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
 
 get_species_list <- function(nrows = -1){
-  return(read.csv(here("data", "species_list.csv"), 
+  return(read.csv(here("inst", "data", "species_list.csv"), 
                   fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
 }
 
@@ -586,7 +581,7 @@ server <- function(input, output, session) {
   
   lab_nickname <- reactive({
     auth0_session <- session$userData$auth0_info
-    audio_folder  <- "www"
+    audio_folder <- here("inst", "app", "www")
     if (!dir.exists(audio_folder))
       return("tmp")
     if (is.null(auth0_session))
@@ -623,7 +618,7 @@ server <- function(input, output, session) {
   }
   
   dataPath <- reactive({
-    datapath <- here()
+    datapath <- here("inst", "app")
     dirinfo  <- parseDirPath(volumes, input$folder)
     if (!identical(dirinfo, character(0)))
       return(dirinfo)
@@ -643,10 +638,10 @@ server <- function(input, output, session) {
   })
   
   labs_filename <- reactive({
-    fname <- here(ldir, paste0("labels_", lab_nickname(), ".csv"))
+    fname <- here("inst", ldir, paste0("labels_", lab_nickname(), ".csv"))
     if(!file.exists(fname)){
       #creates empty dataframe
-      write.csv(read.csv(here(ldir, "labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
+      write.csv(read.csv(here("inst", ldir, "labels_tmp.csv"))[FALSE,], fname, row.names = FALSE)
       showNotification(HTML(paste("New label file", tags$b(fname), "created. Your labels will be stored here")),
                        duration = NULL, type = "message")
     }
@@ -758,7 +753,7 @@ server <- function(input, output, session) {
     
     # combine the padded vectors into a data frame
     padded_df <- data.frame(padded_vectors)
-    write.csv(padded_df, here("data", "species_list.csv"), row.names = FALSE)
+    write.csv(padded_df, here("inst", "data", "species_list.csv"), row.names = FALSE)
     showNotification(HTML(paste("Columns", tags$b(paste0(new_cols, collapse = ', ')), "added to species list")),
                      duration = NULL, type = "message")
   })
@@ -813,7 +808,7 @@ server <- function(input, output, session) {
     c(cats$base, cats$misc, cats$xtra)
   })
   
-  conf_filename <- reactive(here(paste0("saved_configs/input_", lab_nickname(), ".RDS")))
+  conf_filename <- reactive(here("inst", paste0("saved_configs/input_", lab_nickname(), ".RDS")))
   
   fullData   <- reactiveVal(empty_lab_df)
   
@@ -2505,7 +2500,7 @@ server <- function(input, output, session) {
 #usethis::edit_r_environ()
 #options(shiny.port = 8080)
 #auth0::shinyAppAuth0(ui_func(), server)
-shinyApp(ui_func(), server)
+#shinyApp(ui_func(), server)
 
 # tell shiny to log all reactivity
 #reactlog::reactlog_enable()
