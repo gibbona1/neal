@@ -13,4 +13,9 @@ Part of the [Nature+Energy Project](https://www.marei.ie/project/natureenergy/).
 
 A demo deployment is available on a RStudio Server [here](https://rstudioserver.hamilton.ie:3939/content/35c6a672-2488-4079-bd75-f3d5d6d22789/).
 
+[Paper on arXiv](https://arxiv.org/abs/2212.01457)
+
+[Data for the paper](https://github.com/gibbona1/neal_data)
+
 TODO: Demo videos
+
