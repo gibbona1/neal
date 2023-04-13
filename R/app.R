@@ -22,19 +22,9 @@ library(viridis)
 library(profvis) # for checking code performance
 library(dplyr)
 library(stringr)
-library(janitor)
 library(DT)
 library(here)
 library(data.table)
-
-#change max supported audio file size to 30MB
-options(shiny.maxRequestSize = 30 * 1024 ^ 2)
-
-bto_df <- read.csv(here("inst", "data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM")
-
-ldir   <- "labels" #label directory
-
-empty_lab_df <- read.csv(here("inst", ldir, "labels_tmp.csv"))[FALSE, ]
 
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
@@ -55,11 +45,6 @@ hotkeys <- c(
 )
 
 .is_null <- function(x) return(is.null(x) | x %in% c("", "<NULL>"))
-
-get_species_list <- function(nrows = -1){
-  return(read.csv(here("inst", "data", "species_list.csv"), 
-                  fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
-}
 
 parse_span <- function(x, col) tags$span(x, style=paste0("color: ", col, ";"))
 
@@ -98,7 +83,6 @@ jsCode <- "shinyjs.audiotoggle = function() {
     audio.pause();
   }
 }"
-
 
 #profvis(runApp(), prof_output = file.path(getwd(),"profiling"))
 

@@ -11,7 +11,7 @@ get_audio_dt <- function(x) {
   return(dt_time)
 }
 
-get_audio_recdf <- function(x) {
+get_audio_recdf <- function(x, loc_df) {
   name_str <- stringr::str_extract(x, regex("[0-9]{0,9}_{0,1}[A-Z,0-9]{1,}_*"))
   pre_str  <- stringr::str_extract(x, regex("[0-9]{0,9}_*"))
   if(pre_str != "")
@@ -20,7 +20,6 @@ get_audio_recdf <- function(x) {
     str_start <- 1
   name_str <- substr(name_str, str_start, nchar(name_str) - 1)
 
-  loc_df <- read.csv(here("inst", "data", "location_list.csv"), fileEncoding = "UTF-8-BOM")
   if (name_str %in% loc_df$recorder_name)
     return(loc_df[loc_df$recorder_name == name_str, ])
   return(NULL)

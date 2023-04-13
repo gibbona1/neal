@@ -1,5 +1,8 @@
+library(ggplot2)
+library(dplyr)
+
 extractWave_t <- function(x, tc) {
-  return(extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
+  return(tuneR::extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
 }
 
 btw <- function(x, left, right) {
@@ -204,5 +207,5 @@ label_layout <- function(disp, n_cols){
 }
 
 change_ext <- function(x, ext, ext2, extra = "") {
-  return(paste0(str_match(x, paste0("(.*)\\.", ext))[,2], extra, ".", ext2))
+  return(paste0(stringr::str_match(x, paste0("(.*)\\.", ext))[,2], extra, ".", ext2))
 }

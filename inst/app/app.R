@@ -1,5 +1,21 @@
 pkgload::load_all()
 
+#change max supported audio file size to 30MB
+options(shiny.maxRequestSize = 30 * 1024 ^ 2)
+
+bto_df <- read.csv(here("data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM", quote="", stringsAsFactors = FALSE)
+
+ldir   <- "labels" #label directory
+
+empty_lab_df <- read.csv(here("inst", ldir, "labels_tmp.csv"), quote="")[FALSE, ]
+
+loc_df <- read.csv(here("data", "location_list.csv"), fileEncoding = "UTF-8-BOM")
+
+get_species_list <- function(nrows = -1){
+  return(read.csv(here("data", "species_list.csv"), quote="",
+                  fileEncoding = "UTF-8-BOM", check.names = FALSE, nrows=nrows))
+}
+
 ui_func <- function() {
   header <- {
     dashboardHeader(
@@ -654,7 +670,7 @@ server <- function(input, output, session) {
     
     # combine the padded vectors into a data frame
     padded_df <- data.frame(padded_vectors)
-    write.csv(padded_df, here("inst", "data", "species_list.csv"), row.names = FALSE)
+    write.csv(padded_df, here("data", "species_list.csv"), row.names = FALSE)
     showNotification(HTML(paste("Columns", tags$b(paste0(new_cols, collapse = ', ')), "added to species list")),
                      duration = NULL, type = "message")
   })
@@ -911,13 +927,11 @@ server <- function(input, output, session) {
     if (input$summaryTabGroup)
       sum_df <- df %>%
       tabyl(class_label, file_name) %>%
-      #adorn_totals("row") %>%
       tidyr::gather(file_name, n, 2:ncol(.), convert = TRUE) %>%
       select(file_name, class_label, n)
     else
       sum_df <- df %>%
       tabyl(file_name) %>%
-      #adorn_totals("row") %>%
       select(file_name, n)
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
@@ -2189,7 +2203,7 @@ server <- function(input, output, session) {
     if (is.null(audioInput()))
       return(NULL)
     dt <- get_audio_dt(input$file1)
-    df <- get_audio_recdf(input$file1)
+    df <- get_audio_recdf(input$file1, loc_df)
     latlong <- NULL
     main_cols <- c("recorder_name", "lat", "long",
                    "location_name", "location_county",

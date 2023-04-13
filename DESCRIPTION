@@ -5,18 +5,12 @@ Authors@R:
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: MIT + file LICENSE
 Imports: 
     data.table,
-    dplyr,
     DT,
-    ggplot2,
     here,
     imola,
-    janitor,
-    keys,
-    profvis,
     seewave,
     shiny,
     shinyBS,
@@ -25,13 +19,18 @@ Imports:
     shinyFiles,
     shinyjs,
     shinythemes,
+    shinyThings,
     shinyWidgets,
-    stringr,
+    tidyverse,
     tuneR,
     viridis,
     grid,
+    keys,
+    profvis,
     png,
-    shinyThings
+    raster,
+    rdist,
+    stringr
 Suggests:
     shinytest2
 Remotes:

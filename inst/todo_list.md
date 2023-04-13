@@ -1,0 +1,63 @@
+TODOs:
+- [ ] Instruction pdf:
+  - [x] Open in adjacent tab
+  - [x] Make sure instructions say how to zoom in/out
+  - [ ] Videos
+- [ ] Display metadata:
+  - [ ] Distance from closest Special Area of Conservation (SAC) and species concerned
+  - [ ] Infer weather using some API (temperature, weather, wind, percipitation)
+  - [ ] Recorder height (~1m) or altitude
+- [ ] Interactive bounding boxes:
+  - [ ] When clicking inside of box, open new panel
+  - [ ] Show details of saved labels in list in this panel in sidebar or navbar page
+  - [ ] resizable limits
+  - [ ] moveable/translation
+  - [ ] copy/paste-able (duplicate and push x seconds to the right)
+  - [ ] editing label and other info
+  - [ ] ability to click Label boxes and see info/play sound
+  - [ ] delete (are you sure plus undo)
+- [ ] navbarPage() to have distinct pages: label, verify/check, run model
+  from https://shiny.rstudio.com/articles/layout-guide.html
+- [ ] Save list of added species as col in species csv (or append to a column) 
+- [ ] modalDialog instead of edit table for editing/listen to labels
+- [ ] Unit tests (especially for plots)
+- [ ] Check soundgen pitch app https://github.com/tatters/soundgen
+- [ ] Example sound files in right sidebar 
+- [ ] Species templates
+  (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
+- [ ] Mel scale
+- [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
+- [ ] 3 labeling modes: 
+  - [ ] Binary classification (whole file)
+  - [ ] Event detection (time/x-axis)
+  - [ ] Object detection (time and frewquency bounding boxes)
+- [ ] Hotkeys:
+  - [ ] start/end labeling (only works when tab is open, need to move button)
+  - [ ] open folder/file navigation
+  - [ ] 1-9 number keys:
+    - [x] First 9 labels in list
+    - [ ] custom setup of 9 hotkeys
+  - [x] undo label save or delete
+  - [ ] undo parameter changes 
+  - [ ] zoom in/out (double click already does this)
+  - [ ] scroll bounding box up/down or left/right
+- [ ] CSS in own files
+- [x] Filename has number of labels in choice names
+- [ ] Loading and saving labels to google sheets each session for persistent data storage
+- [ ] clicking label/box functionality:
+  - [ ] label becomes selectinput
+  - [ ] box is highighted (different style)
+  - [ ] option to delete (need to programmatic set brush coordinates so hotkey/existing delete will work)
+  - [ ] option to play selected times/frequencies in box
+- [ ] flexbox alignment/fill to end of row
+- [ ] action links
+  - [ ] when new folder created, action link to navigate there (change Data Folder)
+  - [ ] when image saved, link to open it
+- [ ] `tuneR::downsample` for spectrogram speedup or playback speed
+- [ ] Upload labels from other sources and convert to our style:
+  - [ ] Other apps e.g. Audacity
+  - [ ] ML model predictions (e.g. coco object).
+- [ ] Ability to see similar shapes to selected spectrogram to give suggestions for classes.
+- [ ] Faster rendering of plots using some (`C++`) plugin
+- [ ] Module for teaching bird calls, enhancing the speed and proficiency of citizen scientists.
+- [ ] Accessibility via mobile devices, allowing for annotations on the field.
