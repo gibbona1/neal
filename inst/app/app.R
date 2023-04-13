@@ -7,6 +7,8 @@ bto_df <- read.csv(here("data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM", qu
 
 ldir   <- "labels" #label directory
 
+neal_data <- "https://raw.githubusercontent.com/gibbona1/neal_data/main/images/"
+
 empty_lab_df <- read.csv(here("inst", ldir, "labels_tmp.csv"), quote="")[FALSE, ]
 
 loc_df <- read.csv(here("data", "location_list.csv"), fileEncoding = "UTF-8-BOM")
@@ -19,7 +21,7 @@ get_species_list <- function(nrows = -1){
 ui_func <- function() {
   header <- {
     dashboardHeader(
-      title = div(img(src = "ne-logo.jpg", height = 30), "Audio Labeller"),
+      title = div(img(src=paste0(neal_data, "ne-logo.jpg"), height = 30), "Audio Labeller"),
       titleWidth = 300,
       tags$li(class = "dropdown", 
               tags$style("#start_labelling {background:green;}"),
@@ -1117,7 +1119,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$instruction_modal, {
     modal_img <- function(x)
-      img(src = x, height = "100%", width = "100%", style = "max-height: 100%; max-width: 100%;")
+      img(src = paste0(neal_data, x), height = "100%", width = "100%", style = "max-height: 100%; max-width: 100%;")
     modal_fill <- function(x){
       if(is.character(x))
         img_fill <- modal_img(x)
