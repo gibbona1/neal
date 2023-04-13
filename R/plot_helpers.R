@@ -1,6 +1,7 @@
-library(ggplot2)
-library(png)
-library(grid)
+#' @import ggplot2
+#' @import png
+#' @import dplyr
+#' @importFrom graphics axis
 
 #theming based on: https://rug.mnhn.fr/seewave/spec.html
 
@@ -65,7 +66,7 @@ plot_oscillogram <- function(df, input, length_ylabs) {
       #stat_summary_bin(
       #  aes(x = time, y = amplitude), colour = NA, fill = "red",
       #  geom="bar", fun=mean, bins=500)
-      geom_line(aes(x = time, y = amplitude), colour = "red")
+      geom_line(aes(x = df$time, y = df$amplitude), colour = "red")
     y_breaks <- pretty(df$amplitude, 3)
   } else {
     y_breaks <- -1:1
@@ -83,37 +84,19 @@ plot_oscillogram <- function(df, input, length_ylabs) {
     geom_hline(yintercept = 0, colour = "white", linetype = "dotted") +
     osc_theme
 
-  lab_file <- "tmp_labels.csv"
-  if (file.exists(lab_file)) {
-    lab_df <- read.csv(lab_file)
-    lab_df <- lab_df[lab_df$file_name == input$file1, ]
-    if (nrow(lab_df) == 0)
-      return(osc_plot)
-    if (input$osc_labs) {
-      osc_plot <- osc_plot +
-        geom_rect(data = lab_df,
-                aes(xmin = start_time,
-                    xmax = end_time,
-                    ymin = -Inf,
-                    ymax = Inf),
-        colour = "red",
-        fill   = "lightgrey",
-        alpha  = 0.15)
-    }
-  }
   return(osc_plot)
 }
 
-plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks) {
-  palette_cols <- function(pal_name, n = 6) {
-    if (pal_name == "viridisplus")
-      return(virpluscols)
-    else if (pal_name == "greyscale")
-      return(grey.colors(n, start = 0, end = 1))
-    else
-      return(viridis(n, option = pal_name))
-  }
+palette_cols <- function(pal_name, n = 6) {
+  if (pal_name == "viridisplus")
+    return(virpluscols)
+  else if (pal_name == "greyscale")
+    return(grDevices::grey.colors(n, start = 0, end = 1))
+  else
+    return(viridis::viridis(n, option = pal_name))
+}
 
+plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, specplot_range, x_breaks, y_breaks) {
   sel_col <- palette_cols(input$palette_selected)
   if (input$palette_invert)
     sel_col <- rev(sel_col)
@@ -155,15 +138,6 @@ plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, sp
 plot_spectrogram_base <- function(df, input, length_ylabs, dc_ranges_spec, specplot_range) {
   if (.is_null(input$file1))
     return(NULL)
-
-  palette_cols <- function(pal_name, n = 6) {
-    if (pal_name == "viridisplus")
-      return(virpluscols)
-    else if (pal_name == "greyscale")
-      return(grey.colors(n, start = 0, end = 1))
-    else
-      return(viridis(n, option = pal_name))
-  }
 
   y_breaks <- pretty(df$frequency, 5)
   if (!is.null(dc_ranges_spec$y))

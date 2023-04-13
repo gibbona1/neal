@@ -1,8 +1,10 @@
-library(ggplot2)
-library(dplyr)
+#' @import ggplot2
+#' @import dplyr
+#' @importFrom tuneR extractWave
+#' @importFrom grDevices rgb
 
 extractWave_t <- function(x, tc) {
-  return(tuneR::extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
+  return(extractWave(x, from = tc[1], to = tc[2], xunit = "time"))
 }
 
 btw <- function(x, left, right) {

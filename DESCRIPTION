@@ -7,32 +7,27 @@ Authors@R:
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Imports: 
-    data.table,
-    DT,
     here,
-    imola,
+    stringr,
+    ggplot2,
+    dplyr,
+    viridis,
+    keys,
+    rdist,
+    png,
     seewave,
     shiny,
     shinyBS,
-    shinydashboard,
     shinydashboardPlus,
     shinyFiles,
     shinyjs,
-    shinythemes,
     shinyThings,
-    shinyWidgets,
-    tidyverse,
-    tuneR,
-    viridis,
-    grid,
-    keys,
-    profvis,
-    png,
-    raster,
-    rdist,
-    stringr
+    tuneR
 Suggests:
-    shinytest2
+    shinytest2,
+    profvis,
+    grid,
+    raster
 Remotes:
     gadenbuie/shinyThings
 Encoding: UTF-8

@@ -1,30 +1,18 @@
-library(ggplot2)
-library(shiny)
-library(shinyjs)
-library(shinyBS)
-library(shinyFiles)
-library(shinythemes)
-library(shinydashboard)
-library(shinydashboardPlus)
-library(shinyWidgets)
-library(shinyThings)
-library(keys)
-library(imola)
-library(tuneR)
-library(seewave) # for spectrogram
-#library(plotly)
-#library(oce)
-library(viridis)
-#library(grid)
-#library(gridExtra)
-#library(cowplot) # to get legend
-#library(reactlog) # view all connections for reactive objects
-library(profvis) # for checking code performance
-library(dplyr)
-library(stringr)
-library(DT)
-library(here)
-library(data.table)
+#' @import ggplot2
+#' @import shiny
+#' @import shinyBS
+#' @import shinyFiles
+#' @import shinydashboardPlus
+#' @importFrom shinyThings undoHistory undoHistoryUI
+#' @import keys
+#' @import seewave 
+#' @importFrom tuneR readWave writeWave extractWave
+#' @import viridis
+#' @import dplyr
+#' @import stringr
+#' @importFrom shinyjs toggle reset click enable disable useShinyjs extendShinyjs
+#' @import here
+NULL
 
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",

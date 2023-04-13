@@ -93,7 +93,7 @@ ui_func <- function() {
   sidebar <- {
     dashboardSidebar(
       tags$head(tags$style(HTML(".sidebar-menu > li {white-space: normal;}"))),
-      shinyjs::useShinyjs(),
+      useShinyjs(),
       sidebarMenu(
         menuItem("Configuration", tabName = "config_menu", icon = icon("bars"),
                  #File/Folder selection
@@ -240,7 +240,7 @@ ui_func <- function() {
   
   body <- {
     dashboardBody(
-      shinyjs::useShinyjs(),
+      useShinyjs(),
       extendShinyjs(text = jsCode, functions = c("audiotoggle")),
       useKeys(),
       uiOutput("loadScript"),
@@ -646,7 +646,7 @@ server <- function(input, output, session) {
     if(input$mode == "bats") {
       updateSelectInput(inputId = "spec_interpolate", selected = FALSE)
     } else {
-      shinyjs::reset("spec_interpolate")
+      reset("spec_interpolate")
     }
   })
   
@@ -1645,8 +1645,6 @@ server <- function(input, output, session) {
     if (is.null(lab_df)) {
       return(spec_plot)
     } else if (input$spec_labs) {
-      #if (input$hide_other_labels)
-      #  lab_df <- lab_df[lab_df$labeler == labeler(), ]
       lab_df <- lab_df %>%
         filter(between(start_time, segment_start() - 0.05, segment_start() + input$t_step))
       lab_df$start_time <- sapply(lab_df$start_time, function(s) max(s, segment_start()))
@@ -1819,6 +1817,7 @@ server <- function(input, output, session) {
                        #          "Go to folder", target = "_blank"),
                        type = "message")
     })
+    
     return(p)
   })
   
@@ -2250,22 +2249,22 @@ server <- function(input, output, session) {
   })
   
   observe({
-    shinyjs::toggle(id  = "specplot",
+    toggle(id  = "specplot",
                     anim      = TRUE,
                     animType  = "fade",
                     time      = 0.5,
                     condition = plots_open$spec)
-    shinyjs::toggle(id  = "specplot_blank",
+    toggle(id  = "specplot_blank",
                     condition = !plots_open$spec)
   })
   
   observe({
-    shinyjs::toggle(id  = "oscplot",
+    toggle(id  = "oscplot",
                     anim      = TRUE,
                     animType  = "fade",
                     time      = 0.5,
                     condition = plots_open$osc)
-    shinyjs::toggle(id  = "oscplot_blank",
+    toggle(id  = "oscplot_blank",
                     condition = !plots_open$osc)
   })
   
@@ -2367,11 +2366,11 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$reset_sidebar, {
-    shinyjs::reset("side-panel")
+    reset("side-panel")
   })
   
   observeEvent(input$reset_body, {
-    shinyjs::reset("main-panel")
+    reset("main-panel")
   })
   
   output$loadScript <- renderUI({

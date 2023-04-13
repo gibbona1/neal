@@ -1,4 +1,4 @@
-library(shiny)
+#' @importFrom shiny HTML
 
 instruction_list <- list(
      list("str" = "This is the main page. To start, click the user icon on the top right.",

@@ -1,4 +1,4 @@
-library(shinytest2)
+#' @import shinytest2
 
 test_that("{shinytest2} recording: app-test1", {
   app <- AppDriver$new(name = "neal-start", height = 569, width = 979)
