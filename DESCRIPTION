@@ -7,6 +7,7 @@ Authors@R:
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Imports: 
+    DT,
     here,
     stringr,
     ggplot2,
@@ -18,10 +19,12 @@ Imports:
     seewave,
     shiny,
     shinyBS,
+    shinydashboard,
     shinydashboardPlus,
     shinyFiles,
     shinyjs,
     shinyThings,
+    shinyWidgets,
     tuneR
 Suggests:
     shinytest2,

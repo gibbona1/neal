@@ -1,16 +1,19 @@
 #' @import ggplot2
-#' @import shiny
+#' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
+#' @importFrom DT dataTableOutput renderDataTable
 #' @import shinyBS
 #' @import shinyFiles
+#' @importFrom shinydashboard dropdownMenu sidebarMenu menuItem dashboardBody
 #' @import shinydashboardPlus
 #' @importFrom shinyThings undoHistory undoHistoryUI
+#' @importFrom shinyWidgets radioGroupButtons updateRadioGroupButtons
 #' @import keys
 #' @import seewave 
-#' @importFrom tuneR readWave writeWave extractWave
+#' @importFrom tuneR readWave writeWave extractWave normalize
 #' @import viridis
 #' @import dplyr
 #' @import stringr
-#' @importFrom shinyjs toggle reset click enable disable useShinyjs extendShinyjs
+#' @importFrom shinyjs toggle reset click enable disable useShinyjs extendShinyjs disabled
 #' @import here
 NULL
 
