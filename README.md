@@ -7,7 +7,7 @@ NEAL (Nature+Energy Audio Labeller) is an open-source interactive audio data ann
 
 Built using R and the associated Shiny framework, the tool provides a reactive environment where users can quickly annotate audio files and adjust settings which automatically change the corresponding elements of the user interface. The app has been designed with the goal of having both expert birders and citizen scientists contribute acoustic annotation projects.
 
-![Main components of the App User Interface](images/app_annotated.png)
+![Main components of the App User Interface](https://raw.githubusercontent.com/gibbona1/neal_data/main/images/app_annotated.png)
 
 Part of the [Nature+Energy Project](https://www.marei.ie/project/natureenergy/).
 
