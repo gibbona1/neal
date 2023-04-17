@@ -1,5 +1,6 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/gibbona1/neal/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gibbona1/neal/actions/workflows/R-CMD-check.yaml)
+[![arXiv](https://img.shields.io/badge/arXiv-2212.01457-b31b1b.svg)](https://arxiv.org/abs/2212.01457)
 <!-- badges: end -->
 # NEAL (Nature+Energy Audio Labeller)
 
@@ -12,8 +13,6 @@ Built using R and the associated Shiny framework, the tool provides a reactive e
 Part of the [Nature+Energy Project](https://www.marei.ie/project/natureenergy/).
 
 A demo deployment is available on a RStudio Server [here](https://rstudioserver.hamilton.ie:3939/content/35c6a672-2488-4079-bd75-f3d5d6d22789/).
-
-[Paper on arXiv](https://arxiv.org/abs/2212.01457)
 
 [Data for the paper](https://github.com/gibbona1/neal_data)
 
