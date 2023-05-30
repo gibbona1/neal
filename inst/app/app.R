@@ -2408,6 +2408,7 @@ server <- function(input, output, session) {
       inp_file <- isolate(conf_filename())
       isolate(saveRDS(input, file = inp_file))
       cat("saved config", fill = TRUE)
+      
       tmp_filepath <- isolate(here(dataPath(), "tmp.wav"))
       if(file.exists(tmp_filepath)){
         file.remove(tmp_filepath)

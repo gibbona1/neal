@@ -11,10 +11,12 @@
 #' @import seewave 
 #' @importFrom tuneR readWave writeWave extractWave normalize
 #' @import viridis
+#' @rawNamespace import(data.table, except=c(last, first, between))
 #' @import dplyr
 #' @import stringr
 #' @importFrom shinyjs toggle reset click enable disable useShinyjs extendShinyjs disabled
 #' @import here
+#' @import janitor
 NULL
 
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean

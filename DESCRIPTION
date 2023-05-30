@@ -14,7 +14,6 @@ Imports:
     dplyr,
     viridis,
     keys,
-    rdist,
     png,
     seewave,
     shiny,
@@ -25,12 +24,15 @@ Imports:
     shinyjs,
     shinyThings,
     shinyWidgets,
-    tuneR
+    tuneR,
+    janitor,
+    data.table
 Suggests:
     shinytest2,
     profvis,
     grid,
-    raster
+    raster,
+    rdist
 Remotes:
     gadenbuie/shinyThings
 Encoding: UTF-8
