@@ -223,9 +223,9 @@ ui_func <- function() {
                  actionButton("reset_sidebar", "Reset Sidebar"),
                  actionButton("reset_body", "Reset Body"),
                  checkboxInput("fileEditTab", "Label Edit Table", value = FALSE),
-                 checkboxInput("fileSummaryTab", "File Summary Table", value = FALSE),
+                 checkboxInput("fileSummaryTab", "File Summary Table", value = TRUE),
                  checkboxInput("summaryTabGroup", "Subgroup by class", value = FALSE),
-                 checkboxInput("summaryTabNozero", "Remove zero counts", value = FALSE),
+                 checkboxInput("summaryTabNozero", "Remove zero counts", value = TRUE),
                  # Add the Undo/Redo buttons to the UI
                  h5("Undo/Redo label save or delete"),
                  undoHistoryUI("lab_hist", back_text = "Undo", fwd_text = "Redo")#,
@@ -684,7 +684,7 @@ server <- function(input, output, session) {
                    new_df %>%
                      select(intersect(names(.), names(full_df)))
     ) %>%
-      rbindlist(use.names = TRUE, fill = TRUE) %>%
+      data.table::rbindlist(use.names = TRUE, fill = TRUE) %>%
       as.data.frame()
     write_labs(add_df, append = FALSE, col.names = TRUE)
     fullData(rbind(full_df, add_df))
@@ -924,16 +924,17 @@ server <- function(input, output, session) {
   
   summary_df <- reactive({
     df <- fullData()
-    df <- df[df$file_name %in% file_list() &
-               df$labeler == labeler(), ]
+    if(nrow(df) == 0)
+      return(NULL)
+    df <- df[df$file_name %in% file_list(), ]
     if (input$summaryTabGroup)
       sum_df <- df %>%
-      tabyl(class_label, file_name) %>%
+      janitor::tabyl(class_label, file_name) %>%
       tidyr::gather(file_name, n, 2:ncol(.), convert = TRUE) %>%
       select(file_name, class_label, n)
     else
       sum_df <- df %>%
-      tabyl(file_name) %>%
+      janitor::tabyl(file_name) %>%
       select(file_name, n)
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
@@ -942,16 +943,20 @@ server <- function(input, output, session) {
     other_files <- setdiff(file_list(), sum_df$file_name)
     
     #dataframe of zeros for each file without labels
-    if (length(other_files) > 0) {
-      new_df <- data.frame(file_name  = other_files,
-                           num_labels = 0)
-      sum_df <- rbind(sum_df, new_df)
-    }
-    
+    #if (length(other_files) > 0) {
+    #  new_df <- data.frame(file_name  = other_files,
+    #                       num_labels = 0)
+    #  sum_df <- rbind(sum_df, new_df)
+    #}
+    #browser()
     if (input$summaryTabGroup)
       sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label), ]
     else
       sum_df <- sum_df[order(sum_df$file_name), ]
+    
+    if (input$summaryTabNozero)
+      sum_df <- sum_df[sum_df$num_labels != 0, ]
+    
     dtShinyInput <- function(FUN, nms, id, ...) {
       inputs <- character(length(nms))
       for (i in seq_along(nms))
@@ -965,8 +970,6 @@ server <- function(input, output, session) {
                                           icon = icon("trash-alt"), class = "btn-danger",
                                           onclick = "Shiny.onInputChange('dt_delete_button', this.id)")
     )
-    if (input$summaryTabNozero)
-      sum_df <- sum_df[sum_df$num_labels != 0, ]
     return(sum_df)
   })
   
@@ -2402,10 +2405,16 @@ server <- function(input, output, session) {
   
   session$onSessionEnded(function() {
     tryCatch({
-      isolate(saveRDS(input, file = conf_filename()))
-      cat("saved config")
+      inp_file <- isolate(conf_filename())
+      isolate(saveRDS(input, file = inp_file))
+      cat("saved config", fill = TRUE)
+      tmp_filepath <- isolate(here(dataPath(), "tmp.wav"))
+      if(file.exists(tmp_filepath)){
+        file.remove(tmp_filepath)
+        cat("removed tmp .wav file", fill = TRUE)
+      }
     },
-    error = function(e) e
+     error = function(e) e
     )
   })
 }
