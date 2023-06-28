@@ -599,6 +599,7 @@ server <- function(input, output, session) {
   segment_end_s  <- reactiveVal(1)
   segment_start  <- reactiveVal(0)
   spec_preload   <- reactiveVal(FALSE)
+  specRaster     <- reactiveVal(NULL)
   
   plot_collapse_button <- function(name, id, top_pad = 0) {
     if (plots_open[[id]]) {
@@ -1405,6 +1406,8 @@ server <- function(input, output, session) {
     spec$amp <- spec$amp + input$db_contrast
     
     spec$amp[spec$amp > -20] <- -20
+    
+    #specRaster(spec)
     
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)),
                        frequency = rep(spec$freq, times = ncol(spec$amp)),
