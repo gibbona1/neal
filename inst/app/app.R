@@ -2066,7 +2066,8 @@ server <- function(input, output, session) {
       else
         call_type <- paste(input$call_type[!.is_null(input$call_type)],
                            collapse = "; ")
-      lab_df <- data.frame(date_time   = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+      iso_time <- strftime(as.POSIXlt(Sys.time(), "UTC") , "%Y-%m-%dT%H:%M:%S%z")
+      lab_df <- data.frame(date_time   = iso_time,
                            file_name   = input$file1,
                            start_time  = ranges_spec$x[1],
                            end_time    = ranges_spec$x[2],
