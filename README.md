@@ -1,6 +1,7 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/gibbona1/neal/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gibbona1/neal/actions/workflows/R-CMD-check.yaml)
 [![arXiv](https://img.shields.io/badge/arXiv-2212.01457-b31b1b.svg)](https://arxiv.org/abs/2212.01457)
+[![DOI:10.7717/peerj.15913](http://img.shields.io/badge/DOI-10.7717/peerj.15913-blue.svg)](https://doi.org/10.7717/peerj.15913)
 <!-- badges: end -->
 # NEAL (Nature+Energy Audio Labeller)
 
