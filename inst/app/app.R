@@ -2187,7 +2187,7 @@ server <- function(input, output, session) {
     }
     div(
       tags$audio(id       = "my_audio_player",
-                 src      = markdown:::.b64EncodeFile(file_name),
+                 src      = xfun::base64_uri(file_name),
                  type     = "audio/wav",
                  controls = "controls", #HTML("controlsList: nodownload"),
                  #TODO: HTML styling (background colour, no download button,...)
