@@ -1,5 +1,4 @@
 #' @import ggplot2
-#' @import png
 #' @import dplyr
 #' @importFrom graphics axis
 
@@ -104,16 +103,6 @@ plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, sp
   if (!.is_null(input$file1)) {
     spec_name_raw <- paste0(gsub(".wav", "", input$file1), "_spec_raw.png")
     file_nm <- file.path(getwd(), "images", spec_name_raw)
-
-    #img_path <- "images/SMU05115_20211104_064902_start_39_16_spec.png"
-    #img <- readPNG(file_nm)
-    #g <- rasterGrob(img, interpolate=TRUE,
-    #                x=unit(0, "npc"),
-    #                y=unit(0, "npc"), #
-    #                hjust=0,
-    #                width=unit(1,"npc"),
-    #                height=unit(1,"npc"))
-    #spec_plot <- spec_plot + annotation_custom(g)
   }
   
   spec_plot <- canvas +

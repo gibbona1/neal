@@ -211,3 +211,11 @@ label_layout <- function(disp, n_cols){
 change_ext <- function(x, ext, ext2, extra = "") {
   return(paste0(stringr::str_match(x, paste0("(.*)\\.", ext))[,2], extra, ".", ext2))
 }
+
+path_home <- function() {
+  home <- Sys.getenv("HOME")
+  if (home == "") {
+    home <- normalizePath("~")
+  }
+  return(home)
+}

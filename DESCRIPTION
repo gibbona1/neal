@@ -14,7 +14,6 @@ Imports:
     dplyr,
     viridis,
     keys,
-    png,
     seewave,
     shiny,
     shinyBS,
@@ -25,22 +24,17 @@ Imports:
     shinyThings,
     shinyWidgets,
     tuneR,
-    janitor,
-    data.table
+    auth0,
+    purrr,
+    xfun
 Suggests:
     shinytest2,
     profvis,
     grid,
     raster,
-    rdist,
-    pkgload,
-    auth0,
-    fs,
-    purrr,
-    tidyr,
-    xfun
+    rdist
 Remotes:
     gadenbuie/shinyThings
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1

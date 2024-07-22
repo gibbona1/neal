@@ -11,12 +11,15 @@
 #' @import seewave 
 #' @importFrom tuneR readWave writeWave extractWave normalize
 #' @import viridis
-#' @rawNamespace import(data.table, except=c(last, first, between))
 #' @import dplyr
 #' @import stringr
 #' @importFrom shinyjs toggle reset click enable disable useShinyjs extendShinyjs disabled
 #' @import here
-#' @import janitor
+#' @import auth0
+#' @importFrom purrr map imap
+#' @importFrom xfun base64_uri
+#' @importFrom stats frequency time
+#' @importFrom utils read.csv write.csv write.table
 NULL
 
 utils::globalVariables(c(".", "amplitude", "start_time", "end_time", "start_freq", "end_freq", "start_time_crop", "end_freq_crop", "js"))
@@ -550,7 +553,7 @@ ui_func <- function() {
 }
 
 server <- function(input, output, session) {
-  volumes <- c(Home = fs::path_home(),
+  volumes <- c(Home = path_home(),
                "R Installation" = R.home(),
                getVolumes()())
   shinyDirChoose(
@@ -760,12 +763,14 @@ server <- function(input, output, session) {
   observeEvent(input$upload_labs, {
     new_df <- read.csv(input$upload_labs$datapath)
     full_df <- fullData()
-    add_df <- list(full_df[FALSE,], 
-                   new_df %>%
-                     select(intersect(names(.), names(full_df)))
-    ) %>%
-      data.table::rbindlist(use.names = TRUE, fill = TRUE) %>%
-      as.data.frame()
+    empty_df <- full_df[FALSE,]
+    new_df <- new_df %>%
+      select(intersect(names(.), names(full_df)))
+    # fill in non-overlapping columns with NAs
+    empty_df[setdiff(names(new_df), names(empty_df))] <- NA
+    new_df[setdiff(names(empty_df), names(new_df))] <- NA
+    add_df <- rbind(empty_df, new_df)
+    
     write_labs(add_df, append = FALSE, col.names = TRUE)
     fullData(rbind(full_df, add_df))
     showNotification(HTML(paste("Uploaded", tags$b(nrow(add_df)), 
@@ -1009,12 +1014,12 @@ server <- function(input, output, session) {
     df <- df[df$file_name %in% file_list(), ]
     if (input$summaryTabGroup)
       sum_df <- df %>%
-      janitor::tabyl(class_label, file_name) %>%
-      tidyr::gather(file_name, n, 2:ncol(.), convert = TRUE) %>%
+      count(class_label, file_name) %>%
+      #gather(file_name, n, 2:ncol(.), convert = TRUE) %>%
       select(file_name, class_label, n)
     else
       sum_df <- df %>%
-      janitor::tabyl(file_name) %>%
+      count(file_name) %>%
       select(file_name, n)
     sum_df$n <- as.integer(sum_df$n)
     sum_df <- sum_df %>%
@@ -2503,6 +2508,11 @@ server <- function(input, output, session) {
   })
 }
 
+#' Run the Shiny Application
+#' 
+#' Launches the shiny application when called
+#'
+#' @export
 nealApp <- function(){
   shinyApp(ui_func(), server)
 }
