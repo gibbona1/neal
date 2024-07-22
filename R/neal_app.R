@@ -19,6 +19,8 @@
 #' @import janitor
 NULL
 
+utils::globalVariables(c(".", "amplitude", "start_time", "end_time", "start_freq", "end_freq", "start_time_crop", "end_freq_crop", "js"))
+
 #Some taken from https://www.audubon.org/news/a-beginners-guide-common-bird-sounds-and-what-they-mean
 call_types <- c("song", "call", "subsong", "alarm call", "begging call", "contact call", "flight call",
                 "flock", "juvenile call", "mimicry", "nocturnal call", "whisper song")
@@ -1398,7 +1400,7 @@ server <- function(input, output, session) {
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width,
                          ovlp = input$fft_overlap,
-                         out  = "Wave")
+                         output  = "Wave")
       tmp_audio <- normalize(audio_inv, unit = "16")
     } else {
       audio_clean$noisered <- FALSE
@@ -1424,7 +1426,7 @@ server <- function(input, output, session) {
                          f    = tmp_audio@samp.rate,
                          wl   = input$window_width,
                          ovlp = input$fft_overlap,
-                         out  = "Wave")
+                         output  = "Wave")
       tmp_audio <- normalize(audio_inv, unit = "16")
     } else {
       audio_clean$select <- FALSE
