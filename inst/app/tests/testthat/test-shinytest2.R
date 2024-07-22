@@ -1,11 +1,8 @@
 #' @import shinytest2
 
-test_that("{shinytest2} recording: app-test1", {
-  app <- AppDriver$new(name = "neal-start", height = 569, width = 979)
-  app$set_inputs(`side-panel` = FALSE)
-  app$wait_for_value(input = "start_labelling", timeout = 5000)
-  app$click("start_labelling")
-  app$wait_for_value(input = "end_labelling", timeout = 5000)
-  app$click("end_labelling")
-  app$expect_values()
+test_that("{shinytest2} recording: app1", {
+  app <- AppDriver$new(variant = platform_variant(), name = "app1", height = 911, 
+      width = 1619)
+  app$set_inputs(label_points = "Bar-tailed Godwit")
+  app$expect_screenshot()
 })

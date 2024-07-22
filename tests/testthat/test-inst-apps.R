@@ -1,4 +1,3 @@
-# File: tests/testthat/test-inst-apps.R
 #' @import shinytest2
 
 test_that("sample_app works", {
@@ -6,5 +5,5 @@ test_that("sample_app works", {
   skip_on_cran()
   
   appdir <- system.file(package = "neal", "app")
-  test_app(appdir)
+  shinytest2::test_app(appdir)
 })
