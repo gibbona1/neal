@@ -1,10 +1,10 @@
 Package: neal
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: NEAL (Nature+Energy Audio Labeller), an open-source audio data annotation tool
+Version: 0.0.1.0
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Anthony", "Gibbons", , "anthony.gibbons.2022@mumail.ie", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-8479-4669"))
+Description: Built using R and the associated Shiny framework, the tool provides a reactive environment where users can quickly annotate audio files and adjust settings which automatically change the corresponding elements of the user interface. The app has been designed with the goal of having both expert birders and citizen scientists contribute acoustic annotation projects.
 License: MIT + file LICENSE
 Imports: 
     DT,
