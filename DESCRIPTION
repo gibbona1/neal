@@ -32,7 +32,13 @@ Suggests:
     profvis,
     grid,
     raster,
-    rdist
+    rdist,
+    pkgload,
+    auth0,
+    fs,
+    purrr,
+    tidyr,
+    xfun
 Remotes:
     gadenbuie/shinyThings
 Encoding: UTF-8
