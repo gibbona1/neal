@@ -3,3 +3,5 @@ _\.new\.png$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^app\.R$
+^rsconnect$
