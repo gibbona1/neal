@@ -13,9 +13,6 @@ Built using R and the associated Shiny framework, the tool provides a reactive e
 
 Part of the [Nature+Energy Project](https://www.marei.ie/project/natureenergy/).
 
-A demo deployment is available on a RStudio Server [here](https://rstudioserver.hamilton.ie:3939/content/35c6a672-2488-4079-bd75-f3d5d6d22789/).
+A demo deployment is available on an RStudio Server [here](https://gibbona1.shinyapps.io/neal/).
 
 [Data for the paper](https://github.com/gibbona1/neal_data)
-
-TODO: Demo videos
-
