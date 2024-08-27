@@ -1339,6 +1339,8 @@ server <- function(input, output, session) {
     if (is.null(tmp_audio) | is.null(input$frequency_range))
       return(NULL)
     
+    rms_original <- sqrt(mean(tmp_audio@left^2))
+    
     if (!is.null(ranges_osc$x) | !is.null(ranges_spec$x)) {
       #time crop
       if (!is.null(ranges_osc$x))
@@ -1406,7 +1408,15 @@ server <- function(input, output, session) {
                          wl   = input$window_width,
                          ovlp = input$fft_overlap,
                          output  = "Wave")
+      
       tmp_audio <- normalize(audio_inv, unit = "16")
+      
+      rms_reconstructed <- sqrt(mean(tmp_audio@left^2))
+      
+      # Adjust the amplitude of the reconstructed audio to match the original RMS
+      scaling_factor <- rms_original / rms_reconstructed
+      tmp_audio@left <- tmp_audio@left * scaling_factor
+      tmp_audio@left <- as.integer(tmp_audio@left)
     } else {
       audio_clean$noisered <- FALSE
     }
@@ -1432,7 +1442,15 @@ server <- function(input, output, session) {
                          wl   = input$window_width,
                          ovlp = input$fft_overlap,
                          output  = "Wave")
+      
       tmp_audio <- normalize(audio_inv, unit = "16")
+      
+      rms_reconstructed <- sqrt(mean(tmp_audio@left^2))
+      
+      # Adjust the amplitude of the reconstructed audio to match the original RMS
+      scaling_factor <- rms_original / rms_reconstructed
+      tmp_audio@left <- tmp_audio@left * scaling_factor
+      tmp_audio@left <- as.integer(tmp_audio@left)
     } else {
       audio_clean$select <- FALSE
     }
