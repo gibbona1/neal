@@ -400,7 +400,11 @@ ui_func <- function() {
       }),
       #Spectrogram Plot
       fluidRow({
-        uiOutput("specplot_ui")
+        div(
+          uiOutput("specplot_ui"),
+          tags$script(src = "JS/spec_hover.js"),
+          tags$script(src = "JS/update_ticker.js")
+        )
       }),
       #Oscillogram Plot
       #fluidRow({
@@ -564,6 +568,11 @@ server <- function(input, output, session) {
     filetypes      = c("wav"),
     allowDirCreate = FALSE
   )
+  
+  observeEvent(input$js_log, {
+    cat("JS Log:", input$js_log, "\n")  # Print to R console
+    # You can also use print() or showNotification() if you want to display it in the UI
+  })
   
   nickname_path  <- reactiveVal(NULL)
   
@@ -1669,7 +1678,6 @@ server <- function(input, output, session) {
               height: 30px;
               z-index: 100;
             }")),
-      tags$script(src = "JS/spec_hover.js"),
       #tags$script("$(document).on('shiny:inputchanged', function(event) {
       #             if (event.name === 'get_time') {
       #               document.getElementById('spec_time_js_line').style.left = event.value+'%';
@@ -1678,6 +1686,28 @@ server <- function(input, output, session) {
       uiOutput("hover_info")
     )
   })
+  
+  get_specplot_info <- function(p){
+    gbuild <- ggplot_build(p)
+    g <- ggplotGrob(p)
+    
+    panel_pos <- g$layout[g$layout$name == "panel", c("t", "l", "b", "r")]
+    
+    # Convert the top and left positions to npc
+    top_pos_npc  <- sum(grid::convertHeight(g$heights[1:(panel_pos$t - 1)], "npc", valueOnly = TRUE))
+    left_pos_npc <- sum(grid::convertWidth(g$widths[1:(panel_pos$l - 1)], "npc", valueOnly = TRUE))
+    
+    bottom_pos_npc <- sum(grid::convertHeight(g$heights[(panel_pos$b):length(g$heights)], "npc", valueOnly = TRUE))
+    right_pos_npc  <- sum(grid::convertWidth(g$widths[(panel_pos$r):length(g$widths)], "npc", valueOnly = TRUE))
+    
+    #browser()
+    return(list(
+      left = top_pos_npc,
+      top = left_pos_npc,
+      width =  1 - top_pos_npc - top_pos_npc,
+      height =  1 - left_pos_npc - right_pos_npc
+    ))
+  }
   
   output$specplot <- renderPlot({
     if (input$base_specplot)
@@ -1816,14 +1846,29 @@ server <- function(input, output, session) {
   output$spec_time_js_line <- renderUI({
     if (!input$spec_time_js)
       return(NULL)
-    return(div(style = "background-color: #FF0000;
+    return(div(id = "ticker",
+                style = "background-color: #FF0000;
                         width: 2px;
                         height: 100%;
                         position: absolute;
                         left: 0%;
                         z-index: 40;
-                        top:0;",
-               "some line"))
+                        top:0;"))
+  })
+  
+  observe({
+    req(input$get_time)
+    req(input$spec_time_js)
+    
+    total_width   <- session$clientData$output_specplot_width
+    total_height  <- session$clientData$output_specplot_height
+    
+    specplot_info <- get_specplot_info(specPlot())
+    # Send the current time to the JS to update the ticker position
+    session$sendCustomMessage("updateTicker", 
+                              list(plotDimensions = specplot_info,
+                                   total_width = total_width,
+                                   total_height = total_height))
   })
   
   observeEvent(input$savespec, {
