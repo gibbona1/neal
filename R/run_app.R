@@ -1846,6 +1846,8 @@ server <- function(input, output, session) {
   output$spec_time_js_line <- renderUI({
     if (!input$spec_time_js)
       return(NULL)
+    if (is.null(audioInput()))
+      return(NULL)
     return(div(id = "ticker",
                 style = "background-color: #FF0000;
                         width: 2px;
