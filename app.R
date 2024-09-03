@@ -1,3 +1,2 @@
-pkgload::load_all(".")
-
-nealApp()
+pkgload::load_all()
+NEAL::nealApp()
