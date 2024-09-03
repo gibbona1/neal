@@ -88,6 +88,7 @@ options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 bto_df <- read.csv(here("data", "bto_codes.csv"), fileEncoding = "UTF-8-BOM", quote="", stringsAsFactors = FALSE)
 
 ldir   <- "labels" #label directory
+audio_folder <- here("www")
 
 neal_data <- "https://raw.githubusercontent.com/gibbona1/neal_data/main/images/"
 
@@ -418,9 +419,7 @@ ui_func <- function() {
             div(
               uiOutput("audio_title"),
               uiOutput("my_audio"),
-              tags$script(src = "JS/audio_time.js")
-              #actionButton("get_time", "Get Time", onclick = js),
-              #verbatimTextOutput("audio_time")
+              tags$script(src = file.path("www", "JS/audio_time.js"))
             )
           }),
           column(3, {
@@ -453,11 +452,11 @@ ui_func <- function() {
       fluidRow({
         div(style = btn_sel_style,
             uiOutput("label_ui"), #backspace to delete
-            tags$script(src = "JS/remove_category.js"),
+            tags$script(src = file.path("www", "JS/remove_category.js")),
             column(6,
                    textInput("otherCategory", "Type in additional category:",
                              width = "100%"), #enter to add category
-                   tags$script(src = "JS/add_category.js"),
+                   tags$script(src = file.path("www", "JS/add_category.js")),
                    div(tags$b("Category buttons"),
                        div(style = "width: 100%; display: inline-block;",
                            tipify(actionButton("addCategory",
@@ -582,7 +581,6 @@ server <- function(input, output, session) {
   
   lab_nickname <- reactive({
     auth0_session <- session$userData$auth0_info
-    audio_folder <- here("inst", "app", "www")
     if (!dir.exists(audio_folder))
       return("tmp")
     if (is.null(auth0_session))
@@ -619,7 +617,7 @@ server <- function(input, output, session) {
   }
   
   dataPath <- reactive({
-    datapath <- here("inst", "app")
+    datapath <- here()
     dirinfo  <- parseDirPath(volumes, input$folder)
     if (!identical(dirinfo, character(0)))
       return(dirinfo)
@@ -1033,7 +1031,6 @@ server <- function(input, output, session) {
     #                       num_labels = 0)
     #  sum_df <- rbind(sum_df, new_df)
     #}
-    #browser()
     if (input$summaryTabGroup)
       sum_df <- sum_df[order(sum_df$file_name, sum_df$class_label), ]
     else
@@ -1670,9 +1667,7 @@ server <- function(input, output, session) {
               height: 30px;
               z-index: 100;
             }")),
-      tags$script(src = "JS/spec_hover.js"),
-      #tags$script("var audio = document.getElementById('my_audio_player');
-      #             var curtime = audio.currentTime;"),
+      tags$script(src = file.path("www", "JS/spec_hover.js")),
       #tags$script("$(document).on('shiny:inputchanged', function(event) {
       #             if (event.name === 'get_time') {
       #               document.getElementById('spec_time_js_line').style.left = event.value+'%';
@@ -1888,7 +1883,7 @@ server <- function(input, output, session) {
             z-index: 100;
            }
         ")),
-        tags$script(src = "JS/osc_hover.js"),
+        tags$script(src = file.path("www", "JS/osc_hover.js")),
         uiOutput("hover_info_osc")
       )
     else
@@ -2350,13 +2345,6 @@ server <- function(input, output, session) {
       ))
   })
   
-  output$audio_time <- renderText({
-    if (.is_null(input$file1))
-      return(NULL)
-    else
-      return(input$get_time)
-  })
-  
   observe({
     toggle(id  = "specplot",
            anim      = TRUE,
@@ -2519,6 +2507,12 @@ server <- function(input, output, session) {
       if(file.exists(tmp_filepath)){
         file.remove(tmp_filepath)
         cat("removed tmp .wav file", fill = TRUE)
+      }
+      
+      tmp_filepath <- isolate(here(dataPath(), "tmp_clean.wav"))
+      if(file.exists(tmp_filepath)){
+        file.remove(tmp_filepath)
+        cat("removed tmp clean .wav file", fill = TRUE)
       }
     },
     error = function(e) e
