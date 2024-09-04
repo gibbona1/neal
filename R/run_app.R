@@ -70,8 +70,9 @@ plot_z_style <- "
 }
 #specplot_front {
   position: absolute;
-  z-index: 3;
-}"
+  z-index: 4;
+}
+"
 
 jsCode <- "shinyjs.audiotoggle = function() {
   var audio = document.getElementById('my_audio_player');
@@ -1630,7 +1631,8 @@ server <- function(input, output, session) {
   
   output$specplot_ui <- renderUI({
     div(
-      tags$head(tags$style(HTML(plot_z_style))),
+      tags$head(tags$style(HTML(plot_z_style)),
+                tags$style("position: relative;")),
       plotOutput(
         "specplot_front",
         height   = input$spec_height,
@@ -1697,8 +1699,8 @@ server <- function(input, output, session) {
     top_pos_npc  <- sum(grid::convertHeight(g$heights[1:(panel_pos$t - 1)], "npc", valueOnly = TRUE))
     left_pos_npc <- sum(grid::convertWidth(g$widths[1:(panel_pos$l - 1)], "npc", valueOnly = TRUE))
     
-    bottom_pos_npc <- sum(grid::convertHeight(g$heights[(panel_pos$b):length(g$heights)], "npc", valueOnly = TRUE))
-    right_pos_npc  <- sum(grid::convertWidth(g$widths[(panel_pos$r):length(g$widths)], "npc", valueOnly = TRUE))
+    bottom_pos_npc <- sum(grid::convertHeight(g$heights[1:panel_pos$b], "npc", valueOnly = TRUE))
+    right_pos_npc  <- sum(grid::convertWidth(g$widths[1:panel_pos$r], "npc", valueOnly = TRUE))
     
     #browser()
     return(list(
@@ -1854,7 +1856,7 @@ server <- function(input, output, session) {
                         height: 100%;
                         position: absolute;
                         left: 0%;
-                        z-index: 40;
+                        z-index: 3;
                         top:0;"))
   })
   

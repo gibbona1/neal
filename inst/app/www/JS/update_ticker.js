@@ -19,13 +19,16 @@ $(document).on("shiny:connected", function() {
         var currentTime = audioElement.currentTime;
 
         if (duration > 0) {
-          var leftOffset = total_width * plotDims.left + (total_width * plotDims.width * currentTime / duration);
-          $("#ticker").css({top: total_height * plotDims.top, left: leftOffset + "px", height: total_height * plotDims.height});
+          var leftOffset = total_width * (plotDims.left + (plotDims.width * currentTime / duration));
+          $("#ticker").css({top: total_height * plotDims.top, 
+                            left: leftOffset, 
+                            height: total_height * plotDims.height
+          });
         }
       }
 
       // Update ticker position every 100 ms
-      setInterval(updateTicker, 100);
+      setInterval(updateTicker, 50);
     }
   });
 });
