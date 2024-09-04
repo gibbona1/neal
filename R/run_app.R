@@ -1854,15 +1854,17 @@ server <- function(input, output, session) {
                 style = "background-color: #FF0000;
                         width: 2px;
                         height: 100%;
+                        padding: 0%;
                         position: absolute;
-                        left: 0%;
-                        z-index: 3;
-                        top:0;"))
+                        z-index: 3;"))
   })
   
   observe({
     req(input$get_time)
     req(input$spec_time_js)
+    
+    if(!input$spec_time_js)
+      return(NULL)
     
     total_width   <- session$clientData$output_specplot_width
     total_height  <- session$clientData$output_specplot_height

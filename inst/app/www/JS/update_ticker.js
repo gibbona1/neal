@@ -8,18 +8,16 @@ $(document).on("shiny:connected", function() {
   Shiny.addCustomMessageHandler("updateTicker", function(message) {
     var plotDims = message.plotDimensions;
     var total_height = message.total_height;
-    var total_width = message.total_width;
-
+    var total_width  = message.total_width;
     if (plotDims) {
       var audioElement = $("#my_audio_player")[0];
-
       // Function to update ticker position based on current time
       function updateTicker() {
         var duration = audioElement.duration;
         var currentTime = audioElement.currentTime;
 
         if (duration > 0) {
-          var leftOffset = total_width * (plotDims.left + (plotDims.width * currentTime / duration));
+          var leftOffset = Math.floor(total_width * (plotDims.left + (plotDims.width * currentTime / duration)));
           $("#ticker").css({top: total_height * plotDims.top, 
                             left: leftOffset, 
                             height: total_height * plotDims.height
@@ -28,7 +26,7 @@ $(document).on("shiny:connected", function() {
       }
 
       // Update ticker position every 100 ms
-      setInterval(updateTicker, 50);
+      setInterval(updateTicker, 250);
     }
   });
 });
