@@ -64,10 +64,6 @@ plot_z_style <- "
   position: absolute;
   z-index: 1;
 }
-#specplot_time {
-  position: absolute;
-  z-index: 2;
-}
 #specplot_front {
   position: absolute;
   z-index: 4;
@@ -265,9 +261,9 @@ ui_func <- function() {
                  actionButton("savespec", "Download Spectrogram", icon = icon("save")),
                  checkboxInput("include_hover", "Include spectrogram hover tooltip",
                                value = FALSE),
-                 checkboxInput("spec_time_js", "JS vertical line guide", value = FALSE),
-                 checkboxInput("spec_time", "Vertical line guide for audio current time",
-                               value = FALSE),
+                 checkboxInput("spec_time_js", "Vertical line guide for audio current time", value = FALSE),
+                 #checkboxInput("spec_time", "Vertical line guide for audio current time",
+                #               value = FALSE),
                  checkboxInput("spec_freq_bounds", "Show grey boxes over filtered out audio", value = TRUE),
                  checkboxInput("include_guides", "Selected time/frequency guidelines",
                                value = FALSE),
@@ -426,7 +422,7 @@ ui_func <- function() {
             div(
               uiOutput("audio_title"),
               uiOutput("my_audio"),
-              tags$script(src = "JS/audio_time.js")
+              #tags$script(src = "JS/audio_time.js")
             )
           }),
           column(3, {
@@ -570,8 +566,9 @@ server <- function(input, output, session) {
     allowDirCreate = FALSE
   )
   
-  observeEvent(input$js_log, {
-    cat("JS Log:", input$js_log, "\n")  # Print to R console
+  observe({
+    if(!is.null(input$js_log))
+      cat("JS Log:", input$js_log, "\n")  # Print to R console
     # You can also use print() or showNotification() if you want to display it in the UI
   })
   
@@ -1467,10 +1464,6 @@ server <- function(input, output, session) {
     return(tmp_audio)
   })
   
-  gettime <- reactive(list(x = input$get_time))
-  
-  gettime_t <- gettime %>% throttle(50)
-  
   output$segmentNumText <- renderUI({
     txt <- "Segment: "
     if (.is_null(input$file1))
@@ -1649,11 +1642,6 @@ server <- function(input, output, session) {
         )
       ),
       plotOutput(
-        "specplot_time",
-        height = input$spec_height,
-        width  = "100%"
-      ),
-      plotOutput(
         "specplot_freq",
         height = input$spec_height,
         width  = "100%"
@@ -1750,31 +1738,6 @@ server <- function(input, output, session) {
     return(spec_plot)
   }, bg = "transparent")
   
-  output$specplot_time <- renderPlot({
-    if (.is_null(input$file1) | !input$spec_time)
-      return(NULL)
-    spec_plot <- specPlotFront()
-    if (!is.null(ranges_spec$y)) {
-      if (input$include_guides)
-        spec_plot <- spec_plot +
-          geom_hline(aes(yintercept = ranges_spec$y[1]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
-          geom_hline(aes(yintercept = ranges_spec$y[2]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
-          geom_vline(aes(xintercept = ranges_spec$x[1]), colour = "yellow", linetype = "dashed", alpha = 0.4) +
-          geom_vline(aes(xintercept = ranges_spec$x[2]), colour = "yellow", linetype = "dashed", alpha = 0.4)
-      spec_plot <- spec_plot +
-        geom_segment(aes(x = ranges_spec$x[1] + gettime_t()$x,
-                         xend = ranges_spec$x[1] + gettime_t()$x,
-                         y = ranges_spec$y[1], yend = ranges_spec$y[2]),
-                     colour = "yellow")
-    } else if (!is.null(dc_ranges_spec$y)) {
-      spec_plot <- spec_plot + geom_vline(aes(xintercept = dc_ranges_spec$x[1] + gettime_t()$x), colour = "yellow")
-    } else {
-      #browser()
-      spec_plot <- spec_plot + geom_vline(aes(xintercept = gettime_t()$x), colour = "yellow")
-    }
-    return(spec_plot)
-  }, bg = "transparent")
-  
   output$specplot_front <- renderPlot({
     if (.is_null(input$file1))
       return(NULL)
@@ -1859,22 +1822,15 @@ server <- function(input, output, session) {
                         z-index: 3;"))
   })
   
-  observe({
-    req(input$get_time)
-    req(input$spec_time_js)
-    
-    if(!input$spec_time_js)
+  observeEvent(input$spec_time_js, {
+    if(!isolate(input$spec_time_js))
       return(NULL)
     
-    total_width   <- session$clientData$output_specplot_width
-    total_height  <- session$clientData$output_specplot_height
-    
     specplot_info <- get_specplot_info(specPlot())
+    #browser()
+    print("server here")
     # Send the current time to the JS to update the ticker position
-    session$sendCustomMessage("updateTicker", 
-                              list(plotDimensions = specplot_info,
-                                   total_width = total_width,
-                                   total_height = total_height))
+    session$sendCustomMessage("updateTicker", list(plotDimensions = specplot_info))
   })
   
   observeEvent(input$savespec, {
