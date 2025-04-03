@@ -9,7 +9,7 @@
 #' @importFrom shinyWidgets radioGroupButtons updateRadioGroupButtons
 #' @import keys
 #' @import seewave 
-#' @importFrom tuneR readWave writeWave extractWave normalize
+#' @importFrom tuneR readWave writeWave extractWave normalize channel
 #' @import viridis
 #' @import dplyr
 #' @import stringr
@@ -1296,6 +1296,12 @@ server <- function(input, output, session) {
     if (.is_null(input$file1))
       return(NULL)
     tmp_audio <- readWave(here(dataPath(), input$file1))
+    
+    #if multiple channels, just take left
+    if (length(tmp_audio@right) > 0){
+      tmp_audio <- channel(tmp_audio, "left")
+      showNotification("Audio file has multiple channels. Only the left channel will be used.", type = "warning")
+    }
     
     #based on torchaudio::functional_gain
     audio_gain     <- function(waveform, gain_db = 0) {
