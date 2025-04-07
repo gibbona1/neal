@@ -1,6 +1,7 @@
 profiling/*
 shp_data/*
 inst/saved_configs/*
+inst/labels/*.csv
 www/*/*.wav
 .Rproj.user
 .Rhistory
