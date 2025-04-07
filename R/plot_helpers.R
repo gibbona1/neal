@@ -101,7 +101,9 @@ plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, sp
     sel_col <- rev(sel_col)
 
   if (!.is_null(input$file1)) {
-    spec_name_raw <- paste0(gsub(".wav", "", input$file1), "_spec_raw.png")
+    #get file extension (everything after last .)
+    ext <- str_extract(input$file1, "\\.[^.]+$")
+    spec_name_raw <- paste0(gsub(ext, "", input$file1), "_spec_raw.png")
     file_nm <- file.path(getwd(), "images", spec_name_raw)
   }
   

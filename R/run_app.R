@@ -9,7 +9,7 @@
 #' @importFrom shinyWidgets radioGroupButtons updateRadioGroupButtons
 #' @import keys
 #' @import seewave 
-#' @importFrom tuneR readWave writeWave extractWave normalize channel
+#' @importFrom tuneR readWave readMP3 writeWave extractWave normalize channel
 #' @import viridis
 #' @import dplyr
 #' @import stringr
@@ -183,7 +183,7 @@ ui_func <- function() {
                                 icon  = icon("folder")),
                  h5("Data folder"),
                  verbatimTextOutput("folder_name", placeholder = TRUE),
-                 fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = "audio/wav"),
+                 fileInput("upload_files", "Upload files to Data folder", multiple = TRUE, accept = c("audio/wav", "audio/mpeg")),
                  h5("Label file"),
                  verbatimTextOutput("label_loc"),
                  fileInput("upload_labs", "Upload labels", multiple = FALSE, accept = ".csv"),
@@ -562,7 +562,7 @@ server <- function(input, output, session) {
     input          = input,
     id             = "folder",
     roots          = volumes,
-    filetypes      = c("wav"),
+    filetypes      = c("wav", "mp3"),
     allowDirCreate = FALSE
   )
   
@@ -573,6 +573,7 @@ server <- function(input, output, session) {
   })
   
   nickname_path  <- reactiveVal(NULL)
+  ext <- reactiveVal('.wav')
   
   dataModal <- function(nickname, audio_folder, failed = FALSE) {
     modalDialog(
@@ -617,7 +618,8 @@ server <- function(input, output, session) {
   }
   
   get_file_list <- function() {
-    filenames <- list.files(dataPath(), pattern = "\\.wav$")
+    #this should allow wav or mp3
+    filenames <- list.files(dataPath(), pattern = "\\.wav$|\\.mp3$")
     filenames <- filenames[!stringr::str_starts(filenames, "tmp")]
     full_df   <- read.csv(labs_filename())
     if (!is.null(full_df))
@@ -853,7 +855,7 @@ server <- function(input, output, session) {
         disable("next_file")
       else
         enable("next_file")
-      file1_img <- change_ext(input$file1, "wav", "png", "_spec")
+      file1_img <- change_ext(input$file1, ext(), "png", "_spec")
       if (file1_img %in% list.files(here("images")))
         spec_preload <- TRUE
       else
@@ -1295,7 +1297,15 @@ server <- function(input, output, session) {
     
     if (.is_null(input$file1))
       return(NULL)
-    tmp_audio <- readWave(here(dataPath(), input$file1))
+    
+    file_ext <- str_extract(input$file1, "\\.[^.]+$")
+    
+    if(file_ext == ".mp3")
+      tmp_audio <- readMP3(here(dataPath(), input$file1))
+    else
+      tmp_audio <- readWave(here(dataPath(), input$file1))
+    
+    ext(file_ext)
     
     #if multiple channels, just take left
     if (length(tmp_audio@right) > 0){
@@ -1696,7 +1706,6 @@ server <- function(input, output, session) {
     bottom_pos_npc <- sum(grid::convertHeight(g$heights[1:panel_pos$b], "npc", valueOnly = TRUE))
     right_pos_npc  <- sum(grid::convertWidth(g$widths[1:panel_pos$r], "npc", valueOnly = TRUE))
     
-    #browser()
     return(list(
       left = top_pos_npc,
       top = left_pos_npc,
@@ -1714,7 +1723,7 @@ server <- function(input, output, session) {
   })
   
   output$specplot_img <- renderImage({
-    list(src    = here("images", change_ext(input$file1, "wav", "png", "_spec")),
+    list(src    = here("images", change_ext(input$file1, ext(), "png", "_spec")),
          width  = session$clientData$output_specplot_width,
          height = session$clientData$output_specplot_height
     )
@@ -1833,7 +1842,7 @@ server <- function(input, output, session) {
       return(NULL)
     
     specplot_info <- get_specplot_info(specPlot())
-    #browser()
+
     print("server here")
     # Send the current time to the JS to update the ticker position
     session$sendCustomMessage("updateTicker", list(plotDimensions = specplot_info))
@@ -1841,7 +1850,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$savespec, {
     if (!.is_null(input$file1))
-      spec_name <- gsub(".wav", "_spec.png", input$file1)
+      spec_name <- gsub(ext(), "_spec.png", input$file1)
     else
       spec_name <- "blank_spec.png"
     file_nm <- here("images", spec_name)
@@ -1914,7 +1923,8 @@ server <- function(input, output, session) {
         p <- p + coord_cartesian(xlim = dc_ranges_spec$x, expand = FALSE)
       else if (!is.null(dc_ranges_osc$x))
         p <- p + coord_cartesian(xlim = dc_ranges_osc$x, expand = FALSE)
-      osc_name <- gsub(".wav", "_osc.png", input$file1)
+      ext <- str_extract(input$file1, "\\.[^.]+$")
+      osc_name <- gsub(ext(), "_osc.png", input$file1)
     } else {
       osc_name <- "blank_osc.png"
     }
