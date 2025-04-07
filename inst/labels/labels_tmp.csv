@@ -1,0 +1,107 @@
+date_time,file_name,start_time,end_time,start_freq,end_freq,class_label,call_type,confidence,notes,labeler,id
+21/05/2022 21:19,1_SMU05115_20211104_064902_start_39_16.wav,4.98250373,5.829261427,0.535738874,4.316534164,Meadow Pipit,NA,1,NA,Anthony,4
+21/05/2022 22:25,1_SMU05115_20211104_064902_start_39_16.wav,5.464754322,6.637603264,6.230270052,8.61077079,Weather Noise,NA,1,NA,Anthony,9
+21/05/2022 22:26,2_RICHFIELDMET_20211218_111120.wav,2.620964433,4.367499778,4.316534164,6.463652477,Eurasian Magpie,NA,1,NA,Anthony,4
+03/06/2022 12:50,1_SMU05115_20211104_064902_start_39_16.wav,2.262069429,3.216923853,7.210476238,8.984182671,Insect Noise,NA,1,NA,Anthony,1
+07/06/2022 17:20,1_SMU05115_20211104_064902_start_39_16.wav,7.144438274,7.82905088,6.883740843,9.264241581,Barn Swallow,NA,1,NA,Anthony,1
+31/08/2022 12:32,1_SMU05115_20211104_064902_start_39_16.wav,13.19136581,14.93866038,1.161133375,10.80148807,Blackbird,NA,1,NA,Anthony,1
+31/08/2022 12:32,1_SMU05115_20211104_064902_start_39_16.wav,10.42065586,15.01820388,0.318772285,3.407429615,Linnet,NA,1,NA,Anthony,1
+06/09/2022 13:12,1_SMU05115_20211104_064902_start_39_16.wav,9.144227728,9.648679121,6.557005447,9.357594552,Human,NA,1,NA,Anthony,1
+2025-03-11T23:01:11+0000,V_C044_20200926_162424_B.wav,1.618184377,2.144635556,-0.021533203,3.722088737,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:01:27+0000,V_C044_20200926_162424_B.wav,6.577908642,7.568468097,-0.021533203,2.546144078,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:06:08+0000,V_C044_20200926_162447_B.wav,2.301073358,2.896258243,0.19425476,3.63809269,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:06:13+0000,V_C044_20200926_162447_B.wav,4.688815073,5.262993433,-0.021533203,2.882128266,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:06:18+0000,V_C044_20200926_162447_B.wav,6.187280548,6.985528512,0.19425476,4.814037349,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:24:38+0000,V_C044_20200926_162510_B.wav,1.307895415,1.976913492,0.19425476,3.218112454,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:24:42+0000,V_C044_20200926_162510_B.wav,5.076242133,5.499498468,0.026262665,3.722088737,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:24:46+0000,V_C044_20200926_162510_B.wav,5.813527361,6.141209684,-0.021533203,9.853800174,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:24:53+0000,V_C044_20200926_162510_B.wav,7.083296364,7.547512989,0.026262665,8.089883185,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:24:56+0000,V_C044_20200926_162510_B.wav,7.820581591,8.134610485,-0.021533203,8.341871326,mongoose,NA,1,NA,Anthony,1
+2025-03-11T23:25:35+0000,V_C044_20200926_163205_B.wav,6.127453301,7.268454956,-0.021533203,8.593859468,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:43:20+0000,#real #mongoose #wildlife #sounds.wav,0.64467767,10.0026125,0.851403634,15.57071093,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:03+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,0.288749033,0.852779478,1.307202383,12.81466083,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:08+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,1.542150022,2.469666754,2.315154948,13.48662921,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:13+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,2.870755071,4.738322544,1.643186572,12.64666874,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:20+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,9.037487936,10.01514071,3.071119372,13.48662921,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:25+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,5.21461492,7.683814868,2.56714309,13.90660945,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:30+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,10.30342293,12.12085437,2.063166807,14.24259363,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:35+0000,AQPqHwimfk8McW5DpL2nwqtC-HIfAVjZrdyGRpRnE_tzCODPsNVRnvOFSV5-aW1Zfp4LPB0vCa3qBqSx5wMaFMhF.wav,14.05109189,14.9535406,3.743087749,13.06664897,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:50+0000,Governors' Main Camp - Mongoose calling.wav,0.027292179,0.933064195,1.454195466,14.55757881,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:53+0000,Governors' Main Camp - Mongoose calling.wav,2.818049199,3.821742513,2.126163842,14.97755905,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:44:57+0000,Governors' Main Camp - Mongoose calling.wav,5.400723459,6.245294662,1.286203372,15.48153533,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:45:04+0000,Governors' Main Camp - Mongoose calling.wav,10.10094581,10.90879652,1.706183607,15.06155509,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:45:17+0000,Governors' Main Camp - Mongoose calling.wav,11.87576935,12.68362007,1.538191513,14.97755905,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:45:22+0000,Governors' Main Camp - Mongoose calling.wav,7.750834633,8.546445187,0.19425476,14.97755905,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:45:26+0000,Governors' Main Camp - Mongoose calling.wav,13.28338802,13.94435679,0.866223136,13.54962625,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:49:28+0000,Mongoose make THE cutest sounds! 😍🔊.wav,0,3.234241357,1.857070593,19.7762273,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:49:35+0000,Mongoose make THE cutest sounds! 😍🔊.wav,4.07402002,7.42060066,1.674222055,20.05050011,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:49:42+0000,Mongoose make THE cutest sounds! 😍🔊.wav,7.633678828,10.60423917,1.765646324,20.14192438,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:49:59+0000,Mongoose make THE cutest sounds! 😍🔊.wav,11.08053155,14.03855788,2.222767668,16.75922643,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:50:45+0000,Mongoose Sound ⧸ Mongoose Sound Effect ⧸ Rodent Animal Sounds.wav,0.815973354,1.75241052,0.577130828,16.11925655,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:50:52+0000,Mongoose Sound ⧸ Mongoose Sound Effect ⧸ Rodent Animal Sounds.wav,3.06685902,3.76274352,0.485706559,16.30210508,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:50:56+0000,Mongoose Sound ⧸ Mongoose Sound Effect ⧸ Rodent Animal Sounds.wav,5.025645019,5.498159185,0.39428229,15.75355947,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:00+0000,Mongoose Sound ⧸ Mongoose Sound Effect ⧸ Rodent Animal Sounds.wav,6.151087852,6.769651851,0.302858021,15.93640801,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:25+0000,Mongoose sound.wav,1.238154545,2.246300483,0.577130828,7.068253922,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:30+0000,Mongoose sound.wav,0.132731368,0.955166212,0.577130828,6.793981115,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:36+0000,Mongoose sound.wav,2.378951264,3.112952254,0.577130828,6.885405384,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:40+0000,Mongoose sound.wav,3.201386108,4.032664338,0.759979366,6.793981115,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:45+0000,Mongoose sound.wav,4.271435744,5.270738296,0.759979366,7.159678191,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:49+0000,Mongoose sound.wav,5.482979546,6.119703296,0.485706559,6.976829653,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:55+0000,Mongoose sound.wav,6.234667307,7.021728609,0.39428229,6.611132577,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:51:59+0000,Mongoose sound.wav,7.322403713,8.295176109,0.485706559,7.068253922,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:52:04+0000,Mongoose sound.wav,8.507417359,9.152984495,0.302858021,6.793981115,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:52:08+0000,Mongoose sound.wav,9.25910512,10.09038335,0.759979366,6.885405384,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:52:13+0000,Mongoose sound.wav,10.39105845,10.57417549,0.759979366,6.702556846,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:52:50+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,2.106180467,4.07402002,0.39428229,23.9765625,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:52:56+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,4.149224079,7.119784423,0.942827903,16.02783228,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:53:04+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,7.157386453,11.10559957,0.851403634,16.11925655,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:53:09+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,11.1432016,15,0.942827903,15.93640801,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:54:29+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,15.1132729,19.34976824,1.125676441,12.82798286,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:54:34+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,19.61298245,21.63095804,0.942827903,12.09658871,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:54:42+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,21.90670625,25.31595694,0.942827903,15.38786239,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:54:49+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,25.391161,29.99114263,0.851403634,14.93074105,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:55:51+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,30.01300082,34.85112863,1.125676441,15.6621352,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:55:58+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,34.95140071,39.76446051,1.399949248,15.6621352,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:56:04+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,39.86473259,44.9535406,1.308524979,15.75355947,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:56:27+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,45.03806884,51.34267581,1.21710071,15.6621352,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:56:36+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,51.46801591,60,1.399949248,15.93640801,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:58:09+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,60,67.23259051,1.582797786,15.6621352,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:58:16+0000,mongoose sound⧸ruddy mongoose ⧸indiyan mongoose ⧸srilanka mongoose ⧸world mongoose.wav,67.20752249,75,1.125676441,15.57071093,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:58:48+0000,Mongoose sounds #shorts #youtubeshorts #ytshorts #animals.wav,0.023755047,0.532451236,1.399949248,12.09658871,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:58:53+0000,Mongoose sounds #shorts #youtubeshorts #ytshorts #animals.wav,0.832451552,2.234626943,1.491373517,14.10792263,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:58:58+0000,Mongoose sounds #shorts #youtubeshorts #ytshorts #animals.wav,2.332453133,4.13245503,2.771313282,14.29077117,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:59:05+0000,Mongoose sounds #shorts #youtubeshorts #ytshorts #animals.wav,4.354194395,7.79576324,2.862737551,13.83364982,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:59:41+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,1.391741904,2.168850517,1.308524979,9.719557721,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:59:46+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,9.789528529,10.5165011,1.399949248,10.26810333,mongoose,NA,1,NA,Anthony,1
+2025-04-03T02:59:51+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,12.6723508,13.12357516,2.039919131,8.805315031,mongoose,NA,1,NA,Anthony,1
+2025-04-03T03:00:17+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,17.16885052,18.71053373,1.399949248,15.02216532,mongoose,NA,1,NA,Anthony,1
+2025-04-03T03:00:24+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,27.6723508,30,1.399949248,9.719557721,mongoose,NA,1,NA,Anthony,1
+2025-04-03T03:00:29+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,23.26037932,24.38844021,2.039919131,9.171012107,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:14:34+0000,V_C044_20200926_162303_B.wav,1.02387746,1.717643453,0.200880201,8.283480915,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:14:38+0000,V_C044_20200926_162303_B.wav,2.049765471,2.942804675,-0.021533203,7.862512128,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:15:06+0000,V_C044_20200926_162303_B.wav,6.109034579,7.149683568,-0.021533203,9.377999761,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:18:28+0000,V_C044_20200926_162447_B.wav,1.169072089,1.977800076,0.537655231,7.694124613,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:19:18+0000,V_C044_20200926_162542_B.wav,3.139427885,3.59986621,0.369267716,3.652824256,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:19:41+0000,V_C044_20200926_162542_B.wav,3.934055316,5.100003978,0.790236503,5.252505647,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:19:58+0000,V_C044_20200926_162542_B.wav,6.830360908,8.040868117,0.621848989,7.694124613,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:20:10+0000,V_C044_20200926_162606_B.wav,1.240216116,1.910729403,0.621848989,4.578955588,mongoose,NA,1,NA,Anthony,1
+2025-04-04T00:20:14+0000,V_C044_20200926_162606_B.wav,7.099587911,7.732003852,0.537655231,3.652824256,mongoose,NA,1,NA,Anthony,1
+2025-04-07T00:58:45+0000,V_C044_20200926_162303_B.wav,3.403182735,4.076955134,0.235642115,7.644692769,mongoose,NA,1,NA,Anthony,1
+2025-04-07T01:52:44+0000,Indian Grey Mongoose call for partner ｜ Wildlife ｜ Alert call ｜ Mysuru ｜ #mongoose #urbanwildlife.wav,5.708799815,6.494659653,1.454389011,10.6183354,mongoose,,1,,Anthony,1
+2025-04-07T01:52:47+0000,Indian Grey Mongoose call for partner ｜ Wildlife ｜ Alert call ｜ Mysuru ｜ #mongoose #urbanwildlife.wav,7.983657242,8.741943052,2.095865258,10.6183354,mongoose,,1,,Anthony,1
+2025-04-07T01:52:50+0000,Indian Grey Mongoose call for partner ｜ Wildlife ｜ Alert call ｜ Mysuru ｜ #mongoose #urbanwildlife.wav,10.56182899,11.29254077,2.462423113,11.35145111,mongoose,,1,,Anthony,1
+2025-04-07T01:52:54+0000,Indian Grey Mongoose call for partner ｜ Wildlife ｜ Alert call ｜ Mysuru ｜ #mongoose #urbanwildlife.wav,13.34680597,14.04994372,2.279144186,12.72604307,mongoose,,1,,Anthony,1
+2025-04-07T01:53:07+0000,Indian Grey Mongoose call for partner ｜ Wildlife ｜ Alert call ｜ Mysuru ｜ #mongoose #urbanwildlife.wav,20.51578161,21.28785443,2.462422764,12.17620593,mongoose,,1,,Anthony,1
+2025-04-07T01:53:11+0000,Indian Grey Mongoose call for partner ｜ Wildlife ｜ Alert call ｜ Mysuru ｜ #mongoose #urbanwildlife.wav,28.26408388,29.20160088,2.004225444,11.44309022,mongoose,,1,,Anthony,1
+2025-04-07T02:35:34+0000,XC984256 - Crab-eating Mongoose - Urva urva.wav,32.08281494,33.22713717,0.676842437,10.94046239,mongoose,,1,NA,Anthony,1
+2025-04-07T02:35:42+0000,XC984256 - Crab-eating Mongoose - Urva urva.wav,22.39081561,29.58763729,0.585202973,11.03210185,mongoose,,1,NA,Anthony,1
+2025-04-07T02:36:08+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,17.137963,18.79240477,1.135039756,11.03210185,mongoose,,1,NA,Anthony,1
+2025-04-07T02:36:11+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,23.56271186,24.3485717,2.051434395,8.282917938,mongoose,,1,NA,Anthony,1
+2025-04-07T02:36:14+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,27.83668642,28.5673982,2.143073858,8.649475793,mongoose,,1,NA,Anthony,1
+2025-04-07T02:36:17+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,29.24296192,29.91852564,1.593237075,8.924394185,mongoose,,1,NA,Anthony,1
+2025-04-07T02:37:24+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,32.55157345,34.16465417,1.776516003,11.12374132,mongoose,,1,NA,Anthony,1
+2025-04-07T02:37:31+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,35.26761534,37.9422962,1.409958147,11.21538078,mongoose,,1,NA,Anthony,1
+2025-04-07T02:37:34+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,38.61785992,39.84490423,1.776516003,10.665544,mongoose,,1,NA,Anthony,1
+2025-04-07T02:37:58+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,1.36589018,2.013879871,2.326352786,12.31505435,mongoose,,1,NA,Anthony,1
+2025-04-07T02:38:01+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,9.762182141,10.50668094,2.143073858,11.21538078,mongoose,,1,NA,Anthony,1
+2025-04-07T02:38:05+0000,XC984255 - Crab-eating Mongoose - Urva urva.wav,12.74017732,13.0986397,2.051434395,9.382591504,mongoose,,1,NA,Anthony,1

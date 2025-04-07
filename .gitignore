@@ -2,6 +2,7 @@ profiling/*
 shp_data/*
 inst/saved_configs/*
 inst/labels/*.csv
+!inst/labels/labels_tmp.csv
 www/*/*.wav
 .Rproj.user
 .Rhistory
