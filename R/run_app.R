@@ -1352,6 +1352,7 @@ server <- function(input, output, session) {
       disable("next_section")
       x_coords(NULL)
     }
+    tmp_audio <- normalize(tmp_audio, unit = "16")
     writeWave(tmp_audio, here(dataPath(), "tmp.wav"))
     return(tmp_audio)
   })
