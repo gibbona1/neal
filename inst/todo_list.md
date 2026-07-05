@@ -18,16 +18,16 @@ TODOs:
   - [ ] delete (are you sure plus undo)
 - [ ] navbarPage() to have distinct pages: label, verify/check, run model
   from https://shiny.rstudio.com/articles/layout-guide.html
-- [ ] Save list of added species as col in species csv (or append to a column) 
+- [ ] Save list of added species as col in species csv (or append to a column)
 - [ ] modalDialog instead of edit table for editing/listen to labels
 - [ ] Unit tests (especially for plots)
 - [ ] Check soundgen pitch app https://github.com/tatters/soundgen
-- [ ] Example sound files in right sidebar 
+- [ ] Example sound files in right sidebar
 - [ ] Species templates
   (https://birdwatchireland.ie/our-work/surveys-research/research-surveys/countryside-bird-survey/cbs-bird-songs-and-calls/)
 - [ ] Mel scale
 - [ ] gridExtra blank plot with correct axes, paste spec as image (not raster)
-- [ ] 3 labeling modes: 
+- [ ] 3 labeling modes:
   - [ ] Binary classification (whole file)
   - [ ] Event detection (time/x-axis)
   - [ ] Object detection (time and frewquency bounding boxes)
@@ -38,7 +38,7 @@ TODOs:
     - [x] First 9 labels in list
     - [ ] custom setup of 9 hotkeys
   - [x] undo label save or delete
-  - [ ] undo parameter changes 
+  - [ ] undo parameter changes
   - [ ] zoom in/out (double click already does this)
   - [ ] scroll bounding box up/down or left/right
 - [ ] CSS in own files

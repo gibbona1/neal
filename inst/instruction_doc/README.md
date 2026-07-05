@@ -6,7 +6,7 @@
 
 1. Login at https://rstudioserver.hamilton.ie:3939/content/35c6a672-2488-4079-bd75-f3d5d6d22789/
 
-If there is a login, use your given Auth0 username and password. 
+If there is a login, use your given Auth0 username and password.
 
 ![Login](ttps://raw.githubusercontent.com/gibbona1/neal_data/main/images/app_0login.png)
 
@@ -30,13 +30,13 @@ Sometimes there is a disconnect from the server. If this happens, reload or put 
 6. To save your selection as an annotation/label:
     1. Click the species identified.
     ![Display](ttps://raw.githubusercontent.com/gibbona1/neal_data/main/images/app_5aselectspecies.png)
-    2. Click ``Save Selection`` to label the selection as the chosen species. 
+    2. Click ``Save Selection`` to label the selection as the chosen species.
     ![Display](ttps://raw.githubusercontent.com/gibbona1/neal_data/main/images/app_5bselection_saved.png)
 
 7. To add an extra species to the list of classes:
     1. Type the species into the *Type in additional category* box
     ![Display](ttps://raw.githubusercontent.com/gibbona1/neal_data/main/images/app_6typespecies.png)
-    2. Press enter or click the *Add* button below 
+    2. Press enter or click the *Add* button below
     ![Display](ttps://raw.githubusercontent.com/gibbona1/neal_data/main/images/app_6baddspecies.png)
 
 7. To investigate a selection further:

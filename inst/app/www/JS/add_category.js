@@ -1,4 +1,4 @@
-document.getElementById("otherCategory").addEventListener("keyup", 
+document.getElementById("otherCategory").addEventListener("keyup",
     function(event) {
         event.preventDefault();
         if (event.keyCode === 13) {

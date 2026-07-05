@@ -106,7 +106,7 @@ plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, sp
     spec_name_raw <- paste0(gsub(ext, "", input$file1), "_spec_raw.png")
     file_nm <- file.path(getwd(), "images", spec_name_raw)
   }
-  
+
   spec_plot <- canvas +
     geom_raster(interpolate = as.logical(input$spec_interpolate)
                 ) +
@@ -122,7 +122,7 @@ plot_spectrogram <- function(df, canvas, input, length_ylabs, dc_ranges_spec, sp
                        breaks = y_breaks,
                        labels = paste0(paste0(rep(" ", length_ylabs$spec), collapse = ""),
                                        y_breaks, "kHz")
-                       ) 
+                       )
   return(spec_plot)
 }
 

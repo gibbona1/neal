@@ -1,4 +1,4 @@
-document.getElementById("label_ui").addEventListener("keyup", 
+document.getElementById("label_ui").addEventListener("keyup",
     function(event) {
         event.preventDefault();
         if (event.keyCode === 8) {

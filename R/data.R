@@ -3,7 +3,7 @@
 #' @name bto_codes
 #' @docType data
 #' @description
-#' The British Trust for Ornithology has a list of 2-letter species codes for over 250 bird species. 
+#' The British Trust for Ornithology has a list of 2-letter species codes for over 250 bird species.
 #' The dataset acts as a lookup table, matching species names with their corresponding BTO codes.
 #' @keywords data
 #' @references \url{ https://www.bto.org/sites/default/files/u16/downloads/forms_instructions/bto_bird_species_codes.pdf}
@@ -13,8 +13,8 @@ NULL
 #' @name location_list
 #' @docType data
 #' @description
-#' This has a list of recorders that were deployed along with accompanying metadata about the sites studied. 
-#' If the current audio file in the above format matches a recorder in the list, 
+#' This has a list of recorders that were deployed along with accompanying metadata about the sites studied.
+#' If the current audio file in the above format matches a recorder in the list,
 #' the following columns of the file are passed to the metadata tab:
 #' \itemize{
 #'    \item recorder name: prefix for audio file names recorded by this device
