@@ -1439,6 +1439,9 @@ server <- function(input, output, session) {
       # Adjust the amplitude of the reconstructed audio to match the original RMS
       scaling_factor <- rms_original / rms_reconstructed
       tmp_audio@left <- tmp_audio@left * scaling_factor
+      #anything outside the 16-bit range [-32768, 32767] will be rounded
+      tmp_audio@left[tmp_audio@left >  32767] <-  32767
+      tmp_audio@left[tmp_audio@left < -32768] <- -32768
       tmp_audio@left <- as.integer(tmp_audio@left)
     } else {
       audio_clean$noisered <- FALSE
@@ -1473,6 +1476,9 @@ server <- function(input, output, session) {
       # Adjust the amplitude of the reconstructed audio to match the original RMS
       scaling_factor <- rms_original / rms_reconstructed
       tmp_audio@left <- tmp_audio@left * scaling_factor
+      #anything outside the 16-bit range [-32768, 32767] will be rounded
+      tmp_audio@left[tmp_audio@left >  32767] <-  32767
+      tmp_audio@left[tmp_audio@left < -32768] <- -32768
       tmp_audio@left <- as.integer(tmp_audio@left)
     } else {
       audio_clean$select <- FALSE
