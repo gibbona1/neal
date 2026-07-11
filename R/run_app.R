@@ -1641,8 +1641,8 @@ server <- function(input, output, session) {
 
   output$specplot_ui <- renderUI({
     div(
-      tags$head(tags$style(HTML(plot_z_style)),
-                tags$style("position: relative;")),
+      style = "position: relative;",
+      tags$head(tags$style(HTML(plot_z_style))),
       plotOutput(
         "specplot_front",
         height   = input$spec_height,
@@ -1695,23 +1695,51 @@ server <- function(input, output, session) {
   })
 
   get_specplot_info <- function(p){
-    gbuild <- ggplot_build(p)
+    # grid::convertWidth/Height need an active graphics device sized like the
+    # actual rendered plot to convert axis margins (points/lines) to npc
+    # fractions correctly. Without this, R falls back to whatever device is
+    # current (opening a visible window if none is), sized nothing like the
+    # browser plot, which produces bogus panel fractions.
+    width_px  <- session$clientData$output_specplot_front_width
+    height_px <- session$clientData$output_specplot_front_height
+    if (is.null(width_px))  width_px  <- 800
+    if (is.null(height_px)) height_px <- input$spec_height
+
+    width_in  <- width_px  / 72
+    height_in <- height_px / 72
+
+    grDevices::pdf(NULL, width = width_in, height = height_in)
+    on.exit(grDevices::dev.off(), add = TRUE)
+
     g <- ggplotGrob(p)
 
     panel_pos <- g$layout[g$layout$name == "panel", c("t", "l", "b", "r")]
+    n_rows <- length(g$heights)
+    n_cols <- length(g$widths)
 
-    # Convert the top and left positions to npc
-    top_pos_npc  <- sum(grid::convertHeight(g$heights[1:(panel_pos$t - 1)], "npc", valueOnly = TRUE))
-    left_pos_npc <- sum(grid::convertWidth(g$widths[1:(panel_pos$l - 1)], "npc", valueOnly = TRUE))
+    idx_range <- function(from, to) if (from <= to) from:to else integer(0)
 
-    bottom_pos_npc <- sum(grid::convertHeight(g$heights[1:panel_pos$b], "npc", valueOnly = TRUE))
-    right_pos_npc  <- sum(grid::convertWidth(g$widths[1:panel_pos$r], "npc", valueOnly = TRUE))
+    # The panel row/column use a "null" unit (fills whatever space is left),
+    # which grid can only resolve to an absolute size in the context of a
+    # fully laid-out gtable, not by converting it directly in isolation.
+    # Instead, sum the *fixed*-size rows/cols around it (axis text, margins,
+    # titles - all absolute/font-based units, which do convert directly) and
+    # get the panel's share by subtracting from the known total device size.
+    top_abs    <- sum(grid::convertHeight(g$heights[idx_range(1, panel_pos$t - 1)], "in", valueOnly = TRUE))
+    bottom_abs <- sum(grid::convertHeight(g$heights[idx_range(panel_pos$b + 1, n_rows)], "in", valueOnly = TRUE))
+    left_abs   <- sum(grid::convertWidth(g$widths[idx_range(1, panel_pos$l - 1)], "in", valueOnly = TRUE))
+    right_abs  <- sum(grid::convertWidth(g$widths[idx_range(panel_pos$r + 1, n_cols)], "in", valueOnly = TRUE))
+
+    top_pos_npc    <- top_abs / height_in
+    bottom_pos_npc <- 1 - bottom_abs / height_in
+    left_pos_npc   <- left_abs / width_in
+    right_pos_npc  <- 1 - right_abs / width_in
 
     return(list(
-      left = top_pos_npc,
-      top = left_pos_npc,
-      width =  1 - top_pos_npc - top_pos_npc,
-      height =  1 - left_pos_npc - right_pos_npc
+      left   = left_pos_npc,
+      top    = top_pos_npc,
+      width  = right_pos_npc - left_pos_npc,
+      height = bottom_pos_npc - top_pos_npc
     ))
   }
 
@@ -1838,14 +1866,14 @@ server <- function(input, output, session) {
                         z-index: 3;"))
   })
 
-  observeEvent(input$spec_time_js, {
-    if(!isolate(input$spec_time_js))
-      return(NULL)
+  # Re-send ticker geometry any time the overlaid plot actually changes
+  # (zoom/pan, segment change, spec height, new file, ...), not just on toggle
+  observe({
+    req(input$spec_time_js)
+    req(!.is_null(input$file1))
 
-    specplot_info <- get_specplot_info(specPlot())
+    specplot_info <- get_specplot_info(specPlotFront())
 
-    print("server here")
-    # Send the current time to the JS to update the ticker position
     session$sendCustomMessage("updateTicker", list(plotDimensions = specplot_info))
   })
 

@@ -1,57 +1,60 @@
 $(document).on("shiny:connected", function() {
 
-  function logToShiny(message) {
-    Shiny.setInputValue("js_log", message, {priority: "event"});
-  }
-
   function getPlotDimensions() {
     var specplotDiv = $("#specplot");
 
     if (specplotDiv.length > 0) {
-      // Get the width and height of the specplot element
-      var total_width = specplotDiv.width();
-      var total_height = specplotDiv.height();
-
-      // Print the dimensions
-      // logToShiny("Width: " + total_width + ", Height: " + total_height);
-      return {total_width: total_width, total_height: total_height};
+      return {
+        total_width:  specplotDiv.width(),
+        total_height: specplotDiv.height()
+      };
     }
     return null;
   }
 
-  $(window).resize(function() {
-    getPlotDimensions();
-  });
+  var latestPlotDims = null;
+  var tickerHandle    = null;
 
-  // Custom message handler to update the ticker position
-  Shiny.addCustomMessageHandler("updateTicker", function(message) {
-    logToShiny("here");
-    var plotDims = message.plotDimensions;
-    var dims = getPlotDimensions();
-    logToShiny(JSON.stringify(dims));
-    if (dims && plotDims) {
-      var total_height = dims.total_height;
-      var total_width  = dims.total_height;
-      var audioElement = $("#my_audio_player")[0];
-      // Function to update ticker position based on current time
-      function updateTicker() {
-        var duration = audioElement.duration;
-        var currentTime = audioElement.currentTime;
-        logToShiny(JSON.stringify({currentTime: currentTime, duration: duration}));
-
-        if (duration > 0) {
-          var leftOffset = Math.floor(total_width * (plotDims.left + (plotDims.width * currentTime / duration)));
-          var attrs = {top: Math.floor(total_height * plotDims.top),
-                            left: Math.floor(leftOffset),
-                            height: Math.floor(total_height * plotDims.height)
-          };
-          logToShiny(JSON.stringify(attrs));
-          $("#ticker").css(attrs);
-        }
+  function updateTickerPosition() {
+    var ticker = $("#ticker");
+    if (ticker.length === 0) {
+      // Ticker removed from DOM (checkbox turned off) - stop polling
+      if (tickerHandle) {
+        clearInterval(tickerHandle);
+        tickerHandle = null;
       }
-
-      // Update ticker position every 100 ms
-      setInterval(updateTicker, 1000);
+      return;
     }
+
+    if (!latestPlotDims) return;
+
+    var dims = getPlotDimensions();
+    var audioElement = document.getElementById("my_audio_player");
+    if (!dims || !audioElement) return;
+
+    var duration = audioElement.duration;
+    if (!duration || isNaN(duration)) return;
+
+    var frac = audioElement.currentTime / duration;
+
+    var leftOffset = dims.total_width  * (latestPlotDims.left + latestPlotDims.width * frac);
+    var topOffset  = dims.total_height * latestPlotDims.top;
+    var height     = dims.total_height * latestPlotDims.height;
+
+    ticker.css({
+      left:   Math.round(leftOffset) + "px",
+      top:    Math.round(topOffset)  + "px",
+      height: Math.round(height)     + "px"
+    });
+  }
+
+  // Custom message handler to receive updated ticker geometry from the server
+  Shiny.addCustomMessageHandler("updateTicker", function(message) {
+    latestPlotDims = message.plotDimensions;
+    updateTickerPosition();
+    if (!tickerHandle)
+      tickerHandle = setInterval(updateTickerPosition, 50);
   });
+
+  $(document).on("timeupdate play pause seeked", "#my_audio_player", updateTickerPosition);
 });
