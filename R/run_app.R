@@ -1880,7 +1880,42 @@ server <- function(input, output, session) {
 
     specplot_info <- get_specplot_info(specPlotFront())
 
-    session$sendCustomMessage("updateTicker", list(plotDimensions = specplot_info))
+    # x-axis time range currently shown by the panel: a confirmed (double-click)
+    # zoom takes priority, otherwise it's the full current segment
+    view_range <- if (!is.null(dc_ranges_spec$x))
+      sort(dc_ranges_spec$x)
+    else if (!is.null(x_coords()))
+      x_coords()
+    else
+      specplot_range$x
+
+    # Absolute start time of whatever audio is actually loaded in the player.
+    # Mirrors the crop priority used in cleanInput()'s time-crop block, so the
+    # ticker always matches what's really playing: a live selection box plays
+    # (and should tick across) just that box, not the whole panel; once that
+    # selection is confirmed as a zoom, the box *is* the panel, so it ticks
+    # across the full width again, same as the unzoomed case.
+    if (!is.null(cleanInput())) {
+      crop_range <- if (!is.null(ranges_spec$x))
+        sort(ranges_spec$x)
+      else if (!is.null(ranges_osc$x))
+        sort(ranges_osc$x)
+      else if (!is.null(dc_ranges_spec$x))
+        sort(dc_ranges_spec$x)
+      else if (!is.null(dc_ranges_osc$x))
+        sort(dc_ranges_osc$x)
+      else
+        view_range
+      play_start <- crop_range[1]
+    } else {
+      play_start <- if (!is.null(view_range)) view_range[1] else 0
+    }
+
+    session$sendCustomMessage("updateTicker", list(
+      plotDimensions = specplot_info,
+      viewRange      = view_range,
+      playStart      = play_start
+    ))
   })
 
   observeEvent(input$savespec, {

@@ -12,8 +12,10 @@ $(document).on("shiny:connected", function() {
     return null;
   }
 
-  var latestPlotDims = null;
-  var tickerHandle    = null;
+  var latestPlotDims  = null;
+  var latestViewRange = null; // [start, end] seconds, x-axis range the panel currently shows
+  var latestPlayStart = 0;    // seconds, absolute start time of the audio currently loaded
+  var tickerHandle     = null;
 
   function updateTickerPosition() {
     var ticker = $("#ticker");
@@ -26,7 +28,7 @@ $(document).on("shiny:connected", function() {
       return;
     }
 
-    if (!latestPlotDims) return;
+    if (!latestPlotDims || !latestViewRange) return;
 
     var dims = getPlotDimensions();
     var audioElement = document.getElementById("my_audio_player");
@@ -35,7 +37,17 @@ $(document).on("shiny:connected", function() {
     var duration = audioElement.duration;
     if (!duration || isNaN(duration)) return;
 
-    var frac = audioElement.currentTime / duration;
+    var viewStart = latestViewRange[0];
+    var viewSpan  = latestViewRange[1] - latestViewRange[0];
+    if (!viewSpan) return;
+
+    // Absolute time the audio is currently at, in the same coordinate space
+    // as the plot's x-axis, then expressed as a fraction of the panel's
+    // currently visible x-range (which may be a live selection box smaller
+    // than the panel, or the panel's own full width when zoomed/unzoomed).
+    var currentAbsTime = latestPlayStart + audioElement.currentTime;
+    var frac = (currentAbsTime - viewStart) / viewSpan;
+    frac = Math.min(Math.max(frac, 0), 1);
 
     var leftOffset = dims.total_width  * (latestPlotDims.left + latestPlotDims.width * frac);
     var topOffset  = dims.total_height * latestPlotDims.top;
@@ -50,7 +62,9 @@ $(document).on("shiny:connected", function() {
 
   // Custom message handler to receive updated ticker geometry from the server
   Shiny.addCustomMessageHandler("updateTicker", function(message) {
-    latestPlotDims = message.plotDimensions;
+    latestPlotDims  = message.plotDimensions;
+    latestViewRange = message.viewRange;
+    latestPlayStart = message.playStart || 0;
     updateTickerPosition();
     if (!tickerHandle)
       tickerHandle = setInterval(updateTickerPosition, 50);
