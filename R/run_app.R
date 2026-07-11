@@ -1298,14 +1298,53 @@ server <- function(input, output, session) {
     if (.is_null(input$file1))
       return(NULL)
 
-    file_ext <- str_extract(input$file1, "\\.[^.]+$")
-
-    if(file_ext == ".mp3")
-      tmp_audio <- readMP3(here(dataPath(), input$file1))
-    else
-      tmp_audio <- readWave(here(dataPath(), input$file1))
+    file_ext  <- str_extract(input$file1, "\\.[^.]+$")
+    full_path <- here(dataPath(), input$file1)
+    is_mp3    <- file_ext == ".mp3"
 
     ext(file_ext)
+
+    # Only touch as much of the file as we need: for wav files, read just the
+    # header to get the duration (a few bytes via seek()), and later read only
+    # the requested segment directly off disk instead of loading + processing
+    # the whole recording on every segment/file switch. mp3 has no built-in
+    # partial-read support in tuneR, so it still has to be decoded in full.
+    if (is_mp3) {
+      full_audio <- readMP3(full_path)
+      len_s      <- length(full_audio) / full_audio@samp.rate
+    } else {
+      hdr   <- readWave(full_path, header = TRUE)
+      len_s <- hdr$samples / hdr$sample.rate
+    }
+
+    segment_end_s(len_s)
+    t_step <- input$t_step
+    if (len_s > t_step) {
+      time_seq  <- seq(from = 0, to = len_s, by = t_step)
+      tc        <- time_seq[segment_num()]
+      segment_start(tc)
+      segment_total(length(time_seq))
+      if (is_mp3)
+        tmp_audio <- extractWave_t(full_audio, c(tc, tc + t_step))
+      else
+        tmp_audio <- readWave(full_path, from = tc, to = tc + t_step, units = "seconds")
+      x_coords(c(tc, tc + t_step))
+      if (length(tmp_audio) < t_step * tmp_audio@samp.rate)
+        tmp_audio@left <- c(tmp_audio@left, rep(1, t_step * tmp_audio@samp.rate - length(tmp_audio)))
+      if (segment_num() == 1)
+        disable("prev_section")
+      else
+        enable("prev_section")
+      if (segment_num() == length(time_seq))
+        disable("next_section")
+      else
+        enable("next_section")
+    } else {
+      tmp_audio <- if (is_mp3) full_audio else readWave(full_path)
+      disable("prev_section")
+      disable("next_section")
+      x_coords(NULL)
+    }
 
     #if multiple channels, just take left
     if (length(tmp_audio@right) > 0){
@@ -1327,31 +1366,6 @@ server <- function(input, output, session) {
     tmp_audio@left[tmp_audio@left < -32768] <- -32768
     tmp_audio@left <- as.integer(tmp_audio@left)
 
-    len_s <- length(tmp_audio) / tmp_audio@samp.rate
-    segment_end_s(len_s)
-    t_step <- input$t_step
-    if (len_s > t_step) {
-      time_seq  <- seq(from = 0, to = len_s, by = t_step)
-      tc        <- time_seq[segment_num()]
-      segment_start(tc)
-      segment_total(length(time_seq))
-      tmp_audio <- extractWave_t(tmp_audio, c(tc, tc + t_step))
-      x_coords(c(tc, tc + t_step))
-      if (length(tmp_audio) < t_step * tmp_audio@samp.rate)
-        tmp_audio@left <- c(tmp_audio@left, rep(1, t_step * tmp_audio@samp.rate - length(tmp_audio)))
-      if (segment_num() == 1)
-        disable("prev_section")
-      else
-        enable("prev_section")
-      if (segment_num() == length(time_seq))
-        disable("next_section")
-      else
-        enable("next_section")
-    } else {
-      disable("prev_section")
-      disable("next_section")
-      x_coords(NULL)
-    }
     tmp_audio <- normalize(tmp_audio, unit = "16")
     writeWave(tmp_audio, here(dataPath(), "tmp.wav"))
     return(tmp_audio)
@@ -1390,13 +1404,13 @@ server <- function(input, output, session) {
     else
       frange <- input$frequency_range
 
-    tmp_spec <- spectro(tmp_audio,
-                        f        = tmp_audio@samp.rate,
-                        wl       = input$window_width,
-                        ovlp     = input$fft_overlap,
-                        plot     = FALSE)
+    # Full available frequency range (kHz) for these FFT settings, computed
+    # analytically to match seewave::spectro's freq output (see its source:
+    # Y <- seq(0, f/2 - f/wl, by = f/wl)/1000) without paying for an actual
+    # STFT just to read off its range.
+    full_freq_range <- c(0, (tmp_audio@samp.rate / 2 - tmp_audio@samp.rate / input$window_width) / 1000)
 
-    do_spec_crop <- frange_check(frange, range(tmp_spec$freq)) | select_zoom
+    do_spec_crop <- frange_check(frange, full_freq_range) | select_zoom
 
     if (!do_spec_crop &
         (input$noisereduction == "None"))
@@ -1502,12 +1516,12 @@ server <- function(input, output, session) {
     return(HTML(txt))
   })
 
-  specData <- reactive({
+  # The STFT itself (spectro()) only depends on the audio + FFT settings, not
+  # on display-only knobs like gain/contrast/sampling - split it out so those
+  # sliders don't force a full spectrogram recompute on every tweak.
+  specRaw <- reactive({
     if (.is_null(input$file1))
-      return(data.frame(time        = 0,
-                        frequency   = 0,
-                        amplitude   = -Inf,
-                        freq_select = 1))
+      return(NULL)
     tmp_audio <- audioInput()
 
     noisered <- noise_reduce(input$noisereduction)
@@ -1528,6 +1542,16 @@ server <- function(input, output, session) {
                     plot     = FALSE,
                     noisereduction = noisered,
                     dB = input$spec_db)
+    return(spec)
+  })
+
+  specData <- reactive({
+    if (.is_null(input$file1))
+      return(data.frame(time        = 0,
+                        frequency   = 0,
+                        amplitude   = -Inf,
+                        freq_select = 1))
+    spec <- specRaw()
 
     spec$amp <- spec$amp + input$db_gain
     spec$amp <- spec$amp + input$db_contrast
