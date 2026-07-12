@@ -1545,12 +1545,14 @@ server <- function(input, output, session) {
     return(spec)
   })
 
-  specData <- reactive({
+  # Gain/contrast/clamp applied to the raw STFT matrix - cheap (no melt to
+  # long format), so this is what the plot and the frequency-bounds checks
+  # should read from instead of specData()'s data.frame, which is only worth
+  # building when something actually needs one row per cell (hover tooltip,
+  # CSV export).
+  specAdjusted <- reactive({
     if (.is_null(input$file1))
-      return(data.frame(time        = 0,
-                        frequency   = 0,
-                        amplitude   = -Inf,
-                        freq_select = 1))
+      return(NULL)
     spec <- specRaw()
 
     spec$amp <- spec$amp + input$db_gain
@@ -1558,13 +1560,22 @@ server <- function(input, output, session) {
 
     spec$amp[spec$amp > -20] <- -20
 
-    #specRaster(spec)
+    spec$time <- spec$time + segment_start()
+
+    return(spec)
+  })
+
+  specData <- reactive({
+    if (.is_null(input$file1))
+      return(data.frame(time        = 0,
+                        frequency   = 0,
+                        amplitude   = -Inf,
+                        freq_select = 1))
+    spec <- specAdjusted()
 
     df   <- data.frame(time      = rep(spec$time, each  = nrow(spec$amp)),
                        frequency = rep(spec$freq, times = ncol(spec$amp)),
                        amplitude = as.vector(spec$amp))
-
-    df$time <- df$time + segment_start()
 
     #if (!is.null(dc_ranges_osc$x))
     #  df$time <- df$time + dc_ranges_osc$x[1]
@@ -1609,30 +1620,37 @@ server <- function(input, output, session) {
     return(df2)
   })
 
-  specCanvas <- reactive({
-    return(ggplot(specData(),
-                  aes(x    = time,
-                      y    = frequency,
-                      fill = amplitude)) +
-             spec_theme)})
-
   specPlot <- reactive({
-    df <- specData()
+    if (.is_null(input$file1)) {
+      specplot_range$x <- c(0, 1)
+      specplot_range$y <- c(0, 1)
+      return(ggplot() +
+               scale_x_continuous(expand = c(0, 0)) +
+               scale_y_continuous(expand = c(0, 0)) +
+               xlab("Time (s)") + ylab("Frequency (kHz)") +
+               spec_theme)
+    }
 
-    y_breaks <- pretty(df$frequency, 5)
+    spec <- specAdjusted()
+
+    y_breaks <- pretty(spec$freq, 5)
     if (!is.null(dc_ranges_spec$y))
       y_breaks <- pretty(dc_ranges_spec$y, 5)
 
-    x_breaks <- pretty(df$time, 5)
+    x_breaks <- pretty(spec$time, 5)
     if (!is.null(dc_ranges_spec$x))
       x_breaks <- pretty(dc_ranges_spec$x, 5)
 
-    p <- plot_spectrogram(df, specCanvas(), input, length_ylabs, dc_ranges_spec,
-                          specplot_range, x_breaks, y_breaks)
+    # Exact, un-zoomed extent of this segment's spectrogram, read straight
+    # off the data - previously this meant ggplot_build()-ing the plot just
+    # to ask it back for its own panel range, i.e. building the whole plot
+    # twice per render (once for this, once to actually draw it).
+    specplot_range$x <- range(spec$time)
+    specplot_range$y <- range(spec$freq)
 
-    gb   <- ggplot_build(p)
-    specplot_range$x <- gb$layout$panel_params[[1]]$x.range
-    specplot_range$y <- gb$layout$panel_params[[1]]$y.range
+    p <- plot_spectrogram(spec, input, length_ylabs, x_breaks, y_breaks,
+                          width_px  = session$clientData$output_specplot_width,
+                          height_px = session$clientData$output_specplot_height)
 
     if (!is.null(x_coords()))
       p <- p + coord_cartesian(xlim = x_coords(),
@@ -1646,13 +1664,13 @@ server <- function(input, output, session) {
   })
 
   specPlotFront <- reactive({
-    df <- specData()
+    spec <- specAdjusted()
 
-    y_breaks <- pretty(df$frequency, 5)
+    y_breaks <- pretty(spec$freq, 5)
     if (!is.null(dc_ranges_spec$y))
       y_breaks <- pretty(dc_ranges_spec$y, 5)
 
-    x_breaks <- pretty(df$time, 5)
+    x_breaks <- pretty(spec$time, 5)
     if (!is.null(dc_ranges_spec$x))
       x_breaks <- pretty(dc_ranges_spec$x, 5)
 
@@ -1793,11 +1811,11 @@ server <- function(input, output, session) {
       return(NULL)
     spec_plot <- specPlotFront()
 
-    df <- specData()
+    spec   <- specAdjusted()
     frange <- input$frequency_range
 
     if (!is.null(frange))
-      if (frange_check(frange, range(df$frequency)))
+      if (frange_check(frange, range(spec$freq)))
         spec_plot <- spec_plot +
       geom_rect(aes(xmin = -Inf,
                     xmax = Inf,
